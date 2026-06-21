@@ -9,6 +9,60 @@ import { ArrowLeft, Clock, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const db = getDb();
+  if (!db) {
+    return {
+      title: "Template | CP-Base",
+    };
+  }
+
+  try {
+    const [template] = await db.select().from(templates).where(eq(templates.slug, slug));
+    if (!template) {
+      return {
+        title: "Template Not Found | CP-Base",
+      };
+    }
+
+    const [category] = await db.select().from(categories).where(eq(categories.id, template.categoryId));
+
+    const title = `${template.title} | CP-Base`;
+    const description = template.description || `Optimized competitive programming template for ${template.title}.`;
+    const keywords = [
+      "competitive programming",
+      "cp template",
+      template.title.toLowerCase(),
+      `${template.title.toLowerCase()} code`,
+      ...(category ? [category.name.toLowerCase(), `${category.name.toLowerCase()} algorithms`] : []),
+      ...template.tags,
+    ];
+
+    return {
+      title,
+      description,
+      keywords,
+      openGraph: {
+        title: `${template.title} Template | CP-Base`,
+        description,
+        type: "article",
+        images: ["/opengraph-image"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${template.title} Template | CP-Base`,
+        description,
+      },
+    };
+  } catch (err) {
+    console.error("Error generating template metadata:", err);
+    return {
+      title: "Template | CP-Base",
+    };
+  }
+}
+
 export default async function TemplatePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const db = getDb();

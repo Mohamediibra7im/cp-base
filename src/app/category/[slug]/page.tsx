@@ -10,6 +10,45 @@ import { SearchInput } from "@/components/search-input";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const db = getDb();
+  if (!db) {
+    return {
+      title: "Category | CP-Base",
+    };
+  }
+
+  try {
+    const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
+    if (!category) {
+      return {
+        title: "Category Not Found | CP-Base",
+      };
+    }
+
+    return {
+      title: `${category.name} | CP-Base`,
+      description: category.description || `Browse competitive programming templates for ${category.name}.`,
+      openGraph: {
+        title: `${category.name} Templates | CP-Base`,
+        description: category.description || `Browse competitive programming templates for ${category.name}.`,
+        images: ["/opengraph-image"],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${category.name} Templates | CP-Base`,
+        description: category.description || `Browse competitive programming templates for ${category.name}.`,
+      },
+    };
+  } catch (err) {
+    console.error("Error generating category metadata:", err);
+    return {
+      title: "Category | CP-Base",
+    };
+  }
+}
+
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ q?: string }> }) {
   const { slug } = await params;
   const { q } = await searchParams;

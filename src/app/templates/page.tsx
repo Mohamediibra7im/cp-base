@@ -7,8 +7,9 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Templates",
-  description: "Browse all competitive programming templates.",
+  title: "All Templates",
+  description: "Browse the complete collection of optimized, copy-paste ready competitive programming templates across graphs, data structures, math, strings, and dynamic programming.",
+  keywords: ["all templates", "competitive programming", "algorithms list", "data structures list", "cp-base templates"],
 };
 
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
