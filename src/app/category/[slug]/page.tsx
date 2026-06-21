@@ -96,9 +96,11 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   return (
     <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
       {/* Back nav */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-8">
         <BackNav href="/" label="home" />
-        <SearchInput placeholder={`search in ${category!.name}...`} defaultValue={q} />
+        <div className="w-full sm:w-auto flex justify-end">
+          <SearchInput placeholder={`search in ${category!.name}...`} defaultValue={q} />
+        </div>
       </div>
 
       {/* Category header */}
@@ -118,9 +120,9 @@ export default async function CategoryPage({ params, searchParams }: { params: P
           </div>
         </div>
         {category!.description && (
-          <p className="text-sm text-muted-foreground ml-13">{category!.description}</p>
+          <p className="text-sm text-muted-foreground ml-0 sm:ml-13">{category!.description}</p>
         )}
-        <div className="flex items-center gap-2 mt-4 ml-13 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 mt-4 ml-0 sm:ml-13 text-xs text-muted-foreground">
           <span className="text-primary">$</span>
           <span>ls {category!.slug}/</span>
           <span className="text-border">|</span>

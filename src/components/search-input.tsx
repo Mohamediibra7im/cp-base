@@ -45,14 +45,14 @@ export function SearchInput({ placeholder = "search templates...", defaultValue 
   };
 
   return (
-    <div className="relative flex items-center">
+    <div className="relative flex items-center w-full sm:w-auto">
       <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
-        className="h-8 w-48 sm:w-56 pl-8 pr-7 text-xs border border-border bg-card text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
+        className="h-8 w-full sm:w-56 pl-8 pr-7 text-xs border border-border bg-card text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
       />
       {value && (
         <button

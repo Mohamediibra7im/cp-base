@@ -18,7 +18,7 @@ export function LanguageTabs({ codes }: { codes: { language: string; code: strin
   return (
     <div className="space-y-2">
       {/* Tabs */}
-      <div className="flex gap-0 border border-border border-b-0 bg-background">
+      <div className="flex gap-0 border border-border border-b-0 bg-background overflow-x-auto scrollbar-thin">
         {codes.map(({ language }) => {
           const isActive = active === language;
           return (
@@ -26,7 +26,7 @@ export function LanguageTabs({ codes }: { codes: { language: string; code: strin
               key={language}
               onClick={() => setActive(language)}
               className={`
-                px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border-r border-border last:border-r-0
+                px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border-r border-border last:border-r-0 shrink-0
                 ${isActive
                   ? "bg-primary/10 text-primary border-b-2 border-b-primary -mb-px"
                   : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/50"

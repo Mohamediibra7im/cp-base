@@ -103,7 +103,7 @@ export function CodeBlock({ code, language }: { code: string; language: string }
         </div>
 
         {/* Code */}
-        <div className="flex-1 overflow-x-auto py-3 px-4">
+        <div className="flex-1 min-w-0 overflow-x-auto py-3 px-4">
           {html ? (
             <div
               className="[&_pre]:!bg-transparent [&_code]:!bg-transparent text-[12px]"

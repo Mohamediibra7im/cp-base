@@ -99,7 +99,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   return (
     <div className="relative z-10 mx-auto max-w-4xl w-full px-4 py-8">
       {/* Back nav */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex flex-wrap items-center gap-2 mb-8">
         <Link
           href="/"
           className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-card text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
@@ -121,9 +121,9 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
 
       {/* Template header */}
       <div className="mb-8 border-b border-border pb-6">
-        <div className="flex items-center gap-2 mb-1 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 mb-1 text-xs text-muted-foreground">
           <span className="text-primary">$</span>
-          <span>cat templates/{template!.slug}</span>
+          <span className="break-all">cat templates/{template!.slug}</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-primary glow-text mt-3 mb-2">
           {template!.title}

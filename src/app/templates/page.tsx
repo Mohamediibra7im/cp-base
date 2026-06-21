@@ -1,6 +1,7 @@
 import { getDb, schema } from "@/db";
 import { sql } from "drizzle-orm";
 import { TemplatesList } from "@/components/templates-list";
+import { SearchInput } from "@/components/search-input";
 import { Terminal, Code2 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -69,24 +70,29 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
     <div className="relative z-10">
       <section className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-            <span className="text-primary">$</span>
-            <span className="text-foreground font-bold">
-              {q ? `grep "${q}" --all` : "ls templates/"}
-            </span>
-            {!q && <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />}
+        <div className="flex flex-col md:flex-row gap-4 md:items-end justify-between mb-10">
+          <div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
+              <span className="text-primary">$</span>
+              <span className="text-foreground font-bold">
+                {q ? `grep "${q}" --all` : "ls templates/"}
+              </span>
+              {!q && <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />}
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Terminal className="h-3 w-3" />
+                {totalTemplates} templates
+              </span>
+              <span className="text-border">|</span>
+              <span className="flex items-center gap-1.5">
+                <Code2 className="h-3 w-3" />
+                6 languages
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Terminal className="h-3 w-3" />
-              {totalTemplates} templates
-            </span>
-            <span className="text-border">|</span>
-            <span className="flex items-center gap-1.5">
-              <Code2 className="h-3 w-3" />
-              6 languages
-            </span>
+          <div className="w-full md:w-auto">
+            <SearchInput placeholder="search templates..." defaultValue={q} />
           </div>
         </div>
 
