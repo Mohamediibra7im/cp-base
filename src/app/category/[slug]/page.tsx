@@ -1,0 +1,139 @@
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getDb } from "@/db";
+import { categories, templates } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { TemplateCard } from "@/components/template-card";
+import * as LucideIcons from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
+import { SearchInput } from "@/components/search-input";
+
+export const dynamic = "force-dynamic";
+
+export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ q?: string }> }) {
+  const { slug } = await params;
+  const { q } = await searchParams;
+  const db = getDb();
+  if (!db) notFound();
+
+  let category;
+  let rows;
+
+  try {
+    [category] = await db.select().from(categories).where(eq(categories.slug, slug));
+    if (!category) notFound();
+
+    rows = await db.query.templates.findMany({
+      where: eq(templates.categoryId, category.id),
+      with: { category: true },
+      orderBy: (t, { desc }) => [desc(t.createdAt)],
+    });
+
+    // Filter by search query
+    if (q && q.trim()) {
+      const query = q.toLowerCase().trim();
+      rows = rows.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query) ||
+          t.description.toLowerCase().includes(query) ||
+          t.tags.some((tag) => tag.toLowerCase().includes(query))
+      );
+    }
+  } catch {
+    return (
+      <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
+        <BackNav href="/" label="home" />
+        <div className="text-center py-20 border border-border bg-card">
+          <div className="text-xs text-error mb-2 animate-blink">[ERR] Something went wrong</div>
+          <p className="text-xs text-muted-foreground">Try refreshing or try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const IconComponent = (LucideIcons as any)[category!.icon] ?? LucideIcons.Code;
+
+  return (
+    <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
+      {/* Back nav */}
+      <div className="flex items-center justify-between mb-8">
+        <BackNav href="/" label="home" />
+        <SearchInput placeholder={`search in ${category!.name}...`} defaultValue={q} />
+      </div>
+
+      {/* Category header */}
+      <div className="mb-10 border-b border-border pb-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="flex h-10 w-10 items-center justify-center border shrink-0"
+            style={{ borderColor: `${category!.color}44`, color: category!.color, backgroundColor: `${category!.color}08` }}
+          >
+            <IconComponent className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">{category!.name}</h1>
+              <span className="text-muted-foreground text-sm">({rows!.length})</span>
+            </div>
+          </div>
+        </div>
+        {category!.description && (
+          <p className="text-sm text-muted-foreground ml-13">{category!.description}</p>
+        )}
+        <div className="flex items-center gap-2 mt-4 ml-13 text-xs text-muted-foreground">
+          <span className="text-primary">$</span>
+          <span>ls {category!.slug}/</span>
+          <span className="text-border">|</span>
+          <span>wc -l</span>
+          <span className="text-success">{rows!.length} templates found</span>
+        </div>
+      </div>
+
+      {/* Templates */}
+      {rows!.length === 0 ? (
+        <div className="border border-border bg-card p-8">
+          <div className="space-y-2 text-xs font-mono">
+            <div className="text-muted-foreground"><span className="text-primary">$</span> ls {category!.slug}/</div>
+            <div className="text-muted-foreground/40">total 0</div>
+            <div className="h-px bg-border my-3" />
+            <div className="text-muted-foreground/60">
+              {q ? (
+                <>
+                  <span className="text-warning">[WARN]</span> No templates matching &quot;{q}&quot;
+                  <br />
+                  <span className="text-muted-foreground/40">Try a different search term.</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-muted-foreground/40">No templates in this category yet.</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows!.map((t, i) => (
+            <div key={t.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)}`}>
+              <TemplateCard template={t} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BackNav({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-card text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
+    >
+      <ArrowLeft className="h-3 w-3" />
+      <span className="text-primary/60">$</span>
+      cd {label}
+    </Link>
+  );
+}

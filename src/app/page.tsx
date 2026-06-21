@@ -1,65 +1,131 @@
-import Image from "next/image";
+import { getDb, schema } from "@/db";
+import { eq, sql } from "drizzle-orm";
+import { CategoryCard } from "@/components/category-card";
+import { HeroSection } from "@/components/hero-section";
+import { Braces, Terminal, Code2 } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const db = getDb();
+
+  if (!db) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+        <div className="border border-border bg-card p-8 max-w-md w-full">
+          <div className="text-xs space-y-2 text-left">
+            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-error animate-blink">[ERR] Something went wrong</div>
+            <div className="text-muted-foreground">Please try again later.</div>
+            <div className="flex items-center gap-1 mt-3">
+              <span className="text-primary">$</span>
+              <span className="inline-block h-3 w-1.5 bg-primary animate-blink" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  let cats: Awaited<ReturnType<typeof db.query.categories.findMany>> = [];
+  let countMap: Record<number, number> = {};
+  let totalTemplates = 0;
+
+  try {
+    cats = await db.query.categories.findMany({
+      orderBy: (c, { asc }) => [asc(c.order)],
+    });
+
+    for (const cat of cats) {
+      const [row] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.templates)
+        .where(eq(schema.templates.categoryId, cat.id));
+      countMap[cat.id] = row?.count ?? 0;
+    }
+
+    totalTemplates = Object.values(countMap).reduce((a, b) => a + b, 0);
+  } catch {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+        <div className="border border-border bg-card p-8 max-w-md w-full">
+          <div className="text-xs space-y-2 text-left">
+            <div className="text-muted-foreground">$ cp-base --status</div>
+            <div className="text-error animate-blink">[ERR] Something went wrong</div>
+            <div className="text-muted-foreground">Please try again later.</div>
+            <div className="flex items-center gap-1 mt-3">
+              <span className="text-primary">$</span>
+              <span className="inline-block h-3 w-1.5 bg-primary animate-blink" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="relative z-10 flex flex-col">
+      <HeroSection totalTemplates={totalTemplates} totalCategories={cats.length} />
+
+      {/* Categories Section */}
+      <section id="categories" className="relative border-b border-border">
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          {/* Section header */}
+          <div className="mb-10">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+              <span className="text-primary">$</span>
+              <span className="text-foreground font-bold">ls categories/</span>
+              <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Braces className="h-3 w-3" />
+                {cats.length} categories
+              </span>
+              <span className="text-border">|</span>
+              <span className="flex items-center gap-1.5">
+                <Terminal className="h-3 w-3" />
+                {totalTemplates} templates
+              </span>
+              <span className="text-border">|</span>
+              <span className="flex items-center gap-1.5">
+                <Code2 className="h-3 w-3" />
+                6 languages
+              </span>
+            </div>
+          </div>
+
+          {/* Category grid */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {cats.map((cat, i) => (
+              <div key={cat.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)}`}>
+                <CategoryCard category={cat} count={countMap[cat.id] || 0} />
+              </div>
+            ))}
+          </div>
+
+          {/* Empty state */}
+          {cats.length === 0 && (
+            <div className="border border-border bg-card p-8 text-center">
+              <div className="text-xs text-muted-foreground mb-2">[EMPTY] No categories found</div>
+              <p className="text-xs text-muted-foreground/60">No categories yet. Check back later.</p>
+            </div>
+          )}
+
+          {/* View all templates link */}
+          <div className="mt-10 text-center">
+            <Link
+              href="/templates"
+              className="inline-flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <span className="text-primary">$</span>
+              <span>view all templates</span>
+              <span className="text-muted-foreground/30">→</span>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
     </div>
   );
 }
