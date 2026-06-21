@@ -84,11 +84,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
                 <Terminal className="h-3 w-3" />
                 {totalTemplates} templates
               </span>
-
             </div>
-          </div>
-          <div className="w-full md:w-auto">
-            <SearchInput placeholder="search templates..." defaultValue={q} />
           </div>
         </div>
 

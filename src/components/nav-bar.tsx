@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Terminal, Search, X, Braces, Library, Menu } from "lucide-react";
+import { useTerminalTheme } from "./theme-provider";
 import {
   Sheet,
   SheetContent,
@@ -15,6 +16,7 @@ import {
 function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { playClick } = useTerminalTheme();
   const [value, setValue] = useState(searchParams.get("q") || "");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +57,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
+        playClick();
         inputRef.current?.focus();
       }
       if (e.key === "Escape") {
@@ -64,7 +67,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [playClick]);
 
   return (
     <div className="relative flex items-center w-full">
@@ -83,7 +86,10 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
           ref={inputRef}
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            playClick();
+            setValue(e.target.value);
+          }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="grep templates..."
@@ -98,6 +104,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
           <button
             type="button"
             onClick={() => {
+              playClick();
               setValue("");
               lastPushed.current = "";
               router.push("/templates", { scroll: false });
@@ -114,6 +121,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
 
 export function NavBar() {
   const pathname = usePathname();
+  const { playClick } = useTerminalTheme();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -143,7 +151,10 @@ export function NavBar() {
               <NavSearch autoFocus />
             </div>
             <button
-              onClick={() => setShowSearch(false)}
+              onClick={() => {
+                playClick();
+                setShowSearch(false);
+              }}
               className="h-8 w-8 flex items-center justify-center border border-border bg-card/30 text-muted-foreground hover:text-primary hover:border-primary/30 transition-all shrink-0"
             >
               <X className="h-3.5 w-3.5" />
@@ -154,7 +165,11 @@ export function NavBar() {
             {/* Left: Logo + Nav links */}
             <div className="flex items-center gap-8">
               {/* Logo */}
-              <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <Link
+                href="/"
+                onClick={playClick}
+                className="flex items-center gap-2 group shrink-0"
+              >
                 <div className="relative flex items-center justify-center h-5 w-5 border border-primary/30 bg-primary/5">
                   <Terminal className="h-3 w-3 text-primary" />
                 </div>
@@ -167,6 +182,7 @@ export function NavBar() {
               <nav className="hidden sm:flex items-center gap-1">
                 <Link
                   href="/#categories"
+                  onClick={playClick}
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wide uppercase transition-colors ${
                     pathname === "/"
                       ? "text-primary"
@@ -181,6 +197,7 @@ export function NavBar() {
                 </Link>
                 <Link
                   href="/templates"
+                  onClick={playClick}
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wide uppercase transition-colors ${
                     isActive("/templates")
                       ? "text-primary"
@@ -210,7 +227,10 @@ export function NavBar() {
 
               {/* Mobile Search Button */}
               <button
-                onClick={() => setShowSearch(true)}
+                onClick={() => {
+                  playClick();
+                  setShowSearch(true);
+                }}
                 className="flex md:hidden h-8 w-8 items-center justify-center border border-border bg-card/30 hover:border-primary/30 transition-all shrink-0"
               >
                 <Search className="h-3.5 w-3.5 text-muted-foreground hover:text-primary transition-colors" />
@@ -218,7 +238,7 @@ export function NavBar() {
 
               {/* Mobile Menu Trigger */}
               <div className="flex sm:hidden">
-                <Sheet open={open} onOpenChange={setOpen}>
+                <Sheet open={open} onOpenChange={(val) => { playClick(); setOpen(val); }}>
                   <SheetTrigger
                     render={
                       <button
@@ -254,7 +274,10 @@ export function NavBar() {
                       </div>
                       <Link
                         href="/#categories"
-                        onClick={() => setOpen(false)}
+                        onClick={() => {
+                          playClick();
+                          setOpen(false);
+                        }}
                         className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
                           pathname === "/"
                             ? "border-primary/20 bg-primary/5 text-primary"
@@ -266,7 +289,10 @@ export function NavBar() {
                       </Link>
                       <Link
                         href="/templates"
-                        onClick={() => setOpen(false)}
+                        onClick={() => {
+                          playClick();
+                          setOpen(false);
+                        }}
                         className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
                           isActive("/templates")
                             ? "border-primary/20 bg-primary/5 text-primary"
@@ -276,8 +302,6 @@ export function NavBar() {
                         <Library className="h-3.5 w-3.5" />
                         <span>templates</span>
                       </Link>
-
-
                     </nav>
 
                     <div className="absolute bottom-6 left-6 right-6 font-mono text-[9px] text-muted-foreground/30 flex justify-between items-center border-t border-border/50 pt-4">

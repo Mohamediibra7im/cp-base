@@ -117,7 +117,7 @@ export default async function Home() {
           {/* Category grid */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {cats.map((cat, i) => (
-              <div key={cat.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)}`}>
+              <div key={cat.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)} h-full`}>
                 <CategoryCard category={cat} count={countMap[cat.id] || 0} />
               </div>
             ))}

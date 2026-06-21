@@ -31,7 +31,19 @@ export const metadata = {
   ],
   authors: [{ name: "Mohamed Ibrahim", url: "https://mohamediibrahim.dev" }],
   creator: "Mohamed Ibrahim",
-  metadataBase: new URL("https://cp-base.dev"),
+  icons: {
+    icon: [
+      { url: "/icon", type: "image/png", sizes: "32x32" },
+    ],
+    shortcut: "/icon",
+    apple: [
+      { url: "/icon", type: "image/png", sizes: "32x32" },
+    ],
+  },
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://cp-base.mohmmediibrahim.dev")
+  ),
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -39,12 +51,21 @@ export const metadata = {
     title: "CP-Base | Competitive Programming Templates",
     description:
       "A terminal-themed competitive programming template library. Organized, searchable, and ready to use.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "CP-Base | Competitive Programming Templates",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "CP-Base | Competitive Programming Templates",
     description:
       "A terminal-themed competitive programming template library.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

@@ -96,11 +96,8 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   return (
     <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
       {/* Back nav */}
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-8">
+      <div className="mb-8">
         <BackNav href="/" label="home" />
-        <div className="w-full sm:w-auto flex justify-end">
-          <SearchInput placeholder={`search in ${category!.name}...`} defaultValue={q} />
-        </div>
       </div>
 
       {/* Category header */}
@@ -156,7 +153,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows!.map((t, i) => (
-            <div key={t.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)}`}>
+            <div key={t.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)} h-full`}>
               <TemplateCard template={t} />
             </div>
           ))}

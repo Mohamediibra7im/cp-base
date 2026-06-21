@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Search, X } from "lucide-react";
+import { useTerminalTheme } from "./theme-provider";
 
 interface SearchInputProps {
   placeholder?: string;
@@ -12,6 +13,7 @@ interface SearchInputProps {
 export function SearchInput({ placeholder = "search templates...", defaultValue = "" }: SearchInputProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { playClick } = useTerminalTheme();
   const [value, setValue] = useState(defaultValue);
   const timeoutRef = useRef<NodeJS.Timeout>(null);
   const lastPushed = useRef(defaultValue);
@@ -40,17 +42,21 @@ export function SearchInput({ placeholder = "search templates...", defaultValue 
   }, [value, pushSearch]);
 
   const clearSearch = () => {
+    playClick();
     setValue("");
     pushSearch("");
   };
 
   return (
-    <div className="relative flex items-center w-full sm:w-auto">
+    <div className="relative flex items-center w-full sm:w-auto font-mono">
       <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
       <input
         type="text"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          playClick();
+          setValue(e.target.value);
+        }}
         placeholder={placeholder}
         className="h-8 w-full sm:w-56 pl-8 pr-7 text-xs border border-border bg-card text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/50 transition-colors"
       />

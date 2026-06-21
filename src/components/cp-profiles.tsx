@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { SiCodeforces, SiLeetcode } from "react-icons/si";
 import { Award, ExternalLink } from "lucide-react";
+import { useTerminalTheme } from "./theme-provider";
 
 interface ProfileData {
   handle: string;
@@ -19,7 +20,6 @@ interface ApiResponse {
   leetcode: ProfileData;
 }
 
-// Fallback values — cards render immediately with these, then update when API responds
 const FALLBACK_DATA: ApiResponse = {
   codeforces: {
     handle: "MIDORIYA_",
@@ -61,27 +61,26 @@ interface ProfileCard {
 
 function ProfileIcon({ type, color }: { type: ProfileCard["icon"]; color: string }) {
   if (type === "codeforces") {
-    return <SiCodeforces className="h-4 w-4" style={{ color }} />;
+    return <SiCodeforces className="h-4.5 w-4.5" style={{ color }} />;
   }
   if (type === "leetcode") {
-    return <SiLeetcode className="h-4 w-4" style={{ color }} />;
+    return <SiLeetcode className="h-4.5 w-4.5" style={{ color }} />;
   }
-  // AtCoder — use the official white logo from public/logos
   return (
     <Image
       src="/logos/atcoder2.png"
       alt="AtCoder"
       width={20}
       height={20}
-      className="h-5 w-5 object-contain"
+      className="h-5 w-5 object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
       unoptimized
     />
   );
 }
 
 export function CPProfiles() {
-  // Start with fallback data so cards render immediately — no loading spinner
   const [data, setData] = useState<ApiResponse>(FALLBACK_DATA);
+  const { playClick } = useTerminalTheme();
 
   useEffect(() => {
     let active = true;
@@ -127,7 +126,7 @@ export function CPProfiles() {
       handle: data.atcoder.handle,
       url: `https://atcoder.jp/users/${data.atcoder.handle}`,
       icon: "atcoder",
-      color: "#ffffff",
+      color: "#a1a1aa",
       solved: data.atcoder.solved ?? 0,
       rating: data.atcoder.rating,
       rank: data.atcoder.rank || "N/A",
@@ -153,79 +152,93 @@ export function CPProfiles() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 font-mono">
       {profiles.map((p) => (
         <div
           key={p.name}
           style={{
             "--hover-color": p.color,
           } as any}
-          className="group relative flex flex-col border border-border bg-card transition-all duration-300 min-h-[190px] hover:border-[var(--hover-color)]/30 hover:shadow-[0_0_20px_var(--hover-color)]/[0.03] overflow-hidden"
+          className="group relative flex flex-col border border-border bg-card transition-all duration-300 min-h-[200px] hover:border-[var(--hover-color)]/50 hover:shadow-[0_0_20px_rgba(0,0,0,0.4),0_0_15px_var(--hover-color)]/[0.05] overflow-hidden"
         >
+          {/* Terminal Window Header */}
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <div className="flex gap-1 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
+              </div>
+              <span className="text-[9px] text-muted-foreground/30 truncate max-w-[150px]">
+                {p.cli}_diagnostics.exe
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold">
+              {p.active ? (
+                <span className="h-1 w-1 bg-success rounded-full animate-ping" />
+              ) : (
+                <span className="h-1 w-1 bg-warning rounded-full" />
+              )}
+              <span className="text-muted-foreground/30 text-[8px]">
+                {p.active ? "SYNC" : "CACHE"}
+              </span>
+            </div>
+          </div>
+
           {/* Top accent line */}
           <div
-            className="absolute top-0 left-0 right-0 h-px opacity-30"
+            className="absolute top-[27px] left-0 right-0 h-px opacity-30"
             style={{
               background: `linear-gradient(90deg, transparent, ${p.color}, transparent)`,
             }}
           />
 
-          <div className="p-5 flex flex-col flex-1">
-            {/* Header: CLI style */}
-            <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-2">
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/40 font-mono">
-                <span className="text-primary/60">$</span>
-                <span>{p.cli} --info -u {p.handle}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                {p.active ? (
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-success" title="Live sync active" />
-                ) : (
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-warning" title="Using offline/cached stats" />
-                )}
-                <span className="text-[9px] text-muted-foreground/20 font-mono">
-                  {p.active ? "LIVE" : "CACHED"}
-                </span>
-              </div>
+          <div className="p-4 flex flex-col flex-1 mt-1">
+            {/* Command Header line */}
+            <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground/45 border-b border-border/40 pb-2 mb-3">
+              <span className="text-primary/60">$</span>
+              <span>{p.cli} --info --user={p.handle}</span>
+              <span className="h-2 w-1 bg-primary/40 animate-blink" />
             </div>
 
             {/* Identity Row */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div
                 className="flex h-9 w-9 items-center justify-center border shrink-0 bg-background transition-colors"
                 style={{
                   borderColor: `${p.color}33`,
                   color: p.color,
+                  boxShadow: `0 0 10px ${p.color}11`,
                 }}
               >
                 <ProfileIcon type={p.icon} color={p.color} />
               </div>
               <div>
-                <h3 className="font-bold text-sm text-foreground font-mono leading-none mb-1 group-hover:text-primary transition-colors">
+                <h3 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors leading-none mb-1">
                   {p.name}
                 </h3>
-                <p className="text-[10px] text-muted-foreground/30 font-mono leading-none">
+                <p className="text-[9px] text-muted-foreground/40 leading-none">
                   @{p.handle}
                 </p>
               </div>
             </div>
 
             {/* Stats Block */}
-            <div className="text-xs font-mono mb-4">
-              <div className="border border-border/30 bg-muted/10 p-3">
+            <div className="text-[11px] mb-3">
+              <div className="border border-border/30 bg-muted/10 p-2.5">
                 {p.icon === "leetcode" ? (
                   <>
-                    <div className="text-[9px] text-muted-foreground/30 uppercase">Top %</div>
-                    <div className="font-bold text-base text-foreground mt-1 flex items-center gap-2">
-                      <Award className="h-4 w-4 shrink-0" style={{ color: p.color }} />
+                    <div className="text-[8px] text-muted-foreground/30 uppercase tracking-wider font-bold">Tier Rank</div>
+                    <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5">
+                      <Award className="h-3.5 w-3.5 shrink-0" style={{ color: p.color }} />
                       <span>{p.rank}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-[9px] text-muted-foreground/30 uppercase">Rating</div>
-                    <div className="font-bold text-base text-foreground mt-1 flex items-center gap-2">
-                      <Award className="h-4 w-4 shrink-0" style={{ color: p.color }} />
+                    <div className="text-[8px] text-muted-foreground/30 uppercase tracking-wider font-bold">Rating Value</div>
+                    <div className="font-bold text-sm text-foreground mt-0.5 flex items-center gap-1.5">
+                      <Award className="h-3.5 w-3.5 shrink-0" style={{ color: p.color }} />
                       <span>{p.rating ?? "N/A"}</span>
                     </div>
                   </>
@@ -234,12 +247,16 @@ export function CPProfiles() {
             </div>
 
             {/* Footer row */}
-            <div className="flex items-center justify-end mt-auto pt-2 border-t border-border/30">
+            <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/30">
+              <span className="text-[8px] text-muted-foreground/20">
+                SOLVED: {p.solved}
+              </span>
               <a
                 href={p.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] text-muted-foreground/40 hover:text-primary transition-colors flex items-center gap-1 font-mono"
+                onClick={playClick}
+                className="text-[9px] text-muted-foreground/40 hover:text-primary transition-colors flex items-center gap-1"
               >
                 view profile
                 <ExternalLink className="h-3 w-3" />

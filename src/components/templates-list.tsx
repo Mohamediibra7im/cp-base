@@ -46,7 +46,7 @@ export function TemplatesList({ templates, query }: { templates: TemplateWithCat
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {results.map((t, i) => (
-        <div key={t.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)}`}>
+        <div key={t.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)} h-full`}>
           <TemplateCard template={t} />
         </div>
       ))}

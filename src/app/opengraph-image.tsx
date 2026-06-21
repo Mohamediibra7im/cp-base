@@ -58,9 +58,9 @@ export default async function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: "#0a0a0a",
+          backgroundColor: "#030a05",
           fontFamily: "JetBrains Mono, monospace",
-          padding: "60px",
+          padding: "50px",
           color: "#22c55e",
           position: "relative",
           overflow: "hidden",
@@ -72,10 +72,10 @@ export default async function OpengraphImage() {
             position: "absolute",
             top: "-150px",
             right: "-150px",
-            width: "500px",
-            height: "500px",
+            width: "600px",
+            height: "600px",
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0) 70%)",
+            background: "radial-gradient(circle, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0) 70%)",
             display: "flex",
           }}
         />
@@ -93,7 +93,7 @@ export default async function OpengraphImage() {
           }}
         />
 
-        {/* Faint Tech Grid Lines */}
+        {/* Faint Grid Lines */}
         <div
           style={{
             position: "absolute",
@@ -109,93 +109,130 @@ export default async function OpengraphImage() {
           }}
         >
           {/* Vertical grid lines */}
+          <div style={{ position: "absolute", left: "10%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
           <div style={{ position: "absolute", left: "20%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", left: "30%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
           <div style={{ position: "absolute", left: "40%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
           <div style={{ position: "absolute", left: "60%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", left: "70%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
           <div style={{ position: "absolute", left: "80%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", left: "90%", top: 0, bottom: 0, width: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          
           {/* Horizontal grid lines */}
-          <div style={{ position: "absolute", top: "25%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
-          <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", top: "15%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", top: "30%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", top: "45%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", top: "60%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
           <div style={{ position: "absolute", top: "75%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
+          <div style={{ position: "absolute", top: "90%", left: 0, right: 0, height: "1px", backgroundColor: "#22c55e", display: "flex" }} />
         </div>
 
-        {/* Technical Corner Brackets */}
-        <div style={{ position: "absolute", top: "24px", left: "24px", color: "rgba(34, 197, 94, 0.35)", fontSize: "16px", display: "flex" }}>[</div>
-        <div style={{ position: "absolute", top: "24px", right: "24px", color: "rgba(34, 197, 94, 0.35)", fontSize: "16px", display: "flex" }}>]</div>
-        <div style={{ position: "absolute", bottom: "24px", left: "24px", color: "rgba(34, 197, 94, 0.35)", fontSize: "16px", display: "flex" }}>[</div>
-        <div style={{ position: "absolute", bottom: "24px", right: "24px", color: "rgba(34, 197, 94, 0.35)", fontSize: "16px", display: "flex" }}>]</div>
+        {/* Technical Corner Coordinate Markers */}
+        <div style={{ position: "absolute", top: "20px", left: "20px", color: "rgba(34, 197, 94, 0.4)", fontSize: "11px", display: "flex" }}>[0x00]</div>
+        <div style={{ position: "absolute", top: "20px", right: "20px", color: "rgba(34, 197, 94, 0.4)", fontSize: "11px", display: "flex" }}>[0x7F]</div>
+        <div style={{ position: "absolute", bottom: "20px", left: "20px", color: "rgba(34, 197, 94, 0.4)", fontSize: "11px", display: "flex" }}>[0x80]</div>
+        <div style={{ position: "absolute", bottom: "20px", right: "20px", color: "rgba(34, 197, 94, 0.4)", fontSize: "11px", display: "flex" }}>[0xFF]</div>
 
-        {/* Thin border wrapper */}
+        {/* Double Border Frame */}
         <div
           style={{
             position: "absolute",
-            top: "24px",
-            left: "24px",
-            right: "24px",
-            bottom: "24px",
-            border: "1px solid rgba(34, 197, 94, 0.08)",
+            top: "16px",
+            left: "16px",
+            right: "16px",
+            bottom: "16px",
+            border: "1px solid rgba(34, 197, 94, 0.15)",
+            pointerEvents: "none",
+            display: "flex",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: "12px",
+            left: "12px",
+            right: "12px",
+            bottom: "12px",
+            border: "1px solid rgba(34, 197, 94, 0.05)",
             pointerEvents: "none",
             display: "flex",
           }}
         />
 
-        {/* Top Header Section */}
+        {/* Header Bar */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
+            borderBottom: "1px solid rgba(34, 197, 94, 0.2)",
+            paddingBottom: "15px",
           }}
         >
-          {/* Branding Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Logo Brand */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
                 backgroundColor: "#22c55e",
-                color: "#0a0a0a",
-                padding: "2px 8px",
-                fontSize: "14px",
+                color: "#030a05",
+                padding: "3px 10px",
+                fontSize: "15px",
                 fontWeight: "bold",
-                borderRadius: "1px",
+                borderRadius: "0px",
                 display: "flex",
                 alignItems: "center",
+                boxShadow: "0 0 10px rgba(34, 197, 94, 0.5)",
               }}
             >
               CP
             </div>
             <div
               style={{
-                fontSize: "18px",
+                fontSize: "20px",
                 fontWeight: "bold",
                 color: "#ffffff",
-                letterSpacing: "3px",
+                letterSpacing: "4px",
                 display: "flex",
+                textShadow: "0 0 8px rgba(255,255,255,0.3)",
               }}
             >
               BASE
             </div>
           </div>
 
-          {/* Status info */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          {/* Status logs */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <div
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#22c55e",
-                boxShadow: "0 0 8px rgba(34, 197, 94, 0.8)",
                 display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                border: "1px solid rgba(34, 197, 94, 0.3)",
+                backgroundColor: "rgba(34, 197, 94, 0.04)",
+                padding: "2px 10px",
               }}
-            />
-            <div style={{ fontSize: "11px", color: "rgba(34, 197, 94, 0.6)", letterSpacing: "1.5px", display: "flex" }}>
-              ONLINE // VER_2.0
+            >
+              <div
+                style={{
+                  width: "7px",
+                  height: "7px",
+                  borderRadius: "50%",
+                  backgroundColor: "#22c55e",
+                  boxShadow: "0 0 6px rgba(34, 197, 94, 0.9)",
+                  display: "flex",
+                }}
+              />
+              <span style={{ fontSize: "10px", color: "#22c55e", letterSpacing: "1px", fontWeight: "bold" }}>SYSTEM_ONLINE</span>
+            </div>
+            <div style={{ fontSize: "11px", color: "rgba(34, 197, 94, 0.4)", display: "flex" }}>
+              CON_PORT: 3000
             </div>
           </div>
         </div>
 
-        {/* Central Display Row */}
+        {/* Core Layout Split */}
         <div
           style={{
             display: "flex",
@@ -205,117 +242,147 @@ export default async function OpengraphImage() {
             height: "360px",
           }}
         >
-          {/* Left Column: Brand Statement */}
+          {/* Left Column: Diagnostics + Slogan */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              width: "53%",
-              gap: "20px",
+              width: "48%",
+              gap: "24px",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {/* Tagline Box */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div
                 style={{
                   fontSize: "11px",
                   color: "#06b6d4",
                   fontWeight: "bold",
-                  letterSpacing: "3px",
+                  letterSpacing: "4px",
                   display: "flex",
+                  textShadow: "0 0 6px rgba(6, 182, 212, 0.2)",
                 }}
               >
-                // COMPETITIVE PROGRAMMING TEMPLATES
+                // OPTIMIZED CONTEST TEMPLATES
               </div>
               <div
                 style={{
                   fontSize: "44px",
                   fontWeight: "bold",
                   color: "#ffffff",
-                  lineHeight: "1.2",
+                  lineHeight: "1.15",
                   letterSpacing: "-0.5px",
                   display: "flex",
                 }}
               >
-                Speed up code implementation.
+                Fast & Optimized Code Templates
               </div>
             </div>
 
+            {/* Diagnostic Window Box */}
             <div
               style={{
-                fontSize: "15px",
-                color: "rgba(255, 255, 255, 0.55)",
-                lineHeight: "1.6",
-                fontWeight: 400,
                 display: "flex",
+                flexDirection: "column",
+                border: "1px solid rgba(34, 197, 94, 0.15)",
+                backgroundColor: "rgba(5, 20, 8, 0.4)",
+                padding: "16px",
+                gap: "8px",
               }}
             >
-              An organized collection of fast, copy-paste ready data structures, algorithms, and templates optimized for coding contests.
+              <div
+                style={{
+                  display: "flex",
+                  borderBottom: "1px solid rgba(34, 197, 94, 0.15)",
+                  paddingBottom: "6px",
+                  marginBottom: "4px",
+                  fontSize: "9px",
+                  fontWeight: "bold",
+                  color: "rgba(34, 197, 94, 0.4)",
+                  letterSpacing: "1px",
+                }}
+              >
+                SYSTEM DIAGNOSTIC REPORT
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>OS_KERNEL</span>
+                <span style={{ color: "#ffffff", fontWeight: "bold" }}>cp-base-v2.0.sh</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>ALGORITHMS</span>
+                <span style={{ color: "#ffffff" }}>SegmentTree, DSU, Dijkstra</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                <span style={{ color: "rgba(34, 197, 94, 0.5)" }}>OPTIMIZATION</span>
+                <span style={{ color: "#06b6d4", fontWeight: "bold" }}>O(1) / O(log N)</span>
+              </div>
             </div>
 
-            {/* Languages Row */}
-            <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-              {["C++", "Python", "Java", "Rust", "Go", "JS"].map((lang) => (
+            {/* Languages Pills */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {["C++", "Python", "Java", "Rust", "Go"].map((lang) => (
                 <div
                   key={lang}
                   style={{
                     fontSize: "11px",
                     fontWeight: "bold",
                     color: "#22c55e",
-                    backgroundColor: "rgba(34, 197, 94, 0.06)",
+                    backgroundColor: "rgba(34, 197, 94, 0.05)",
                     border: "1px solid rgba(34, 197, 94, 0.2)",
-                    padding: "3px 10px",
-                    borderRadius: "1px",
+                    padding: "3px 12px",
+                    borderRadius: "0px",
                     display: "flex",
                   }}
                 >
-                  {lang}
+                  $ grep &apos;{lang}&apos;
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Right Column: Code Terminal Block */}
+          {/* Right Column: Code Terminal window */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
-              width: "43%",
-              backgroundColor: "#0d0d0d",
-              border: "1px solid rgba(34, 197, 94, 0.15)",
-              borderRadius: "4px",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
+              width: "48%",
+              backgroundColor: "#050f06",
+              border: "1px solid rgba(34, 197, 94, 0.25)",
+              borderRadius: "0px",
+              boxShadow: "0 25px 50px rgba(0,0,0,0.8), 0 0 20px rgba(34, 197, 94, 0.05)",
               overflow: "hidden",
             }}
           >
-            {/* Terminal Topbar */}
+            {/* Terminal Window Header */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "10px 14px",
-                backgroundColor: "#121212",
-                borderBottom: "1px solid rgba(34, 197, 94, 0.08)",
+                backgroundColor: "rgba(34, 197, 94, 0.06)",
+                borderBottom: "1px solid rgba(34, 197, 94, 0.15)",
               }}
             >
-              {/* Window Controls */}
               <div style={{ display: "flex", gap: "6px" }}>
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(239, 68, 68, 0.7)", display: "flex" }} />
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(234, 179, 8, 0.7)", display: "flex" }} />
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(34, 197, 94, 0.7)", display: "flex" }} />
+                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(239, 68, 68, 0.6)", display: "flex" }} />
+                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(234, 179, 8, 0.6)", display: "flex" }} />
+                <div style={{ width: "9px", height: "9px", borderRadius: "50%", backgroundColor: "rgba(34, 197, 94, 0.6)", display: "flex" }} />
               </div>
-              <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.35)", fontWeight: "bold", display: "flex" }}>segtree.cpp</div>
+              <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.4)", fontWeight: "bold", display: "flex" }}>
+                dijkstra.cpp
+              </div>
               <div style={{ width: "39px", display: "flex" }} />
             </div>
 
-            {/* Code Content */}
+            {/* Code Body */}
             <div
               style={{
                 display: "flex",
-                padding: "16px",
+                padding: "18px 14px",
                 fontSize: "12px",
-                lineHeight: "1.7",
-                backgroundColor: "#080808",
+                lineHeight: "1.75",
+                backgroundColor: "#020703",
               }}
             >
               {/* Line Numbers */}
@@ -323,64 +390,59 @@ export default async function OpengraphImage() {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  color: "rgba(34, 197, 94, 0.25)",
+                  color: "rgba(34, 197, 94, 0.2)",
                   textAlign: "right",
                   paddingRight: "12px",
                   borderRight: "1px solid rgba(34, 197, 94, 0.08)",
                   userSelect: "none",
                 }}
               >
-                {Array.from({ length: 9 }).map((_, idx) => (
-                  <span key={idx} style={{ fontFamily: "JetBrains Mono" }}>{idx + 1}</span>
+                {Array.from({ length: 8 }).map((_, idx) => (
+                  <span key={idx} style={{ fontFamily: "JetBrains Mono" }}>{String(idx + 1).padStart(2, "0")}</span>
                 ))}
               </div>
 
-              {/* Code markup */}
+              {/* Code */}
               <div
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  paddingLeft: "12px",
-                  color: "rgba(255,255,255,0.75)",
+                  paddingLeft: "14px",
+                  color: "rgba(255,255,255,0.8)",
                   fontFamily: "JetBrains Mono",
                 }}
               >
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#ef4444" }}>template</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)", marginLeft: "4px", marginRight: "4px" }}>&lt;</span>
-                  <span style={{ color: "#06b6d4" }}>typename</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)", marginLeft: "4px" }}>T&gt;</span>
+                  <span style={{ color: "#ef4444" }}>vector</span>
+                  <span style={{ color: "#ffffff" }}>&lt;</span>
+                  <span style={{ color: "#06b6d4" }}>int</span>
+                  <span style={{ color: "#ffffff" }}>&gt; dist(N, INF);</span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "#ef4444" }}>struct</span>
-                  <span style={{ color: "#eab308", marginLeft: "4px", marginRight: "4px" }}>SegTree</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{"{"}</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "16px" }}>
-                  <span style={{ color: "#06b6d4" }}>int</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)", marginLeft: "4px" }}>n;</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "16px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>vector&lt;T&gt; tree;</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "16px" }}>
-                  <span style={{ color: "#8b5cf6" }}>void</span>
-                  <span style={{ color: "#3b82f6", marginLeft: "4px", marginRight: "4px" }}>update</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>(</span>
-                  <span style={{ color: "#06b6d4" }}>int</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)", marginLeft: "4px" }}>i, T v) {"{"}</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "32px" }}>
-                  <span style={{ color: "rgba(34, 197, 94, 0.35)" }}>// O(log n)</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "32px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>tree[i] = v;</span>
-                </div>
-                <div style={{ display: "flex", paddingLeft: "16px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{"}"}</span>
+                  <span style={{ color: "#f59e0b" }}>priority_queue</span>
+                  <span style={{ color: "#ffffff" }}>&lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; pq;</span>
                 </div>
                 <div style={{ display: "flex" }}>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{"};"}</span>
+                  <span style={{ color: "#ffffff" }}>dist[src] = 0;</span>
+                </div>
+                <div style={{ display: "flex" }}>
+                  <span style={{ color: "#ffffff" }}>pq.push({"{"}0, src{"}"});</span>
+                </div>
+                <div style={{ display: "flex" }}>
+                  <span style={{ color: "#ef4444" }}>while</span>
+                  <span style={{ color: "#ffffff" }}> (!pq.empty()) {"{"}</span>
+                </div>
+                <div style={{ display: "flex", paddingLeft: "16px" }}>
+                  <span style={{ color: "#ffffff" }}>auto [d, u] = pq.top(); pq.pop();</span>
+                </div>
+                <div style={{ display: "flex", paddingLeft: "16px" }}>
+                  <span style={{ color: "#ef4444" }}>if</span>
+                  <span style={{ color: "#ffffff" }}> (d &gt; dist[u]) </span>
+                  <span style={{ color: "#ef4444" }}>continue</span>
+                  <span style={{ color: "#ffffff" }}>;</span>
+                </div>
+                <div style={{ display: "flex" }}>
+                  <span style={{ color: "#ffffff" }}>{"}"}</span>
                 </div>
               </div>
             </div>
@@ -394,24 +456,24 @@ export default async function OpengraphImage() {
             justifyContent: "space-between",
             alignItems: "center",
             width: "100%",
-            borderTop: "1px solid rgba(34, 197, 94, 0.08)",
-            paddingTop: "20px",
+            borderTop: "1px solid rgba(34, 197, 94, 0.15)",
+            paddingTop: "15px",
           }}
         >
-          <div style={{ fontSize: "14px", color: "rgba(34, 197, 94, 0.5)", display: "flex", alignItems: "center" }}>
-            <span>$ cat cp-base.dev</span>
+          <div style={{ fontSize: "13px", color: "rgba(34, 197, 94, 0.6)", display: "flex", alignItems: "center" }}>
+            <span>$ cat info.txt</span>
             <span
               style={{
                 display: "flex",
                 width: "7px",
-                height: "14px",
+                height: "13px",
                 backgroundColor: "#22c55e",
-                marginLeft: "4px",
+                marginLeft: "6px",
               }}
             />
           </div>
-          <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.25)", display: "flex" }}>
-            © {new Date().getFullYear()} Mohamed Ibrahim
+          <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.2)", display: "flex" }}>
+            © {new Date().getFullYear()} Mohamed Ibrahim // Mohamediibra7im
           </div>
         </div>
       </div>
