@@ -72,7 +72,7 @@ function ProfileIcon({ type, color }: { type: ProfileCard["icon"]; color: string
       alt="AtCoder"
       width={20}
       height={20}
-      className="h-5 w-5 object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
+      className="h-5 w-5 object-contain opacity-80 group-hover:opacity-100 transition-opacity"
       unoptimized
     />
   );
