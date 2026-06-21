@@ -31,7 +31,7 @@ const ICON_OPTIONS = [
   { name: "Grid", label: "Grid" },
   { name: "Search", label: "Search" },
   { name: "SortAsc", label: "Sort" },
-  { name: " Shuffle", label: "Shuffle" },
+  { name: "Shuffle", label: "Shuffle" },
   { name: "Target", label: "Target" },
   { name: "Crosshair", label: "Crosshair" },
   { name: "TrendingUp", label: "Trending" },

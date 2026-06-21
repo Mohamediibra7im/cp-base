@@ -84,7 +84,7 @@ export function MathRenderer({ content }: { content: string }) {
 
   return (
     <div
-      className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed"
+      className="text-sm text-muted-foreground whitespace-normal leading-relaxed prose prose-sm max-w-none"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
