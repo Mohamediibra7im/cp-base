@@ -2,8 +2,9 @@ import { getDb, schema } from "@/db";
 import { eq, sql } from "drizzle-orm";
 import { CategoryCard } from "@/components/category-card";
 import { HeroSection } from "@/components/hero-section";
-import { Braces, Terminal, Code2 } from "lucide-react";
+import { Braces, Terminal } from "lucide-react";
 import Link from "next/link";
+import { CPProfiles } from "@/components/cp-profiles";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,27 @@ export default async function Home() {
     <div className="relative z-10 flex flex-col">
       <HeroSection totalTemplates={totalTemplates} totalCategories={cats.length} />
 
+      {/* Profiles Section */}
+      <section id="profiles" className="relative border-b border-border bg-muted/5">
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+          {/* Section header */}
+          <div className="mb-10">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+              <span className="text-primary">$</span>
+              <span className="text-foreground font-bold">cat profiles.json</span>
+              <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-muted-foreground/50">
+                Competitive programming profiles & active contest ratings.
+              </span>
+            </div>
+          </div>
+
+          <CPProfiles />
+        </div>
+      </section>
+
       {/* Categories Section */}
       <section id="categories" className="relative border-b border-border">
         <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
@@ -88,11 +110,7 @@ export default async function Home() {
                 <Terminal className="h-3 w-3" />
                 {totalTemplates} templates
               </span>
-              <span className="text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Code2 className="h-3 w-3" />
-                6 languages
-              </span>
+
             </div>
           </div>
 

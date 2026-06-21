@@ -2,7 +2,7 @@ import { getDb, schema } from "@/db";
 import { sql } from "drizzle-orm";
 import { TemplatesList } from "@/components/templates-list";
 import { SearchInput } from "@/components/search-input";
-import { Terminal, Code2 } from "lucide-react";
+import { Terminal } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -84,11 +84,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
                 <Terminal className="h-3 w-3" />
                 {totalTemplates} templates
               </span>
-              <span className="text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Code2 className="h-3 w-3" />
-                6 languages
-              </span>
+
             </div>
           </div>
           <div className="w-full md:w-auto">
