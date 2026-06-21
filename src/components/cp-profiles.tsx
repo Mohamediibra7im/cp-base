@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { SiCodeforces, SiLeetcode } from "react-icons/si";
 import { Award, ExternalLink } from "lucide-react";
@@ -79,7 +79,7 @@ function ProfileIcon({ type, color }: { type: ProfileCard["icon"]; color: string
 }
 
 export function CPProfiles() {
-  const [data, setData] = useState<ApiResponse>(FALLBACK_DATA);
+  const [data, setData] = useState<ApiResponse | null>(null);
   const { playClick } = useTerminalTheme();
 
   useEffect(() => {
@@ -99,12 +99,54 @@ export function CPProfiles() {
           setData(merged);
         }
       })
-      .catch((err) => {
-        console.error("Failed to fetch profiles, keeping fallback:", err);
+      .catch(() => {
+        if (active) setData(FALLBACK_DATA);
       });
 
     return () => { active = false; };
   }, []);
+
+  // Show skeleton while fetching
+  if (!data) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 font-mono">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex flex-col border border-border/40 bg-card/40 min-h-[200px] animate-pulse"
+          >
+            {/* Fake header */}
+            <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/30 bg-muted/10">
+              <div className="flex items-center gap-1.5">
+                <div className="flex gap-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-border/40" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-border/40" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-border/40" />
+                </div>
+                <div className="h-2 w-24 bg-border/20 rounded" />
+              </div>
+            </div>
+            {/* Fake body */}
+            <div className="p-4 flex flex-col gap-3 flex-1">
+              <div className="h-2 w-32 bg-border/20 rounded" />
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 bg-border/20 shrink-0" />
+                <div className="flex flex-col gap-1.5">
+                  <div className="h-2.5 w-20 bg-border/20 rounded" />
+                  <div className="h-2 w-16 bg-border/10 rounded" />
+                </div>
+              </div>
+              <div className="h-12 w-full bg-border/10 rounded" />
+              <div className="mt-auto pt-2 border-t border-border/20 flex justify-between">
+                <div className="h-2 w-16 bg-border/10 rounded" />
+                <div className="h-2 w-16 bg-border/10 rounded" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const profiles: ProfileCard[] = [
     {
@@ -153,13 +195,13 @@ export function CPProfiles() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 font-mono">
-      {profiles.map((p) => (
+      {profiles.map((p, i) => (
         <div
           key={p.name}
           style={{
             "--hover-color": p.color,
-          } as any}
-          className="group relative flex flex-col border border-border bg-card transition-all duration-300 min-h-[200px] hover:border-[var(--hover-color)]/50 hover:shadow-[0_0_20px_rgba(0,0,0,0.4),0_0_15px_var(--hover-color)]/[0.05] overflow-hidden"
+          } as React.CSSProperties}
+          className={`group relative flex flex-col border border-border bg-card transition-all duration-300 min-h-[200px] hover:border-[var(--hover-color)]/50 hover:shadow-[0_0_20px_rgba(0,0,0,0.4),0_0_15px_var(--hover-color)]/[0.05] overflow-hidden animate-slide-up stagger-${i + 1}`}
         >
           {/* Terminal Window Header */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/10 shrink-0">

@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/hero-section";
 import { Braces, Terminal } from "lucide-react";
 import Link from "next/link";
 import { CPProfiles } from "@/components/cp-profiles";
+import { AnimateOnMount } from "@/components/animate-on-mount";
 
 export const dynamic = "force-dynamic";
 
@@ -70,80 +71,84 @@ export default async function Home() {
       <HeroSection totalTemplates={totalTemplates} totalCategories={cats.length} />
 
       {/* Profiles Section */}
-      <section id="profiles" className="relative border-b border-border bg-muted/5">
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
-          {/* Section header */}
-          <div className="mb-10">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-              <span className="text-primary">$</span>
-              <span className="text-foreground font-bold">cat profiles.json</span>
-              <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
+      <AnimateOnMount delay={400}>
+        <section id="profiles" className="relative border-b border-border bg-muted/5">
+          <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+            {/* Section header */}
+            <div className="mb-10">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                <span className="text-primary">$</span>
+                <span className="text-foreground font-bold">cat profiles.json</span>
+                <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5 text-muted-foreground/50">
+                  Competitive programming profiles & active contest ratings.
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5 text-muted-foreground/50">
-                Competitive programming profiles & active contest ratings.
-              </span>
-            </div>
-          </div>
 
-          <CPProfiles />
-        </div>
-      </section>
+            <CPProfiles />
+          </div>
+        </section>
+      </AnimateOnMount>
 
       {/* Categories Section */}
-      <section id="categories" className="relative border-b border-border">
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
-          {/* Section header */}
-          <div className="mb-10">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-              <span className="text-primary">$</span>
-              <span className="text-foreground font-bold">ls categories/</span>
-              <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
-            </div>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <Braces className="h-3 w-3" />
-                {cats.length} categories
-              </span>
-              <span className="text-border">|</span>
-              <span className="flex items-center gap-1.5">
-                <Terminal className="h-3 w-3" />
-                {totalTemplates} templates
-              </span>
-
-            </div>
-          </div>
-
-          {/* Category grid */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {cats.map((cat, i) => (
-              <div key={cat.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)} h-full`}>
-                <CategoryCard category={cat} count={countMap[cat.id] || 0} />
+      <AnimateOnMount delay={650}>
+        <section id="categories" className="relative border-b border-border">
+          <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+            {/* Section header */}
+            <div className="mb-10">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                <span className="text-primary">$</span>
+                <span className="text-foreground font-bold">ls categories/</span>
+                <span className="inline-block h-3 w-1.5 bg-primary animate-blink ml-1" />
               </div>
-            ))}
-          </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Braces className="h-3 w-3" />
+                  {cats.length} categories
+                </span>
+                <span className="text-border">|</span>
+                <span className="flex items-center gap-1.5">
+                  <Terminal className="h-3 w-3" />
+                  {totalTemplates} templates
+                </span>
 
-          {/* Empty state */}
-          {cats.length === 0 && (
-            <div className="border border-border bg-card p-8 text-center">
-              <div className="text-xs text-muted-foreground mb-2">[EMPTY] No categories found</div>
-              <p className="text-xs text-muted-foreground/60">No categories yet. Check back later.</p>
+              </div>
             </div>
-          )}
 
-          {/* View all templates link */}
-          <div className="mt-10 text-center">
-            <Link
-              href="/templates"
-              className="inline-flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
-            >
-              <span className="text-primary">$</span>
-              <span>view all templates</span>
-              <span className="text-muted-foreground/30">→</span>
-            </Link>
+            {/* Category grid */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {cats.map((cat, i) => (
+                <div key={cat.id} className={`animate-slide-up stagger-${Math.min(i + 1, 8)} h-full`}>
+                  <CategoryCard category={cat} count={countMap[cat.id] || 0} />
+                </div>
+              ))}
+            </div>
+
+            {/* Empty state */}
+            {cats.length === 0 && (
+              <div className="border border-border bg-card p-8 text-center">
+                <div className="text-xs text-muted-foreground mb-2">[EMPTY] No categories found</div>
+                <p className="text-xs text-muted-foreground/60">No categories yet. Check back later.</p>
+              </div>
+            )}
+
+            {/* View all templates link */}
+            <div className="mt-10 text-center">
+              <Link
+                href="/templates"
+                className="inline-flex items-center gap-2 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
+              >
+                <span className="text-primary">$</span>
+                <span>view all templates</span>
+                <span className="text-muted-foreground/30">→</span>
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </AnimateOnMount>
     </div>
   );
 }
