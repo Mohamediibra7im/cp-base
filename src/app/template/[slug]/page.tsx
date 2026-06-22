@@ -47,7 +47,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: `${template.title} Template | CP-Base`,
         description,
         type: "article",
-        images: ["/opengraph-image"],
       },
       twitter: {
         card: "summary_large_image",
