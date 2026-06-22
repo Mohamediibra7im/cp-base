@@ -6,8 +6,23 @@ import { Braces, Terminal } from "lucide-react";
 import Link from "next/link";
 import { CPProfiles } from "@/components/cp-profiles";
 import { AnimateOnMount } from "@/components/animate-on-mount";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "CP-Base | Level Up Your Competitive Programming",
+  description:
+    "Explore a terminal-themed library of optimized competitive programming templates — graphs, data structures, math, strings, DP, and more. Search, copy, and paste into your next contest.",
+  keywords: [
+    "competitive programming home",
+    "cp templates library",
+    "algorithm templates",
+    "contest prep",
+    "cp-base",
+    "programming contest tools",
+  ],
+};
 
 export default async function Home() {
   const db = getDb();

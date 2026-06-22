@@ -27,7 +27,7 @@ function stripMain(src: string): string {
 }
 
 async function seed() {
-  const db = getDb();
+  const db = getDb()!;
   if (!db) {
     console.error("DATABASE_URL not set");
     process.exit(1);
