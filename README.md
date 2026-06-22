@@ -11,7 +11,7 @@
 
 Copy, paste, and ace your next contest.
 
-[Getting Started](#getting-started) · [Features](#features) · [Tech Stack](#tech-stack) · [Admin Panel](#admin-panel)
+[Getting Started](#getting-started) · [Features](#features) · [Tech Stack](#tech-stack)
 
 </div>
 
@@ -130,15 +130,6 @@ src/
 | `bun run db:generate` | Generate migrations |
 | `bun run db:migrate` | Run migrations |
 | `bun run db:seed` | Seed sample data |
-
-## Admin Panel
-
-Access the admin panel at `/admin` to:
-
-- Create, edit, and delete templates
-- Manage categories with custom icons and colors
-- Add code snippets in multiple languages
-- Write detailed notes with Markdown and LaTeX math
 
 ## Contributing
 
