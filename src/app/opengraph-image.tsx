@@ -9,6 +9,7 @@ export const size = {
 };
 export const contentType = "image/png";
 export const runtime = "nodejs";
+export const revalidate = 3600;
 
 export default async function OpengraphImage() {
   let fontRegular: ArrayBuffer;
