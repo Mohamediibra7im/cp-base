@@ -22,6 +22,16 @@ export const metadata: Metadata = {
     "cp-base",
     "programming contest tools",
   ],
+  openGraph: {
+    title: "CP-Base | Level Up Your Competitive Programming",
+    description:
+      "Explore a terminal-themed library of optimized competitive programming templates — graphs, data structures, math, strings, DP, and more. Search, copy, and paste into your next contest.",
+    type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default async function Home() {

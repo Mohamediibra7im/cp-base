@@ -1,6 +1,4 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export const alt = "CP-Base | Competitive Programming Templates";
 export const size = {
@@ -11,24 +9,31 @@ export const contentType = "image/png";
 export const runtime = "nodejs";
 export const revalidate = 3600;
 
-export default async function OpengraphImage() {
-  let fontRegular: ArrayBuffer;
-  let fontBold: ArrayBuffer;
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://cp-base.mohmmediibrahim.dev");
+
+async function loadFont(weight: number): Promise<ArrayBuffer | null> {
   try {
-    fontRegular = await readFile(
-      join(process.cwd(), "public/fonts/JetBrainsMono-Regular.ttf")
-    ).then((buf) => buf.buffer as ArrayBuffer);
-    fontBold = await readFile(
-      join(process.cwd(), "public/fonts/JetBrainsMono-Bold.ttf")
-    ).then((buf) => buf.buffer as ArrayBuffer);
-  } catch (error) {
-    console.error("Failed to read local fonts for OG image:", error);
-    fontRegular = new ArrayBuffer(0);
-    fontBold = new ArrayBuffer(0);
+    const name = weight === 700 ? "Bold" : "Regular";
+    const res = await fetch(`${baseUrl}/fonts/JetBrainsMono-${name}.ttf`);
+    if (!res.ok) return null;
+    return res.arrayBuffer();
+  } catch {
+    return null;
   }
+}
+
+export default async function OpengraphImage() {
+  const [fontRegular, fontBold] = await Promise.all([
+    loadFont(400),
+    loadFont(700),
+  ]);
 
   const fonts = [];
-  if (fontRegular.byteLength > 0) {
+  if (fontRegular) {
     fonts.push({
       name: "JetBrains Mono",
       data: fontRegular,
@@ -36,7 +41,7 @@ export default async function OpengraphImage() {
       weight: 400 as const,
     });
   }
-  if (fontBold.byteLength > 0) {
+  if (fontBold) {
     fonts.push({
       name: "JetBrains Mono",
       data: fontBold,

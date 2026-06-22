@@ -11,6 +11,15 @@ export const metadata: Metadata = {
   title: "All Templates",
   description: "Browse the complete collection of optimized, copy-paste ready competitive programming templates across graphs, data structures, math, strings, and dynamic programming.",
   keywords: ["all templates", "competitive programming", "algorithms list", "data structures list", "cp-base templates"],
+  openGraph: {
+    title: "All Templates | CP-Base",
+    description: "Browse the complete collection of optimized, copy-paste ready competitive programming templates across graphs, data structures, math, strings, and dynamic programming.",
+    type: "website",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

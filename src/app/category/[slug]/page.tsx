@@ -16,6 +16,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!db) {
     return {
       title: "Category | CP-Base",
+      openGraph: { images: ["/opengraph-image"] },
+      twitter: { card: "summary_large_image" },
     };
   }
 
@@ -24,6 +26,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (!category) {
       return {
         title: "Category Not Found | CP-Base",
+        openGraph: { images: ["/opengraph-image"] },
+        twitter: { card: "summary_large_image" },
       };
     }
 
@@ -45,6 +49,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     console.error("Error generating category metadata:", err);
     return {
       title: "Category | CP-Base",
+      openGraph: { images: ["/opengraph-image"] },
+      twitter: { card: "summary_large_image" },
     };
   }
 }

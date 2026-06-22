@@ -15,6 +15,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!db) {
     return {
       title: "Template | CP-Base",
+      openGraph: { images: ["/opengraph-image"] },
+      twitter: { card: "summary_large_image" },
     };
   }
 
@@ -23,6 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     if (!template) {
       return {
         title: "Template Not Found | CP-Base",
+        openGraph: { images: ["/opengraph-image"] },
+        twitter: { card: "summary_large_image" },
       };
     }
 
@@ -58,6 +62,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     console.error("Error generating template metadata:", err);
     return {
       title: "Template | CP-Base",
+      openGraph: { images: ["/opengraph-image"] },
+      twitter: { card: "summary_large_image" },
     };
   }
 }
