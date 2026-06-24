@@ -13,6 +13,7 @@ import Link from "next/link";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { CategoryCreator } from "@/components/category-creator";
 import { useTerminalTheme } from "@/components/theme-provider";
+import { formatCode } from "@/lib/format-code";
 
 const LANGUAGES = [
   { value: "cpp", label: "C++" },
@@ -94,6 +95,7 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
     tags: "",
   });
   const [codes, setCodes] = useState<CodeEntry[]>([]);
+  const [formattingIdx, setFormattingIdx] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,11 +143,12 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
     setCodes((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const formatCode = (code: string): string => {
-    const lines = code.split('\n').map(l => l.replace(/\s+$/, '').replace(/\t/g, '  '));
-    let start = 0; while (start < lines.length && !lines[start].trim()) start++;
-    let end = lines.length - 1; while (end >= start && !lines[end].trim()) end--;
-    return lines.slice(start, end + 1).join('\n');
+  const handleFormat = async (index: number, code: string, language: string) => {
+    playClick();
+    setFormattingIdx(index);
+    const formatted = await formatCode(code, language);
+    setFormattingIdx(null);
+    updateCode(index, "code", formatted);
   };
 
   const save = async () => {
@@ -482,10 +485,11 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => { playClick(); updateCode(i, "code", formatCode(entry.code)); }}
-                            className="text-[10px] text-muted-foreground/35 hover:text-primary transition-colors border border-transparent hover:border-primary/20 px-1.5 py-0.5"
+                            disabled={formattingIdx === i}
+                            onClick={() => handleFormat(i, entry.code, entry.language)}
+                            className="text-[10px] text-muted-foreground/35 hover:text-primary transition-colors border border-transparent hover:border-primary/20 px-1.5 py-0.5 disabled:opacity-30"
                           >
-                            <Wand2 className="h-3 w-3 inline mr-1" />[Format]
+                            <Wand2 className={`h-3 w-3 inline mr-1 ${formattingIdx === i ? "animate-spin" : ""}`} />[Format]
                           </button>
                           {codes.length > 1 && (
                             <button
