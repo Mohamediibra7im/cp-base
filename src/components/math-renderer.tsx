@@ -46,6 +46,38 @@ function renderMarkdownWithMath(md: string): string {
     return placeholder;
   });
 
+  // Extract and convert tables
+  const tables: string[] = [];
+  processed = processed.replace(/^\|(.+)\|\n\|[-:| ]+\|\n(\|.+\|\n?)*/gm, (match) => {
+    const idx = tables.length;
+    const rows = match.trim().split('\n');
+    const headers = rows[0].split('|').filter(c => c.trim()).map(c => c.trim());
+    const aligns = rows[1].split('|').filter(c => c.trim()).map(c => {
+      if (/^:.*:$/.test(c)) return 'center';
+      if (/:$/.test(c)) return 'right';
+      return 'left';
+    });
+    const dataRows = rows.slice(2).filter(r => r.trim()).map(r => r.split('|').filter(c => c.trim()).map(c => c.trim()));
+    let html = '<div class="my-4 overflow-x-auto"><table class="w-full text-xs border-collapse border border-border">';
+    html += '<thead><tr>';
+    headers.forEach((h, i) => {
+      html += `<th class="border border-border px-3 py-1.5 bg-muted/30 font-bold text-left" style="text-align:${aligns[i] || 'left'}">${h}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    dataRows.forEach(row => {
+      if (row.length) {
+        html += '<tr>';
+        row.forEach((c, i) => {
+          html += `<td class="border border-border px-3 py-1" style="text-align:${aligns[i] || 'left'}">${c}</td>`;
+        });
+        html += '</tr>';
+      }
+    });
+    html += '</tbody></table></div>';
+    tables.push(html);
+    return `%%TABLE_${idx}%%`;
+  });
+
   // Markdown transforms
   let html = processed
     .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-muted/50 border border-border p-3 my-2 text-xs overflow-x-auto"><code>$2</code></pre>')
@@ -74,6 +106,11 @@ function renderMarkdownWithMath(md: string): string {
   // Restore inline math
   inlineMath.forEach((math, i) => {
     html = html.replace(`%%INLINE_MATH_${i}%%`, `<span class="inline-block align-middle">${math}</span>`);
+  });
+
+  // Restore tables
+  tables.forEach((tbl, i) => {
+    html = html.replace(`%%TABLE_${i}%%`, tbl);
   });
 
   return html;

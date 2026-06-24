@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { CategoryCreator } from "@/components/category-creator";
@@ -120,6 +120,13 @@ export default function NewTemplate() {
   const removeCode = (index: number) => {
     playClick();
     setCodes((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const formatCode = (code: string): string => {
+    const lines = code.split('\n').map(l => l.replace(/\s+$/, '').replace(/\t/g, '  '));
+    let start = 0; while (start < lines.length && !lines[start].trim()) start++;
+    let end = lines.length - 1; while (end >= start && !lines[end].trim()) end--;
+    return lines.slice(start, end + 1).join('\n');
   };
 
   const save = async () => {
@@ -442,15 +449,24 @@ export default function NewTemplate() {
                           </Select>
                         </div>
 
-                        {codes.length > 1 && (
+                        <div className="flex items-center gap-1">
                           <button
                             type="button"
-                            onClick={() => removeCode(i)}
-                            className="text-[10px] text-muted-foreground/35 hover:text-destructive transition-colors border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
+                            onClick={() => { playClick(); updateCode(i, "code", formatCode(entry.code)); }}
+                            className="text-[10px] text-muted-foreground/35 hover:text-primary transition-colors border border-transparent hover:border-primary/20 px-1.5 py-0.5"
                           >
-                            <Trash2 className="h-3 w-3 inline mr-1" />[Delete]
+                            <Wand2 className="h-3 w-3 inline mr-1" />[Format]
                           </button>
-                        )}
+                          {codes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeCode(i)}
+                              className="text-[10px] text-muted-foreground/35 hover:text-destructive transition-colors border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
+                            >
+                              <Trash2 className="h-3 w-3 inline mr-1" />[Delete]
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <Textarea
                         value={entry.code}
