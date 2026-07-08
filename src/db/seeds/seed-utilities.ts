@@ -89,29 +89,20 @@ const ll MOD = 998244353;
 const ll MOD2 = 1e9 + 7;
 const int MAXN = 2e5 + 5;
 
-/**
- * @brief Enables fast I/O by disabling sync with C stdio.
- *
- * Call once at the start of main(). Avoid mixing printf/scanf
- * with cin/cout after calling this.
- */
 void fastIO() {
     ios_base::sync_with_stdio(false);
     cin.tie(nullptr);
     cout.tie(nullptr);
 }
 
-/**
- * @brief Solves a single test case.
- */
 void solve() {
-    // your solution here
+
 }
 
 int main() {
     fastIO();
     int t = 1;
-    // cin >> t;  // uncomment for multi-test-case problems
+
     while (t--) solve();
     return 0;
 }`),
@@ -119,7 +110,6 @@ int main() {
     ]);
   }
 
-  // ── __int128 I/O ─────────────────────────────────────────────────────
   const [int128] = await db
     .insert(templates)
     .values({
@@ -194,14 +184,7 @@ print(product);  // outputs to stdout
       {
         templateId: int128.id,
         language: "cpp",
-        code: `/**
- * @brief Reads a __int128 from stdin.
- *
- * Skips leading whitespace and optional minus sign, then reads
- * decimal digits. Returns 0 if no valid digits are found.
- *
- * @return The parsed __int128 value (negative if '-' was present)
- */
+        code: `
 __int128 read() {
     __int128 x = 0;
     int f = 1;
@@ -220,14 +203,6 @@ __int128 read() {
     return x * f;
 }
 
-/**
- * @brief Prints a __int128 to stdout.
- *
- * Handles negative values, zero, and positive values.
- * Uses putchar for each digit — no buffering overhead.
- *
- * @param x The __int128 value to print
- */
 void print(__int128 x) {
     if (x < 0) {
         putchar('-');

@@ -46,16 +46,6 @@ The classic sieve marks composites in $O(n \\log \\log n)$; the linear variant a
 using ll = long long;
 using namespace std;
 
-/**
- * @brief Linear sieve computing primes, SPF, Euler's totient, and Möbius function.
- * @param n Upper bound (inclusive). All arrays have indices $[0, n]$.
- *
- * Global outputs:
- *   - prime     : list of all primes $\leq n$
- *   - spf[i]    : smallest prime factor of $i$
- *   - phi[i]    : Euler's totient $\varphi(i)$
- *   - mobius[i] : Möbius function $\mu(i)$
- */
 vector<bool> isPrime;
 vector<int> prime, spf, phi, mobius;
 
@@ -93,7 +83,6 @@ void sieveOfEratosthenes(int n) {
     ]);
   }
 
-  // --- Miller-Rabin Primality Test ---
   const [miller] = await db.insert(templates).values({
     title: "Miller-Rabin Primality Test",
     slug: "miller-rabin",
@@ -138,24 +127,10 @@ For $n < 2^{64}$, the 12 bases $\\{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37\\}
 using ll = long long;
 using namespace std;
 
-/**
- * @brief Modular multiplication using 128-bit intermediate to avoid overflow.
- * @param a First operand
- * @param b Second operand
- * @param m Modulus
- * @return $(a \\cdot b) \\bmod m$
- */
 ll mulMod(ll a, ll b, ll m) {
     return (__int128)a * b % m;
 }
 
-/**
- * @brief Fast modular exponentiation via binary method.
- * @param a Base
- * @param d Exponent
- * @param m Modulus
- * @return $a^d \\bmod m$
- */
 ll powMod(ll a, ll d, ll m) {
     ll res = 1;
     a %= m;
@@ -167,14 +142,6 @@ ll powMod(ll a, ll d, ll m) {
     return res;
 }
 
-/**
- * @brief Deterministic Miller-Rabin primality test for $n < 2^{64}$.
- * @param n The integer to test
- * @return true if n is prime, false otherwise
- *
- * Uses the 12 bases {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
- * which are sufficient and necessary for deterministic results below $2^{64}$.
- */
 bool millerRabin(ll n) {
     if (n < 2) return false;
     ll d = n - 1;
@@ -197,7 +164,6 @@ bool millerRabin(ll n) {
     ]);
   }
 
-  // --- Pollard's Rho Factorization ---
   const [pollard] = await db.insert(templates).values({
     title: "Pollard's Rho Factorization",
     slug: "pollard-rho",
@@ -253,10 +219,8 @@ using namespace std;
 
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
 
-/** @brief Modular multiplication using 128-bit intermediate. */
 ll mulMod(ll a, ll b, ll m) { return (__int128)a * b % m; }
 
-/** @brief Fast modular exponentiation. */
 ll powMod(ll a, ll d, ll m) {
     ll res = 1;
     a %= m;
@@ -268,7 +232,6 @@ ll powMod(ll a, ll d, ll m) {
     return res;
 }
 
-/** @brief Deterministic Miller-Rabin for $n < 2^{64}$. */
 bool millerRabin(ll n) {
     if (n < 2) return false;
     ll d = n - 1;
@@ -288,14 +251,6 @@ bool millerRabin(ll n) {
     return true;
 }
 
-/**
- * @brief Pollard's Rho algorithm to find a non-trivial factor of $n$.
- * @param n Composite integer $> 1$
- * @return A non-trivial divisor of $n$
- *
- * Uses Floyd's cycle detection with $f(x) = x^2 + c \\pmod{n}$.
- * Retries with different random seeds if cycle length is 1.
- */
 ll pollardRho(ll n) {
     if (n % 2 == 0) return 2;
     ll x = rng() % (n - 2) + 2;
@@ -311,13 +266,6 @@ ll pollardRho(ll n) {
     return d;
 }
 
-/**
- * @brief Recursively factor $n$ into prime factors.
- * @param n Integer to factor ($> 0$)
- * @return Sorted vector of prime factors (with multiplicity)
- *
- * Example: factorize(12) -> {2, 2, 3}
- */
 vector<ll> pollardRhoFactorize(ll n) {
     vector<ll> factors;
     function<void(ll)> rec = [&](ll n) {
@@ -335,7 +283,6 @@ vector<ll> pollardRhoFactorize(ll n) {
     ]);
   }
 
-  // --- Matrix Exponentiation ---
   const [matrix] = await db.insert(templates).values({
     title: "Matrix Exponentiation",
     slug: "matrix-exponentiation",
@@ -382,25 +329,16 @@ using namespace std;
 
 const ll MOD = 1e9 + 7;
 
-/**
- * @brief Square matrix with binary exponentiation support.
- * @tparam T Element type (default int)
- *
- * Provides multiplication ($O(n^3)$) and power ($O(n^3 \\log k)$).
- * Use for computing $M^k$ in linear recurrence problems.
- */
 template <typename T = int>
 struct MatrixExponentiation {
     int n;
     vector<vector<T>> mat;
 
-    /** @brief Construct $n \\times n$ matrix. If identity, sets $M = I$. */
     MatrixExponentiation(int _n = 0, bool identity = false)
         : n(_n), mat(_n, vector<T>(_n, 0)) {
         if (identity) for (int i = 0; i < n; i++) mat[i][i] = 1;
     }
 
-    /** @brief Matrix multiplication: $C = A \\cdot B \\pmod{\\text{MOD}}$ */
     MatrixExponentiation operator*(const MatrixExponentiation& other) const {
         MatrixExponentiation res(n);
         for (int i = 0; i < n; i++)
@@ -411,9 +349,8 @@ struct MatrixExponentiation {
         return res;
     }
 
-    /** @brief Compute $\\text{this}^{\\text{exp}}$ using binary exponentiation. */
     MatrixExponentiation pow(ll exp) {
-        MatrixExponentiation res(n, true);  // identity matrix
+        MatrixExponentiation res(n, true);
         MatrixExponentiation base = *this;
         while (exp > 0) {
             if (exp & 1) res = res * base;
@@ -427,7 +364,6 @@ struct MatrixExponentiation {
     ]);
   }
 
-  // --- Modular Integer (ModInt) ---
   const [modint] = await db.insert(templates).values({
     title: "Modular Integer (ModInt)",
     slug: "modint",

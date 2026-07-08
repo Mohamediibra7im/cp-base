@@ -175,65 +175,49 @@ using pt = complex<T>;
 #define x real()
 #define y imag()
 
-/** @brief Sign function: returns -1, 0, or +1 */
 int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-/** @brief Squared magnitude of a point |p|^2 */
 T sq(pt p) {
     return p.x * p.x + p.y * p.y;
 }
 
-/** @brief Perpendicular vector (-y, x) -- rotates 90 degrees CCW */
 pt perp(pt p) {
     return {-p.y, p.x};
 }
 
-/** @brief Dot product of vectors v and w */
 T dot(pt v, pt w) {
     return v.x * w.x + v.y * w.y;
 }
 
-/** @brief 2D cross product (z-component) of vectors v and w */
 T cross(pt v, pt w) {
     return v.x * w.y - v.y * w.x;
 }
 
-/** @brief Signed area of parallelogram spanned by (b-a) and (c-a). Positive = CCW */
 T orient(pt a, pt b, pt c) {
     return cross(b - a, c - a);
 }
 
-// =================== LINES ===================
-
 struct line {
-    pt v;  ///< direction vector
-    T c;   ///< cross(v, any_point_on_line)
+    pt v;
+    T c;
 
-    /** @brief Construct line from direction vector and constant */
     line(pt v, T c) : v(v), c(c) {}
 
-    /** @brief Construct line from equation ax + by = c */
     line(T a, T b, T _c) { v = {b, -a}; c = _c; }
 
-    /** @brief Construct line through points p and q */
     line(pt p, pt q) { v = q - p; c = cross(v, p); }
 
-    /** @brief Signed side test: > 0 left, < 0 right, = 0 on line */
     T side(pt p) { return cross(v, p) - c; }
 
-    /** @brief Perpendicular distance from point p to line */
     ld dist(pt p) { return fabsl(side(p)) / abs(v); }
 
-    /** @brief Orthogonal projection of point p onto line */
     pt proj(pt p) { return p - perp(v) * side(p) / sq(v); }
 
-    /** @brief Reflection of point p across line */
     pt refl(pt p) { return p - perp(v) * (T)2.0L * side(p) / sq(v); }
 };
 
-/** @brief Intersect two lines. Returns false if parallel */
 bool lineIntersect(line l1, line l2, pt &out) {
     T d = cross(l1.v, l2.v);
     if (fabsl(d) <= EPS) return false;
@@ -241,14 +225,10 @@ bool lineIntersect(line l1, line l2, pt &out) {
     return true;
 }
 
-// =================== SEGMENTS ===================
-
-/** @brief Check if point p lies on segment ab (inclusive) */
 bool onSegment(pt a, pt b, pt p) {
     return fabsl(orient(a, b, p)) <= EPS && dot(a - p, b - p) <= EPS;
 }
 
-/** @brief Proper intersection of segments ab and cd (they cross, not just touch) */
 bool properInter(pt a, pt b, pt c, pt d, pt &out) {
     T oa = orient(c, d, a), ob = orient(c, d, b);
     T oc = orient(a, b, c), od = orient(a, b, d);
@@ -259,7 +239,6 @@ bool properInter(pt a, pt b, pt c, pt d, pt &out) {
     return false;
 }
 
-/** @brief Minimum distance from point p to segment ab */
 ld segPoint(pt a, pt b, pt p) {
     if (a != b) {
         if (dot(p - a, b - a) >= 0 && dot(p - b, a - b) >= 0) {
@@ -270,9 +249,6 @@ ld segPoint(pt a, pt b, pt p) {
     return min(abs(p - a), abs(p - b));
 }
 
-// =================== POLYGONS ===================
-
-/** @brief Check if polygon is convex (all turns same orientation) */
 bool isConvex(vector<pt> p) {
     bool hasPos = false, hasNeg = false;
     int n = (int)p.size();
@@ -284,12 +260,10 @@ bool isConvex(vector<pt> p) {
     return !(hasPos && hasNeg);
 }
 
-/** @brief Area of triangle with vertices a, b, c */
 ld areaTriangle(pt a, pt b, pt c) {
     return fabsl(cross(b - a, c - a)) / 2.0L;
 }
 
-/** @brief Signed area of simple polygon via shoelace formula */
 ld areaPolygon(vector<pt> p) {
     ld area = 0.0L;
     int n = (int)p.size();
@@ -298,7 +272,6 @@ ld areaPolygon(vector<pt> p) {
     return fabsl(area) / 2.0L;
 }
 
-/** @brief Point-in-polygon test via ray casting. strict=true excludes boundary */
 bool inPolygon(vector<pt> p, pt a, bool strict = true) {
     int numCrossings = 0;
     int n = (int)p.size();
@@ -313,7 +286,6 @@ bool inPolygon(vector<pt> p, pt a, bool strict = true) {
     }]);
   }
 
-  // =================== GEOMETRY POINTS ===================
   const [geomPts] = await db.insert(templates).values({
     title: "Geometry Points",
     slug: "geometry-points",
@@ -408,11 +380,11 @@ Every operation is $O(1)$.
 
 \`\`\`cpp
 Point<ll> a(3, 4), b(1, 2);
-cout << a.distance(b);        // 2.82843
-cout << a.cross(b);           // -2  (3*2 - 4*1)
-cout << a.dot(b);             // 11  (3*1 + 4*2)
-cout << a.perp();             // (-4, 3)
-cout << a.unit();             // (0.6, 0.8)
+cout << a.distance(b);
+cout << a.cross(b);
+cout << a.dot(b);
+cout << a.perp();
+cout << a.unit();
 \`\`\``,
   }).returning();
   if (geomPts) {
@@ -423,13 +395,6 @@ using namespace std;
 using ll = long long;
 using ld = long double;
 
-/**
- * @brief Generic 2D point with full arithmetic and geometric operations.
- * @tparam T Coordinate type (int, ll, double, long double)
- *
- * Supports: +, -, *, /, ==, !=, <, >>, <<
- * Geometry: dot, cross, distance, angle, unit, perp, rotate, normal
- */
 template <typename T = int>
 struct Point {
     T x, y;
@@ -451,58 +416,43 @@ struct Point {
     friend istream& operator>>(istream &in, Point &p) { return in >> p.x >> p.y; }
     friend ostream& operator<<(ostream &out, const Point &p) { return out << p.x << ' ' << p.y; }
 
-    /** @brief Dot product with point p */
     T dot(const Point &p) const { return x * p.x + y * p.y; }
 
-    /** @brief 2D cross product (z-component) with point p */
     T cross(const Point &p) const { return x * p.y - y * p.x; }
 
-    /** @brief Cross product of vectors (a-this) and (b-this) */
     T cross(const Point &a, const Point &b) const { return (a - *this).cross(b - *this); }
 
-    /** @brief Squared distance from origin */
     T dist() const { return x * x + y * y; }
 
-    /** @brief Squared distance to point p */
     T dist(const Point &p) const { return (*this - p).dist(); }
 
-    /** @brief Euclidean distance from origin */
     ld distance() const { return sqrtl((ld)dist()); }
 
-    /** @brief Euclidean distance to point p */
     ld distance(const Point &p) const { return sqrtl((ld)dist(p)); }
 
-    /** @brief Polar angle in radians (-pi, pi] */
     ld angle() const { return atan2l((ld)y, (ld)x); }
 
-    /** @brief Signed angle from this vector to p in radians */
     ld angle(const Point &p) const { return atan2l((ld)cross(p), (ld)dot(p)); }
 
-    /** @brief Unit vector (returns zero vector if magnitude is zero) */
     Point unit() const {
         T d = dist();
         return d ? *this / d : Point();
     }
 
-    /** @brief Perpendicular vector (-y, x) -- 90 degree CCW rotation */
     Point perp() const { return Point(-y, x); }
 
-    /** @brief Rotate by angle a (radians) around origin */
     Point rotate(ld a) const {
         return Point(x * cosl(a) - y * sinl(a),
                      x * sinl(a) + y * cosl(a));
     }
 
-    /** @brief Rotate by angle a (radians) around point p */
     Point rotate(const Point &p, ld a) const { return (*this - p).rotate(a) + p; }
 
-    /** @brief Unit normal vector (perp().unit()) */
     Point normal() const { return perp().unit(); }
 };`),
     }]);
   }
 
-  // =================== CONVEX HULL (ANDREW'S) ===================
   const [convHull] = await db.insert(templates).values({
     title: "Convex Hull (Andrew's)",
     slug: "convex-hull-andrew",

@@ -59,16 +59,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Square root decomposition with sorted blocks for range queries.
- *
- * Partitions the array into blocks of size ceil(sqrt(n)), each sorted.
- * Supports point updates and range counting queries (elements >= x).
- * Modify the query() body for sum, min, max, or other aggregates.
- *
- * @tparam T     Element type (default int).
- * @tparam Base  0 for 0-indexed, 1 for 1-indexed input arrays.
- */
 template <typename T = int, int Base = 0>
 struct SqrtDecomp {
     int n, len;
@@ -76,21 +66,11 @@ struct SqrtDecomp {
     vector<vector<T>> b;
     T uDefault, qDefault;
 
-    /**
-     * @brief Computes the block size as ceil(sqrt(N)).
-     * @param N  Total number of elements.
-     * @return Optimal block size.
-     */
     int calcBlockSize(int N) {
         int sq = sqrt(N);
         return sq * sq == N ? sq : sq + 1;
     }
 
-    /**
-     * @brief Constructs the decomposition for an array of size N.
-     * @param N   Number of elements.
-     * @param vec Optional input vector; if provided, build() is called automatically.
-     */
     SqrtDecomp(int N = 0, const vector<T>& vec = vector<T>()) {
         n = N;
         len = calcBlockSize(n);
@@ -101,12 +81,6 @@ struct SqrtDecomp {
         if (!vec.empty()) build();
     }
 
-    /**
-     * @brief Distributes elements into blocks and sorts each block.
-     *
-     * Element at index i goes into block floor(i / len).
-     * After distribution, each block is sorted for binary search queries.
-     */
     void build() {
         for (int i = (Base ? 1 : 0); i < (Base ? n + 1 : n); i++)
             b[i / len].push_back(a[i]);
@@ -114,11 +88,6 @@ struct SqrtDecomp {
             sort(b[i].begin(), b[i].end());
     }
 
-    /**
-     * @brief Point update: set arr[idx] = val and re-sort the containing block.
-     * @param idx  Index to update (1-indexed if Base=1, 0-indexed if Base=0).
-     * @param val  New value.
-     */
     void update(int idx, T val) {
         int blockIdx = idx / len;
         auto& blk = b[blockIdx];
@@ -127,11 +96,6 @@ struct SqrtDecomp {
         sort(blk.begin(), blk.end());
     }
 
-    /**
-     * @brief Range update: rebuild the entire block containing idx.
-     * @param idx  Index whose block should be rebuilt.
-     * @param val  New value for arr[idx].
-     */
     void updateRange(int idx, T val) {
         int blockIdx = idx / len;
         a[idx - !Base] = val;
@@ -141,30 +105,18 @@ struct SqrtDecomp {
         sort(b[blockIdx].begin(), b[blockIdx].end());
     }
 
-    /**
-     * @brief Query: count elements >= x in the range [l, r).
-     *
-     * Processes three regions: left boundary (linear scan),
-     * full blocks (binary search), right boundary (linear scan).
-     * Modify the counting logic for different aggregate queries.
-     *
-     * @param l  Left boundary (inclusive, 1-indexed if Base=1).
-     * @param r  Right boundary (exclusive, 1-indexed if Base=1).
-     * @param x  Threshold value.
-     * @return Count of elements >= x in [l, r).
-     */
     T query(int l, int r, T x) {
         T res = qDefault;
-        // Left boundary: partial block at the start
+
         while (l < r && l % len != 0)
             res += a[l++ - !Base] >= x;
-        // Full blocks: binary search each complete block
+
         while (l + len <= r) {
             auto& blk = b[l / len];
             res += (int)blk.size() - (lower_bound(blk.begin(), blk.end(), x) - blk.begin());
             l += len;
         }
-        // Right boundary: partial block at the end
+
         while (l <= r)
             res += a[l++ - !Base] >= x;
         return res;
@@ -269,36 +221,14 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Mo's algorithm for offline range queries with Hilbert curve ordering.
- *
- * Processes q queries on an array of size n by reordering them to minimize
- * pointer movement. Implements add()/remove() as a two-pointer sweep.
- * Uses Hilbert curve ordering for optimal cache performance.
- *
- * You MUST implement the add() and remove() private methods with
- * problem-specific logic. The ans member holds the current aggregate.
- *
- * @tparam T     Answer type (default int).
- * @tparam Base  0 for 0-indexed, 1 for 1-indexed.
- */
 template <typename T = int, int Base = 0>
 class MoAlgorithm {
 public:
-    /**
-     * @brief Represents a single range query with Hilbert curve ordering.
-     */
+
     struct Query {
         int l, r, queryIdx;
         int64_t ord;
 
-        /**
-         * @brief Constructs a query and computes its Hilbert ordering key.
-         * @param L           Left boundary (1-indexed if Base=1).
-         * @param R           Right boundary (1-indexed if Base=1).
-         * @param QueryIdx    Original index of this query.
-         * @param hilbertPow  Power of 2 for Hilbert curve computation.
-         */
         Query(int L = 0, int R = 0, int QueryIdx = 0, int hilbertPow = 0) {
             l = L - !Base;
             r = R - !Base;
@@ -306,7 +236,6 @@ public:
             calcOrder(hilbertPow);
         }
 
-        /** @brief Computes the Hilbert curve value for this query's (l, r) point. */
         void calcOrder(int hilbertPow) {
             ord = hilbertOrder(l, r, hilbertPow, 0);
         }
@@ -316,21 +245,12 @@ public:
         }
     };
 
-    /**
-     * @brief Constructs Mo's algorithm solver.
-     * @param N  Array size.
-     * @param M  Number of queries.
-     */
     MoAlgorithm(int N = 0, int M = 0)
         : currL(1), currR(0), n(N), m(M),
           sqrtN(n / max((int)sqrt(m), 1) + 1),
           hilbertPow(calculateHilbertPow()),
           ans(0), answers(m), queries(m) {}
 
-    /**
-     * @brief Reads queries from stdin and processes them.
-     * @param v  Input array (must have at least n elements).
-     */
     void getData(const vector<T>& v = {}) {
         val = v;
         for (int i = 0, l, r; i < m && cin >> l >> r; i++)
@@ -338,7 +258,6 @@ public:
         process();
     }
 
-    /** @brief Sorts queries by Hilbert order and processes them with two pointers. */
     void process() {
         sort(queries.begin(), queries.end());
         currL = queries[0].l;
@@ -349,7 +268,6 @@ public:
         }
     }
 
-    /** @brief Returns answers in original query order. */
     vector<T> getAnswers() const {
         return answers;
     }
@@ -360,19 +278,6 @@ private:
     vector<T> answers, val;
     vector<Query> queries;
 
-    /**
-     * @brief Computes the Hilbert curve ordering key for a 2D point.
-     *
-     * The Hilbert curve maps 2D coordinates to a 1D index while
-     * preserving locality: nearby 2D points tend to have nearby 1D indices.
-     * This is critical for Mo's algorithm performance.
-     *
-     * @param x       x-coordinate (query left boundary).
-     * @param y       y-coordinate (query right boundary).
-     * @param pow     Power of 2 for the curve grid size.
-     * @param rotate  Current rotation state.
-     * @return 64-bit Hilbert curve index.
-     */
     static int64_t hilbertOrder(int x, int y, int pow, int rotate) {
         if (pow == 0) return 0;
         int hpow = 1 << (pow - 1);
@@ -389,38 +294,20 @@ private:
         return result;
     }
 
-    /** @brief Computes the smallest power of 2 >= n for Hilbert curve grid. */
     int calculateHilbertPow() const {
         int p = 1;
         while ((1 << p) < n) p++;
         return p;
     }
 
-    /**
-     * @brief Adds element at idx to the current answer.
-     *
-     * IMPORTANT: Implement this method with problem-specific logic.
-     * Example for counting frequencies: freq[val[idx]]++, ans += (freq[val[idx]] == 1);
-     *
-     * @param idx  Index of the element to add.
-     */
     void add(int idx) {
-        // TODO: implement — add val[idx] to ans
+
     }
 
-    /**
-     * @brief Removes element at idx from the current answer.
-     *
-     * IMPORTANT: Implement this method with problem-specific logic.
-     * Example for counting frequencies: freq[val[idx]]--, ans -= (freq[val[idx]] == 0);
-     *
-     * @param idx  Index of the element to remove.
-     */
     void remove(int idx) {
-        // TODO: implement — remove val[idx] from ans
+
     }
 
-    /** @brief Moves the current range pointers to match query q's range. */
     void setRange(const Query& q) {
         while (currL > q.l) currL--, add(currL);
         while (currR < q.r) currR++, add(currR);
@@ -538,49 +425,24 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Mo's algorithm adapted for tree path queries.
- *
- * Uses Euler tour (tin/tout) to linearize tree paths and LCA via
- * binary lifting to handle non-ancestor path queries. Node values
- * are toggled active/inactive as the pointer crosses Euler tour entries.
- *
- * You MUST implement add(int u) and remove(int u) with problem-specific logic.
- *
- * @tparam T           Answer type (default int).
- * @tparam graphType   Adjacency element type (int or pair<int,int>).
- * @tparam VAL_ON_EDGE False for node values, true for edge values.
- */
 template <typename T = int, typename graphType = int, bool VAL_ON_EDGE = false>
 class MoTree {
 public:
-    /**
-     * @brief Represents a tree path query mapped to an Euler tour range.
-     */
+
     struct Query {
         int l, r, lca, queryIdx;
         int64_t ord;
 
-        /**
-         * @brief Maps a tree path (u, v) to an Euler tour range.
-         * @param S           Entry times for each node.
-         * @param E           Exit times for each node.
-         * @param L           First endpoint.
-         * @param R           Second endpoint.
-         * @param QueryIdx    Original query index.
-         * @param LCA         Lowest common ancestor of L and R.
-         * @param hilbertPow  Power of 2 for Hilbert curve.
-         */
         Query(vector<int>& S, vector<int>& E, int L, int R, int QueryIdx,
               int LCA, int hilbertPow) {
             if (S[L] > S[R]) swap(L, R);
             if (LCA == L) {
-                // L is ancestor of R: path is [S[L], S[R]]
+
                 l = S[L] + VAL_ON_EDGE;
                 r = S[R];
-                lca = -1;  // no separate LCA to add
+                lca = -1;
             } else {
-                // General case: path is [E[L], S[R]] + LCA
+
                 l = E[L];
                 r = S[R];
                 lca = LCA;
@@ -589,7 +451,6 @@ public:
             calcOrder(hilbertPow);
         }
 
-        /** @brief Computes the Hilbert curve value for this query. */
         void calcOrder(int hilbertPow) {
             ord = MoTree::hilbertOrder(l, r, hilbertPow, 0);
         }
@@ -599,14 +460,6 @@ public:
         }
     };
 
-    /**
-     * @brief Constructs the MoTree solver.
-     * @param N   Number of nodes.
-     * @param M   Number of queries.
-     * @param G   Adjacency list.
-     * @param V   Node values (optional, zero-initialized if empty).
-     * @param root  Root node index (default 1).
-     */
     MoTree(int N, int M, const vector<vector<graphType>>& G,
            const vector<T>& V = {}, int root = 1)
         : currL(1), currR(0), n(N), m(M),
@@ -621,14 +474,6 @@ public:
         dfs(root, adj);
     }
 
-    /**
-     * @brief Computes the Hilbert curve ordering key for a 2D point.
-     * @param x       x-coordinate (Euler tour position).
-     * @param y       y-coordinate (Euler tour position).
-     * @param pow     Power of 2 for the curve grid size.
-     * @param rotate  Current rotation state.
-     * @return 64-bit Hilbert curve index.
-     */
     static int64_t hilbertOrder(int x, int y, int pow, int rotate) {
         if (pow == 0) return 0;
         int hpow = 1 << (pow - 1);
@@ -645,28 +490,25 @@ public:
         return result;
     }
 
-    /** @brief Reads queries from stdin and processes them. */
     void getData() {
         for (int i = 0, u, v; i < m && cin >> u >> v; i++)
             queries.emplace_back(S, E, u, v, i, getLCA(u, v), hilbertPow);
         process();
     }
 
-    /** @brief Sorts queries by Hilbert order and processes them with two pointers. */
     void process() {
         sort(queries.begin(), queries.end());
         currL = queries[0].l;
         currR = queries[0].l - 1;
         for (auto& q : queries) {
             setRange(q);
-            // If LCA is not in the mapped range, manually add/remove it
+
             if (~q.lca && !VAL_ON_EDGE) add(q.lca);
             answers[q.queryIdx] = ans;
             if (~q.lca && !VAL_ON_EDGE) remove(q.lca);
         }
     }
 
-    /** @brief Returns answers in original query order. */
     vector<T> getAnswers() const {
         return answers;
     }
@@ -680,12 +522,6 @@ private:
     vector<Query> queries;
     const vector<vector<graphType>>& adj;
 
-    /**
-     * @brief DFS to compute Euler tour, depths, and binary lifting table.
-     * @param u   Current node.
-     * @param G   Adjacency list (weighted, pair<int,int>).
-     * @param p   Parent node (-1 for root).
-     */
     void dfs(int u, const vector<vector<pair<int, int>>>& G, int p = -1) {
         S[u] = timer;
         FT[timer++] = u;
@@ -693,7 +529,7 @@ private:
             if (v == p) continue;
             dep[v] = dep[u] + 1;
             anc[v][0] = u;
-            val[v] = w;  // edge weight becomes child's node value
+            val[v] = w;
             for (int bit = 1; bit < LOG; bit++)
                 anc[v][bit] = anc[anc[v][bit - 1]][bit - 1];
             dfs(v, G, u);
@@ -702,12 +538,6 @@ private:
         FT[timer++] = u;
     }
 
-    /**
-     * @brief DFS to compute Euler tour and depths (unweighted).
-     * @param u   Current node.
-     * @param G   Adjacency list (unweighted, int).
-     * @param p   Parent node (-1 for root).
-     */
     void dfs(int u, const vector<vector<int>>& G, int p = -1) {
         S[u] = timer;
         FT[timer++] = u;
@@ -723,12 +553,6 @@ private:
         FT[timer++] = u;
     }
 
-    /**
-     * @brief Finds the k-th ancestor of node u via binary lifting.
-     * @param u  Node index.
-     * @param k  Number of steps to go up.
-     * @return k-th ancestor, or -1 if it doesn't exist.
-     */
     int kthAncestor(int u, int k) const {
         if (dep[u] < k) return -1;
         for (int bit = LOG - 1; bit >= 0; bit--)
@@ -737,12 +561,6 @@ private:
         return u;
     }
 
-    /**
-     * @brief Computes the lowest common ancestor of u and v.
-     * @param u  First node.
-     * @param v  Second node.
-     * @return LCA of u and v.
-     */
     int getLCA(int u, int v) const {
         if (dep[u] < dep[v]) swap(u, v);
         u = kthAncestor(u, dep[u] - dep[v]);
@@ -753,7 +571,6 @@ private:
         return anc[u][0];
     }
 
-    /** @brief Moves the current range pointers to match query q's Euler range. */
     void setRange(Query& q) {
         while (currL > q.l) operation(--currL);
         while (currR < q.r) operation(++currR);
@@ -761,38 +578,14 @@ private:
         while (currR > q.r) operation(currR--);
     }
 
-    /**
-     * @brief Adds node u to the current answer.
-     *
-     * IMPORTANT: Implement with problem-specific logic.
-     * Example for distinct values: freq[val[u]]++; ans += (freq[val[u]] == 1);
-     *
-     * @param u  Node index to add.
-     */
     void add(int u) {
-        // TODO: implement — add node u to ans
+
     }
 
-    /**
-     * @brief Removes node u from the current answer.
-     *
-     * IMPORTANT: Implement with problem-specific logic.
-     * Example for distinct values: freq[val[u]]--; ans -= (freq[val[u]] == 0);
-     *
-     * @param u  Node index to remove.
-     */
     void remove(int u) {
-        // TODO: implement — remove node u from ans
+
     }
 
-    /**
-     * @brief Toggles a node's active state via its Euler tour position.
-     *
-     * Each node appears twice in the Euler tour (at S[u] and E[u]).
-     * Crossing either position toggles the node between active and inactive.
-     *
-     * @param idx  Position in the Euler tour array.
-     */
     void operation(int idx) {
         int u = FT[idx];
         nodeFreq[u] ^= 1;
@@ -802,14 +595,12 @@ private:
             remove(u);
     }
 
-    /** @brief Computes ceil(log2(max_n + 1)) for binary lifting table size. */
     int calcLog(int maxN) const {
         int log = 0;
         while ((1 << log) <= maxN) log++;
         return log;
     }
 
-    /** @brief Computes smallest power of 2 >= maxN for Hilbert curve grid. */
     int calcHilbertPow(int maxN) const {
         int p = 0;
         while ((1 << p) < maxN) p++;
@@ -909,45 +700,17 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief 2D prefix sum for O(1) rectangle sum queries on a static grid.
- *
- * Build a 1-indexed prefix sum matrix from an input grid. Query any
- * axis-aligned rectangle in O(1) using inclusion-exclusion of four
- * precomputed values.
- *
- * @tparam T  Element type (default int). Use ll for large sums.
- */
 template <typename T = int>
 struct PrefixSum2D {
     int n, m;
     vector<vector<T>> prefix;
 
-    /**
-     * @brief Constructs the prefix sum structure for an n x m grid.
-     * @param N  Number of rows.
-     * @param M  Number of columns.
-     */
     PrefixSum2D(int N = 0, int M = 0) {
         n = N;
         m = M;
         prefix.assign(n + 5, vector<T>(m + 5, 0));
     }
 
-    /**
-     * @brief Queries the sum of rectangle [x1,y1] to [x2,y2] in O(1).
-     *
-     * Coordinates are 1-indexed. Uses inclusion-exclusion:
-     *   sum = P[x2][y2] - P[x1-1][y2] - P[x2][y1-1] + P[x1-1][y1-1]
-     *
-     * If x1 > x2 or y1 > y2, coordinates are auto-swapped.
-     *
-     * @param x1  Row of first corner (1-indexed).
-     * @param y1  Column of first corner (1-indexed).
-     * @param x2  Row of second corner (1-indexed).
-     * @param y2  Column of second corner (1-indexed).
-     * @return Sum of all elements in the rectangle.
-     */
     T getQuery(int x1, int y1, int x2, int y2) {
         if (x1 > x2) swap(x1, x2);
         if (y1 > y2) swap(y1, y2);
@@ -955,17 +718,6 @@ struct PrefixSum2D {
              - prefix[x2][y1 - 1] + prefix[x1 - 1][y1 - 1];
     }
 
-    /**
-     * @brief Builds the 2D prefix sum matrix from an input grid.
-     *
-     * The input matrix is 0-indexed. Internally, a 1-indexed prefix
-     * matrix P is constructed where P[i][j] stores the sum of all
-     * elements in rows [0, i-1] and columns [0, j-1].
-     *
-     * Recurrence: P[i][j] = A[i-1][j-1] + P[i][j-1] + P[i-1][j] - P[i-1][j-1]
-     *
-     * @param matrix  0-indexed n x m input grid.
-     */
     void buildPrefix(vector<vector<T>>& matrix) {
         for (int i = 1; i <= n; i++)
             for (int j = 1; j <= m; j++)
@@ -973,9 +725,6 @@ struct PrefixSum2D {
                     + prefix[i][j - 1] + prefix[i - 1][j] - prefix[i - 1][j - 1];
     }
 
-    /**
-     * @brief Prints the prefix sum matrix (for debugging).
-     */
     void printPrefix() {
         for (int i = 1; i <= n; i++, cout << '\\n')
             for (int j = 1; j <= m; j++)
@@ -1042,49 +791,17 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief 2D difference array for batch rectangle updates and point queries.
- *
- * Supports O(1) rectangle addition via corner marking. After all updates,
- * call propagate() to compute the final grid. Each cell then contains
- * the total accumulated value from all covering updates.
- *
- * @tparam T  Element type (default int). Use ll for large accumulations.
- */
 template <typename T = int>
 struct PartialSum2D {
     vector<vector<T>> diff;
     int n, m;
 
-    /**
-     * @brief Constructs the difference array for an n x m grid.
-     * @param N  Number of rows.
-     * @param M  Number of columns.
-     */
     PartialSum2D(int N, int M) {
         n = N;
         m = M;
         diff.assign(n + 5, vector<T>(m + 5, 0));
     }
 
-    /**
-     * @brief Marks the corners for a rectangle addition in O(1).
-     *
-     * Adds k to every cell in rectangle [x1,y1] to [x2,y2] (1-indexed).
-     * Coordinates are auto-swapped if inverted.
-     *
-     * Corner updates:
-     *   diff[x2][y2]     += k
-     *   diff[x2][y1-1]   -= k
-     *   diff[x1-1][y2]   -= k
-     *   diff[x1-1][y1-1] += k
-     *
-     * @param x1  Top row of rectangle (1-indexed).
-     * @param y1  Left column of rectangle (1-indexed).
-     * @param x2  Bottom row of rectangle (1-indexed).
-     * @param y2  Right column of rectangle (1-indexed).
-     * @param k   Value to add (default 1).
-     */
     void applyUpdate(int x1, int y1, int x2, int y2, T k = 1) {
         if (x1 > x2) swap(x1, x2);
         if (y1 > y2) swap(y1, y2);
@@ -1094,40 +811,21 @@ struct PartialSum2D {
         diff[x1 - 1][y1 - 1] += k;
     }
 
-    /**
-     * @brief Propagates all corner updates to compute the final grid.
-     *
-     * Two-pass sweep (both right-to-left then bottom-to-top):
-     *   1. Row-wise: diff[i][j] += diff[i][j+1]   (for j from m down to 0)
-     *   2. Col-wise: diff[i][j] += diff[i+1][j]   (for i from n down to 0)
-     *
-     * After propagation, diff[i][j] holds the final accumulated value at (i, j).
-     * Call this once after all applyUpdate() calls, before reading values.
-     */
     void propagate() {
-        // Row-wise prefix sum (right to left)
+
         for (int i = n; i >= 0; i--)
             for (int j = m; j >= 0; j--)
                 diff[i][j] += diff[i][j + 1];
-        // Column-wise prefix sum (bottom to top)
+
         for (int i = n; i >= 0; i--)
             for (int j = m; j >= 0; j--)
                 diff[i][j] += diff[i + 1][j];
     }
 
-    /**
-     * @brief Returns the final value at cell (x, y) after propagation.
-     * @param x  Row index (1-indexed).
-     * @param y  Column index (1-indexed).
-     * @return Accumulated value at (x, y).
-     */
     T get(int x, int y) {
         return diff[x][y];
     }
 
-    /**
-     * @brief Prints the final grid (for debugging).
-     */
     void print() {
         for (int i = 1; i <= n; i++, cout << '\\n')
             for (int j = 1; j <= m; j++)

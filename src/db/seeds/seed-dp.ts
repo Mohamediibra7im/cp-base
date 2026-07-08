@@ -104,20 +104,6 @@ ll maxNeg = kadane(neg);  // returns -1 (least negative)
       code: stripMain(`#include <bits/stdc++.h>
 using ll = long long;
 
-/**
- * @brief Finds the maximum contiguous subarray sum using Kadane's algorithm.
- *
- * Maintains two rolling variables: maxEnding (best sum ending at current
- * position) and maxSubarray (global best). At each element, we either
- * extend the previous subarray or start a new one.
- *
- * @param arr Input array of integers (may contain negatives).
- * @return The maximum sum of any contiguous subarray. Returns 0 for an
- *         empty array. If all elements are negative, returns the least
- *         negative element.
- *
- * @note Time complexity: O(n), Space complexity: O(1).
- */
 template <typename T = ll>
 T kadane(const std::vector<T>& arr) {
     T maxEnding = 0;
@@ -234,24 +220,6 @@ using ll = long long;
 ll dp[20][2][2][10];
 std::string num;
 
-/**
- * @brief Recursively counts valid numbers by processing digits left to right.
- *
- * State: (idx, tight, started, lastDigit)
- * - idx:       current digit position (0 = most significant)
- * - tight:     1 if prefix matches upper bound exactly, 0 otherwise
- * - started:   1 if a non-zero digit has been placed
- * - lastDigit: value of the most recently placed digit (0 if not started)
- *
- * At each position, try all digits 0..limit where limit depends on tight.
- * When tight=1, limit is the actual digit of the bound; when tight=0, limit is 9.
- *
- * @param idx       Current digit index being filled.
- * @param tight     Whether we are still constrained by the upper bound.
- * @param started   Whether a non-zero digit has been placed yet.
- * @param lastDigit The last placed digit (relevant only when started=1).
- * @return Count of valid completions from this state.
- */
 ll solveDp(int idx, bool tight, bool started, int lastDigit) {
     if (idx == (int)num.size()) {
         return started ? 1 : 0;
@@ -273,16 +241,6 @@ ll solveDp(int idx, bool tight, bool started, int lastDigit) {
     return ret;
 }
 
-/**
- * @brief Counts numbers in [l, r] satisfying the digit constraint.
- *
- * Uses the standard prefix technique: f(r) - f(l-1).
- * Each call resets the memoization table and sets the digit string.
- *
- * @param l Lower bound of the range (inclusive).
- * @param r Upper bound of the range (inclusive).
- * @return Number of integers in [l, r] that satisfy the digit property.
- */
 ll solve(ll l, ll r) {
     if (l > r) return 0;
 
@@ -352,96 +310,39 @@ At $x$: evaluate stored line, recurse to child containing $x$, return $\\min$ al
       code: stripMain(`#include <bits/stdc++.h>
 using ll = long long;
 
-/**
- * @brief Represents a line y = m*x + c.
- *
- * The call operator evaluates the line at a given x coordinate.
- * Default c = LLONG_MAX acts as infinity for minimization queries.
- */
 struct Line {
     ll m, c;
 
-    /**
-     * @brief Constructs a line y = m*x + c.
-     * @param _m Slope of the line.
-     * @param _c Intercept of the line (default: LLONG_MAX for min queries).
-     */
     Line(ll _m = 0, ll _c = LLONG_MAX) : m(_m), c(_c) {}
 
-    /**
-     * @brief Evaluates the line at x.
-     * @param x The x coordinate to evaluate at.
-     * @return The value m*x + c.
-     */
     ll operator()(ll x) const { return m * x + c; }
 };
 
-/**
- * @brief Li Chao segment tree for dynamic line insertion and min query.
- *
- * Maintains the lower envelope of lines over a bounded x-range [L, R].
- * Each node stores the line that is best at the midpoint of its interval.
- * On insertion, the worse line at the midpoint is pushed to the child
- * where it might win.
- */
 struct LiChao {
     struct Node {
         Line line;
         Node *left, *right;
 
-        /**
-         * @brief Constructs a node with the given line.
-         * @param _line The line stored at this node.
-         */
         Node(Line _line = Line()) : line(_line), left(nullptr), right(nullptr) {}
     };
 
     Node* root;
     ll L, R;
 
-    /**
-     * @brief Constructs a Li Chao tree over the range [L, R].
-     * @param _L Left boundary of the x-coordinate range.
-     * @param _R Right boundary of the x-coordinate range.
-     */
     LiChao(ll _L, ll _R) : L(_L), R(_R) {
         root = new Node();
     }
 
-    /**
-     * @brief Inserts a new line into the tree.
-     *
-     * Traverses from root to leaf, comparing the new line with the stored
-     * line at each midpoint. The worse line is pushed to the appropriate
-     * child. Time complexity: O(log(R - L)).
-     *
-     * @param newLine The line to insert.
-     */
     void addLine(Line newLine) {
         addLine(root, L, R, newLine);
     }
 
-    /**
-     * @brief Queries the minimum value at x among all inserted lines.
-     *
-     * Traverses from root to leaf containing x, taking the minimum of
-     * all stored lines along the path. Time complexity: O(log(R - L)).
-     *
-     * @param x The x coordinate to query at.
-     * @return The minimum value m*x + c over all inserted lines.
-     */
     ll query(ll x) {
         return query(root, L, R, x);
     }
 
 private:
-    /**
-     * @brief Recursive helper for line insertion.
-     * @param node Current tree node.
-     * @param l    Left boundary of current interval.
-     * @param r    Right boundary of current interval.
-     * @param newLine Line being inserted.
-     */
+
     void addLine(Node* node, ll l, ll r, Line newLine) {
         ll mid = (l + r) >> 1;
 
@@ -455,24 +356,16 @@ private:
         if (l == r) return;
 
         if (leftBetter != midBetter) {
-            // newLine wins on the left half
+
             if (!node->left) node->left = new Node();
             addLine(node->left, l, mid, newLine);
         } else {
-            // newLine wins on the right half
+
             if (!node->right) node->right = new Node();
             addLine(node->right, mid + 1, r, newLine);
         }
     }
 
-    /**
-     * @brief Recursive helper for querying minimum at x.
-     * @param node Current tree node (may be nullptr).
-     * @param l    Left boundary of current interval.
-     * @param r    Right boundary of current interval.
-     * @param x    The x coordinate being queried.
-     * @return The minimum value at x among lines on this path.
-     */
     ll query(Node* node, ll l, ll r, ll x) {
         if (!node) return LLONG_MAX;
 

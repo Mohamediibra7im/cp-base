@@ -36,12 +36,6 @@ Linked-list adjacency using a **head array** — fastest graph representation fo
       templateId: graphRep.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Linked-list adjacency (head array) — fast graph representation.
- *
- * Edges stored in a flat array with head[] pointing to the latest edge.
- * Edge index 0 is reserved as the null sentinel (-1).
- */
 #define adjLoop(u, v, e) for(int e = head[u], v; ~e && (v = edges[e].to, 1); e = edges[e].nxt)
 
 struct Edge {
@@ -53,34 +47,17 @@ int edgeCount;
 vector<Edge> edges;
 vector<int> head;
 
-/**
- * @brief Initialize graph storage for n nodes and m edges.
- * @param n Number of nodes (1-indexed, allocates n+5)
- * @param m Number of edges (allocates 2*m+5 edge slots)
- */
 void init(int n, int m) {
     edges = vector<Edge>(2 * m + 5);
     head = vector<int>(n + 5, -1);
     edgeCount = 1;
 }
 
-/**
- * @brief Add a directed edge u -> v with weight c.
- * @param u Source node
- * @param v Destination node
- * @param c Edge weight (default 0)
- */
 void addEdge(int u, int v, int c = 0) {
     edges[edgeCount] = {v, head[u], c};
     head[u] = edgeCount++;
 }
 
-/**
- * @brief Add an undirected edge between u and v with weight c.
- * @param u First node
- * @param v Second node
- * @param c Edge weight (default 0)
- */
 void addBiEdge(int u, int v, int c = 0) {
     addEdge(u, v, c);
     addEdge(v, u, c);
@@ -117,14 +94,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Dijkstra's shortest path algorithm using a min-heap.
- *
- * Finds shortest paths from a single source in O((V+E) log V).
- * Requires non-negative edge weights.
- *
- * @tparam T Weight type (int or long long)
- */
 template <typename T = int>
 struct Dijkstra {
     struct Edge {
@@ -135,11 +104,6 @@ struct Dijkstra {
 
     vector<vector<Edge>> adj;
 
-    /**
-     * @brief Construct by reading edges from stdin.
-     * @param edges Number of edges to read
-     * @param undirected If true, adds both directions for each edge
-     */
     Dijkstra(int edges, bool undirected = true) {
         adj = vector<vector<Edge>>(edges);
         for (int i = 0, u, v, w; i < edges; i++) {
@@ -149,12 +113,6 @@ struct Dijkstra {
         }
     }
 
-    /**
-     * @brief Find shortest path cost from src to dest.
-     * @param src Source node
-     * @param dest Destination node
-     * @return Shortest path cost, or -1 if unreachable
-     */
     T minCost(int src, int dest) {
         int n = adj.size();
         vector<T> dist(n, numeric_limits<T>::max() / 2);
@@ -173,11 +131,6 @@ struct Dijkstra {
         return (dist[dest] >= numeric_limits<T>::max() / 2 ? -1 : dist[dest]);
     }
 
-    /**
-     * @brief Get distances from src to all reachable nodes.
-     * @param src Source node
-     * @return Vector of distances (unreachable = max/2)
-     */
     vector<T> getDist(int src) {
         int n = adj.size();
         vector<T> dist(n, numeric_limits<T>::max() / 2);
@@ -230,61 +183,26 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Floyd-Warshall all-pairs shortest paths.
- *
- * O(V^3) DP on the graph. Handles negative weights.
- * Detects negative cycles (diagonal < 0 after build).
- *
- * @tparam T Weight type (int or long long)
- * @tparam Base 0 for 0-indexed input, 1 for 1-indexed input
- */
 template <typename T = int, int Base = 0>
 struct Floyd {
     int n;
     vector<vector<T>> dist;
     const T INF = numeric_limits<T>::max() / 2;
 
-    /**
-     * @brief Construct with n nodes, all pairs initialized to INF (self-loops = 0).
-     * @param _n Number of nodes
-     */
     Floyd(int _n = 0) : n(_n), dist(n + 5, vector<T>(n + 5, INF)) {
         for (int i = 1; i <= n; i++) dist[i][i] = 0;
     }
 
-    /**
-     * @brief Construct from an existing distance matrix.
-     * @param _n Number of nodes
-     * @param D Initial distance matrix (0-indexed or 1-indexed based on Base)
-     */
     Floyd(int _n, const vector<vector<T>>& D) : n(_n), dist(n + 5, vector<T>(n + 5, INF)) {
         for (int i = 1; i <= n; i++)
             for (int j = 1; j <= n; j++)
                 dist[i][j] = D[i - !Base][j - !Base];
     }
 
-    /**
-     * @brief Combine two path costs (min for shortest path).
-     * @param a First cost
-     * @param b Second cost
-     * @return Minimum of a and b
-     */
     T operation(T a, T b) { return min(a, b); }
 
-    /**
-     * @brief Add a directed edge u -> v with weight w (takes min if duplicate).
-     * @param u Source node
-     * @param v Destination node
-     * @param w Edge weight
-     */
     void addEdge(int u, int v, T w) { dist[u][v] = operation(dist[u][v], w); }
 
-    /**
-     * @brief Run the O(V^3) Floyd-Warshall DP.
-     *
-     * After build, dist[u][v] = shortest path from u to v.
-     */
     void build() {
         for (int k = 1; k <= n; k++)
             for (int u = 1; u <= n; u++)
@@ -292,31 +210,12 @@ struct Floyd {
                     updateDist(u, v, k);
     }
 
-    /**
-     * @brief Get shortest distance from u to v (call after build).
-     * @param u Source node
-     * @param v Destination node
-     * @return Shortest distance, or INF if unreachable
-     */
     T getDist(int u, int v) { return dist[u][v]; }
 
-    /**
-     * @brief Relax path u -> v through an intermediate pair (a, b).
-     * @param u Source node
-     * @param v Destination node
-     * @param a First intermediate node
-     * @param b Second intermediate node
-     */
     void updateDist(int u, int v, int a, int b) {
         dist[u][v] = operation(dist[u][v], dist[u][a] + dist[a][b] + dist[b][v]);
     }
 
-    /**
-     * @brief Relax path u -> v through intermediate node k.
-     * @param u Source node
-     * @param v Destination node
-     * @param k Intermediate node
-     */
     void updateDist(int u, int v, int k) {
         dist[u][v] = operation(dist[u][v], dist[u][k] + dist[k][v]);
     }
@@ -405,23 +304,10 @@ For **weighted trees** with path sum/max queries, use the \`LCA Weighted\` templ
       templateId: lca.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Lowest Common Ancestor using binary lifting.
- *
- * Supports LCA, distance, and k-th ancestor queries in O(log n).
- * Requires a rooted tree with adjacency list.
- *
- * @tparam vecType Integer type for node values (default: int)
- */
 template <typename vecType = int>
 class LCA {
 public:
-    /**
-     * @brief Build LCA structure from tree adjacency.
-     * @param n Number of nodes
-     * @param G Adjacency list (1-indexed, undirected)
-     * @param root Root of the tree (default: 1)
-     */
+
     LCA(int n = 0, const vector<vector<int>>& G = {}, int root = 1)
         : N(n), LOG(0), ROOT(root), adj(G) {
         while ((1 << LOG) <= N) LOG++;
@@ -430,12 +316,6 @@ public:
         dfs(ROOT);
     }
 
-    /**
-     * @brief Find the k-th ancestor of node u.
-     * @param u Target node
-     * @param k Number of steps to go up
-     * @return k-th ancestor, or -1 if it doesn't exist
-     */
     int kthAncestor(int u, int k) const {
         if (depth[u] < k) return -1;
         for (int bit = 0; bit < LOG; bit++)
@@ -443,12 +323,6 @@ public:
         return u;
     }
 
-    /**
-     * @brief Find the lowest common ancestor of u and v.
-     * @param u First node
-     * @param v Second node
-     * @return LCA node index
-     */
     int getLca(int u, int v) const {
         if (depth[u] < depth[v]) swap(u, v);
         u = kthAncestor(u, depth[u] - depth[v]);
@@ -459,12 +333,6 @@ public:
         return anc[u][0];
     }
 
-    /**
-     * @brief Get the number of edges between u and v.
-     * @param u First node
-     * @param v Second node
-     * @return Distance in edges
-     */
     int getDist(int u, int v) const {
         return depth[u] + depth[v] - 2 * depth[getLca(u, v)];
     }
@@ -475,11 +343,6 @@ private:
     vector<vector<int>> anc;
     vector<int> depth;
 
-    /**
-     * @brief DFS to compute depth and direct parents.
-     * @param u Current node
-     * @param p Parent node (0 for root)
-     */
     void dfs(int u, int p = 0) {
         for (int v : adj[u]) {
             if (v == p) continue;
@@ -594,74 +457,32 @@ for (auto& [u, v] : t.getBridges())
       templateId: tarjan.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Tarjan's algorithm for SCCs, bridges, and articulation points.
- *
- * Single DFS pass computes all three in O(V+E).
- * Uses discovery times and low-link values.
- */
 class Tarjan {
 public:
-    /**
-     * @brief Initialize Tarjan's algorithm for n nodes.
-     * @param n Number of nodes (0-indexed internally, handles up to n+4)
-     */
+
     Tarjan(int n) { init(n); }
 
-    /**
-     * @brief Add an edge to the graph.
-     * @param u Source node
-     * @param v Destination node
-     * @param isDirected If true, adds only u->v; otherwise adds both directions
-     */
     void addEdge(int u, int v, bool isDirected = false) {
         adj[u].push_back(v);
         if (!isDirected) adj[v].push_back(u);
     }
 
-    /**
-     * @brief Run Tarjan's DFS from all unvisited nodes.
-     * Must call before querying results.
-     */
     void run() {
         for (int i = 0; i < (int)adj.size(); ++i)
             if (nodeIdx[i] == -1) dfs(i);
     }
 
-    /**
-     * @brief Get all articulation points.
-     * @return Set of articulation point node indices
-     */
     set<int> getArticulationPoints() { return artPoints; }
 
-    /**
-     * @brief Get all bridge edges.
-     * @return Vector of (u, v) pairs representing bridges
-     */
     vector<pair<int, int>> getBridges() { return bridges; }
 
-    /**
-     * @brief Check if a node is an articulation point.
-     * @param u Node to check
-     * @return true if u is an articulation point
-     */
     bool isArticulationPoint(int u) { return artPoints.find(u) != artPoints.end(); }
 
-    /**
-     * @brief Check if an edge is a bridge.
-     * @param u First endpoint
-     * @param v Second endpoint
-     * @return true if (u,v) or (v,u) is a bridge
-     */
     bool isBridge(int u, int v) {
         return find(bridges.begin(), bridges.end(), make_pair(u, v)) != bridges.end()
             || find(bridges.begin(), bridges.end(), make_pair(v, u)) != bridges.end();
     }
 
-    /**
-     * @brief Get all strongly connected components.
-     * @return Vector of SCCs, each SCC is a vector of node indices
-     */
     vector<vector<int>> getComponents() { return comps; }
 
 private:
@@ -673,10 +494,6 @@ private:
     vector<pair<int, int>> bridges;
     set<int> artPoints;
 
-    /**
-     * @brief Initialize internal arrays for n nodes.
-     * @param n Number of nodes
-     */
     void init(int n) {
         timer = 0;
         adj.assign(n + 5, vector<int>());
@@ -688,11 +505,6 @@ private:
         while (!stk.empty()) stk.pop();
     }
 
-    /**
-     * @brief DFS from node u to compute SCCs, bridges, and articulation points.
-     * @param u Current node
-     * @param parent Parent in DFS tree (-1 for root)
-     */
     void dfs(int u, int parent = -1) {
         lowLink[u] = nodeIdx[u] = timer++;
         inStack[u] = true;
@@ -703,22 +515,22 @@ private:
             if (nodeIdx[v] == -1) {
                 dfs(v, u);
                 lowLink[u] = min(lowLink[u], lowLink[v]);
-                // Bridge: v's subtree cannot reach u or above
+
                 if (lowLink[v] == nodeIdx[v])
                     bridges.emplace_back(u, v);
-                // Articulation point: v's subtree cannot bypass u
+
                 if (parent != -1 && lowLink[v] >= nodeIdx[u])
                     artPoints.insert(u);
                 ++childCount;
             } else if (inStack[v]) {
-                // Back edge to ancestor in current SCC
+
                 lowLink[u] = min(lowLink[u], nodeIdx[v]);
             }
         }
-        // Root is articulation point if it has 2+ children
+
         if (parent == -1 && childCount > 1)
             artPoints.insert(u);
-        // Pop SCC rooted at u
+
         if (lowLink[u] == nodeIdx[u]) {
             comps.emplace_back();
             int v;
@@ -763,14 +575,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Bellman-Ford shortest path with negative cycle detection.
- *
- * O(V*E) algorithm that handles negative weights.
- * Detects negative cycles reachable from source.
- *
- * @tparam T Weight type (int or long long)
- */
 template <typename T = int>
 struct BellmanFord {
     struct Edge {
@@ -781,7 +585,7 @@ struct BellmanFord {
             in >> e.u >> e.v >> e.w;
             return in;
         }
-        /** @brief Negate edge weight (for max-path via negation trick). */
+
         void inv() { w *= -1; }
     };
 
@@ -790,13 +594,6 @@ struct BellmanFord {
     T DEFAULT;
     vector<T> dist;
 
-    /**
-     * @brief Construct Bellman-Ford instance.
-     * @param _n Number of nodes
-     * @param _m Number of edges
-     * @param _src Source node (default: 1)
-     * @param _dest Destination node (default: 1)
-     */
     BellmanFord(int _n = 0, int _m = 0, int _src = 1, int _dest = 1) {
         n = _n; m = _m; src = _src; dest = _dest;
         DEFAULT = numeric_limits<T>::max() / 2;
@@ -804,22 +601,10 @@ struct BellmanFord {
         edges.resize(m);
     }
 
-    /** @brief Read m edges from stdin (format: u v w). */
     void readEdges() { cin >> edges; }
 
-    /**
-     * @brief Manually add an edge.
-     * @param u Source node
-     * @param v Destination node
-     * @param w Edge weight
-     */
     void addEdge(int u, int v, T w) { edges.emplace_back(u, v, w); }
 
-    /**
-     * @brief Run Bellman-Ford (V-1 relaxation rounds).
-     *
-     * After build, dist[] contains shortest distances from src.
-     */
     void build() {
         dist[src] = 0;
         for (int i = 0; i < n; i++)
@@ -828,12 +613,6 @@ struct BellmanFord {
                     dist[v] = min(dist[v], dist[u] + w);
     }
 
-    /**
-     * @brief Check for negative cycle (call after build).
-     *
-     * If any edge can still be relaxed, a negative cycle exists.
-     * @return true if a negative cycle is reachable from src
-     */
     bool hasNegativeCycle() {
         for (auto& [u, v, w] : edges)
             if (dist[u] < DEFAULT && dist[v] > dist[u] + w)
@@ -841,17 +620,8 @@ struct BellmanFord {
         return false;
     }
 
-    /**
-     * @brief Get shortest distance from src to node u.
-     * @param u Target node
-     * @return Shortest distance, or DEFAULT if unreachable
-     */
     T getDist(int u) { return dist[u]; }
 
-    /**
-     * @brief Get minimum distance among all nodes.
-     * @return Minimum value in dist array
-     */
     T getMinDist() { return *min_element(dist.begin(), dist.end()); }
 };`)
     }]);
@@ -961,23 +731,12 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Graph with DFS, BFS, bipartite check, cycle detection, and topological sort.
- *
- * Supports both directed and undirected graphs.
- * All operations run in O(V+E).
- */
 struct Graph {
     int n, m;
     vector<vector<int>> adj;
     vector<bool> vis;
     vector<int> depth, parent, deg, colour;
 
-    /**
-     * @brief Construct graph for n nodes and m edges.
-     * @param N Number of nodes
-     * @param M Number of edges
-     */
     Graph(int N, int M) : n(N), m(M) {
         adj.assign(n + 10, vector<int>());
         vis.assign(n + 10, false);
@@ -987,32 +746,16 @@ struct Graph {
         parent.assign(n + 10, -1);
     }
 
-    /**
-     * @brief Add an edge to the graph.
-     * @param u Source node
-     * @param v Destination node
-     * @param isDirected If true, adds only u->v
-     */
     void addEdge(int u, int v, bool isDirected = false) {
         adj[u].push_back(v); deg[u]++;
         if (!isDirected) { adj[v].push_back(u); deg[v]++; }
     }
 
-    /**
-     * @brief Read m edges from stdin and build adjacency list.
-     * @param isDirected If true, reads directed edges
-     */
     void buildAdj(bool isDirected = false) {
         for (int i = 0, u, v; i < m && cin >> u >> v; i++)
             addEdge(u, v, isDirected);
     }
 
-    /**
-     * @brief Depth-first search from node, recording parent and depth.
-     * @param node Current node
-     * @param dep Current depth
-     * @param par Parent node (-1 for root)
-     */
     void dfs(int node, int dep = 0, int par = -1) {
         vis[node] = true;
         parent[node] = par;
@@ -1021,12 +764,6 @@ struct Graph {
             if (!vis[nxt]) dfs(nxt, dep + 1, node);
     }
 
-    /**
-     * @brief Breadth-first search for shortest path from->to.
-     * @param from Source node
-     * @param to Destination node
-     * @return Shortest distance in edges, or -1 if unreachable
-     */
     int bfs(int from, int to) {
         if (from == to) return 0;
         queue<int> q;
@@ -1048,10 +785,6 @@ struct Graph {
         return depth[to] >= 1e9 ? -1 : depth[to];
     }
 
-    /**
-     * @brief Check if the graph is bipartite (2-colorable).
-     * @return true if no odd cycles exist
-     */
     bool isBipartite() {
         fill(colour.begin(), colour.end(), 0);
         for (int i = 1; i <= n; i++) {
@@ -1075,12 +808,6 @@ struct Graph {
         return true;
     }
 
-    /**
-     * @brief Detect cycle in undirected graph via DFS.
-     * @param node Current node
-     * @param par Parent node
-     * @return true if a cycle is found
-     */
     bool hasCycle(int node, int par = -1) {
         vis[node] = true;
         for (auto& nxt : adj[node]) {
@@ -1093,21 +820,12 @@ struct Graph {
         return false;
     }
 
-    /**
-     * @brief Print path from node to root using parent[] array.
-     * @param node Target node (path printed in reverse)
-     */
     void getPath(int node) {
         if (parent[node] == -1) return;
         cout << node << " ";
         getPath(parent[node]);
     }
 
-    /**
-     * @brief Topological sort using Kahn's algorithm (BFS-based).
-     *
-     * Prints topological order. Fails silently if graph has a cycle.
-     */
     void topologicalSort() {
         queue<int> topo;
         vector<int> order;
@@ -1209,14 +927,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Prim's minimum spanning tree algorithm.
- *
- * Greedy algorithm using a priority queue. O((V+E) log V) with binary heap.
- * Requires non-negative edge weights.
- *
- * @tparam T Weight type (int or long long)
- */
 template <typename T = int>
 struct Prim {
     struct Edge {
@@ -1228,42 +938,21 @@ struct Prim {
     vector<vector<Edge>> adj;
     vector<bool> marked;
 
-    /**
-     * @brief Construct Prim for n nodes.
-     * @param n Number of nodes
-     */
     Prim(int n = 0) {
         adj = vector<vector<Edge>>(n + 10);
         marked = vector<bool>(n + 10, false);
     }
 
-    /**
-     * @brief Add an edge to the graph.
-     * @param u First node
-     * @param v Second node
-     * @param w Edge weight
-     * @param isDirected If true, adds only u->v
-     */
     void addEdge(int u, int v, T w, bool isDirected = false) {
         adj[u].push_back(Edge(v, w));
         if (!isDirected) adj[v].push_back(Edge(u, w));
     }
 
-    /**
-     * @brief Read edges from stdin and build adjacency list.
-     * @param edges Number of edges to read
-     * @param isDirected If true, reads directed edges
-     */
     void buildAdj(int edges, bool isDirected = false) {
         for (int i = 0, u, v, w; i < edges && cin >> u >> v >> w; i++)
             addEdge(u, v, w, isDirected);
     }
 
-    /**
-     * @brief Compute MST cost starting from root.
-     * @param root Starting node for Prim's algorithm
-     * @return Total weight of the minimum spanning tree
-     */
     T getCost(int root) {
         T cost = 0;
         priority_queue<Edge> pq;
@@ -1309,38 +998,18 @@ Divide-and-conquer on trees by recursively splitting at the **centroid** — a n
       templateId: centroid.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Centroid Decomposition for divide-and-conquer on trees.
- *
- * Recursively decomposes a tree at centroids — nodes whose largest
- * subtree is at most n/2. Produces O(log n) depth.
- *
- * @tparam T Integer type for node indices (default: int)
- */
 template <typename T = int>
 struct CentroidDecomposition {
     int n, treeRoot;
     const vector<vector<T>>& adj;
     vector<T> subtreeSz, isCentroid;
 
-    /**
-     * @brief Construct centroid decomposition for a tree.
-     * @param N Number of nodes
-     * @param G Adjacency list (1-indexed, undirected)
-     * @param Root Root of the original tree (default: 1)
-     */
     CentroidDecomposition(int N, const vector<vector<T>>& G, int Root = 1) : adj(G) {
         n = N;
         treeRoot = Root;
         subtreeSz = isCentroid = vector<T>(n + 5, 0);
     }
 
-    /**
-     * @brief Compute subtree sizes for the current component.
-     * @param u Current node
-     * @param p Parent node (-1 for none)
-     * @return Size of subtree rooted at u
-     */
     int updateSize(int u, int p = -1) {
         subtreeSz[u] = 1;
         for (int v : adj[u])
@@ -1349,13 +1018,6 @@ struct CentroidDecomposition {
         return subtreeSz[u];
     }
 
-    /**
-     * @brief Find the centroid of the current component.
-     * @param u Starting node
-     * @param target Total size of the component
-     * @param p Parent node (-1 for none)
-     * @return Index of the centroid node
-     */
     int getCentroid(int u, int target, int p = -1) {
         for (auto& v : adj[u]) {
             if (v == p || isCentroid[v]) continue;
@@ -1365,17 +1027,10 @@ struct CentroidDecomposition {
         return u;
     }
 
-    /**
-     * @brief Decompose the tree recursively at centroids.
-     *
-     * Override or extend this method to add problem-specific logic
-     * at each centroid (e.g., process all paths through centroid).
-     * @param u Starting node for current component (-1 for tree root)
-     */
     void decompose(int u = -1) {
         if (u == -1) u = treeRoot;
         int centroid = getCentroid(u, updateSize(u));
-        // Add problem logic here — process paths through centroid
+
         isCentroid[centroid] = true;
         for (auto& v : adj[centroid])
             if (!isCentroid[v]) decompose(v);
@@ -1413,26 +1068,10 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief LCA on weighted trees with path aggregate queries.
- *
- * Binary lifting stores both ancestors and path aggregates.
- * Supports any associative operation (sum, max, min, gcd, etc.).
- *
- * @tparam treeType Type for path aggregate values
- * @tparam graphType Type for edge weights in adjacency list
- */
 template <typename treeType = int, typename graphType = int>
 class LCAWeighted {
 public:
-    /**
-     * @brief Build LCA structure for weighted tree.
-     * @param n Number of nodes
-     * @param G Weighted adjacency list: pair<neighbor, weight>
-     * @param op Aggregate operation (must be associative)
-     * @param _neutral Neutral element for op: op(neutral, x) = x
-     * @param root Root of the tree (default: 1)
-     */
+
     LCAWeighted(int n = 0,
         const vector<vector<pair<int, graphType>>>& G = {},
         function<treeType(treeType, treeType)> op = [](treeType a, treeType b){ return a + b; },
@@ -1445,12 +1084,6 @@ public:
         dfs(ROOT);
     }
 
-    /**
-     * @brief Find the k-th ancestor of node u.
-     * @param u Target node
-     * @param k Number of steps to go up
-     * @return k-th ancestor, or -1 if it doesn't exist
-     */
     int kthAncestor(int u, int k) const {
         if (depth[u] < k) return -1;
         for (int bit = 0; bit < LOG; bit++)
@@ -1458,12 +1091,6 @@ public:
         return u;
     }
 
-    /**
-     * @brief Find the lowest common ancestor of u and v.
-     * @param u First node
-     * @param v Second node
-     * @return LCA node index
-     */
     int getLca(int u, int v) const {
         if (depth[u] < depth[v]) swap(u, v);
         u = kthAncestor(u, depth[u] - depth[v]);
@@ -1474,23 +1101,11 @@ public:
         return anc[u][0];
     }
 
-    /**
-     * @brief Get aggregate of edge weights on path u → v.
-     * @param u First node
-     * @param v Second node
-     * @return Aggregate value (op of all edge weights on path)
-     */
     treeType query(int u, int v) const {
         int l = getLca(u, v);
         return operation(getCost(u, depth[u] - depth[l]), getCost(v, depth[v] - depth[l]));
     }
 
-    /**
-     * @brief Get the number of edges between u and v.
-     * @param u First node
-     * @param v Second node
-     * @return Distance in edges
-     */
     int getDist(int u, int v) const {
         int l = getLca(u, v);
         return depth[u] + depth[v] - 2 * depth[l];
@@ -1505,11 +1120,6 @@ private:
     function<treeType(treeType, treeType)> operation;
     treeType neutral;
 
-    /**
-     * @brief DFS to compute depth, parents, and cost tables.
-     * @param u Current node
-     * @param p Parent node (0 for root)
-     */
     void dfs(int u, int p = 0) {
         for (auto& [v, w] : adj[u]) {
             if (v == p) continue;
@@ -1524,12 +1134,6 @@ private:
         }
     }
 
-    /**
-     * @brief Compute aggregate of edge weights going up dist steps from u.
-     * @param u Starting node
-     * @param dist Number of edges to go up
-     * @return Aggregate of edge weights along the path
-     */
     treeType getCost(int u, int dist) const {
         treeType ret = neutral;
         for (int bit = 0; bit < LOG; bit++) {
@@ -1628,38 +1232,17 @@ int maxMatch = kuhn.maxMatch();
       templateId: kuhn.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Kuhn's algorithm for maximum bipartite matching.
- *
- * Finds maximum matching using augmenting path DFS.
- * O(V*E) worst case, fast in practice.
- *
- * @tparam T Integer type for node indices
- * @tparam Base 0 for 0-indexed input, 1 for 1-indexed input (default)
- */
 template <typename T = int, int Base = 1>
 struct Kuhn {
     int n, m;
     vector<vector<T>> adj;
     vector<T> matching, vis;
 
-    /**
-     * @brief Construct Kuhn's algorithm for bipartite matching.
-     * @param N Number of left-side vertices
-     * @param M Number of right-side vertices
-     * @param G Adjacency list: G[u] = list of right-side neighbors of u
-     */
     Kuhn(int N, int M, const vector<vector<T>>& G) : n(N), m(M), adj(G) {
         matching = vector<T>(m + 5, -1);
         vis = vector<T>(n + 5, 0);
     }
 
-    /**
-     * @brief Try to find augmenting path from left vertex u.
-     * @param u Left-side vertex
-     * @param cur Current timestamp for vis[] array
-     * @return true if augmenting path found
-     */
     bool match(int u, int& cur) {
         if (vis[u] == cur) return false;
         vis[u] = cur;
@@ -1669,10 +1252,6 @@ struct Kuhn {
         return false;
     }
 
-    /**
-     * @brief Compute maximum matching size.
-     * @return Number of matched edges
-     */
     T maxMatch() {
         T cur = 1;
         for (int i = Base; i < n + Base; i++, cur++)
@@ -1800,15 +1379,6 @@ lct.cut(2, 3);            // remove edge 2-3
       templateId: lct.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Link-Cut Tree for dynamic tree connectivity with path queries.
- *
- * Supports link, cut, path queries, and subtree queries in O(log n) amortized.
- * Uses splay trees to maintain preferred paths.
- *
- * @tparam T Value type for nodes (default: int)
- * @tparam Base 0 for 0-indexed input, 1 for 1-indexed input
- */
 template <typename T = int, int Base = 0>
 struct LCT {
     struct Node {
@@ -1825,10 +1395,6 @@ struct LCT {
     #define siz(x) nodes[x].siz
     #define val(x) nodes[x].val
 
-    /**
-     * @brief Construct LCT for n nodes (all values initialized to 1).
-     * @param _n Number of nodes
-     */
     LCT(int _n = 0) : nodes(_n + 5) {
         for (int i = 1; i <= _n; i++) {
             par(i) = left(i) = right(i) = 0;
@@ -1836,11 +1402,6 @@ struct LCT {
         }
     }
 
-    /**
-     * @brief Construct LCT with initial node values.
-     * @param _n Number of nodes
-     * @param v Initial values (0-indexed or 1-indexed based on Base)
-     */
     LCT(int _n, vector<T>& v) : nodes(_n + 5) {
         for (int i = 1; i <= _n; i++) {
             par(i) = left(i) = right(i) = 0;
@@ -1849,30 +1410,12 @@ struct LCT {
         }
     }
 
-    /**
-     * @brief Check if x is the root of its splay tree.
-     * @param x Node to check
-     * @return true if x is a splay tree root
-     */
     bool isRoot(int x) { return par(x) == 0 || (left(par(x)) != x && right(par(x)) != x); }
 
-    /**
-     * @brief Update subtree aggregate (size) after structural change.
-     * @param x Node to update
-     */
     void update(int x) { siz(x) = siz(left(x)) + siz(right(x)) + val(x); }
 
-    /**
-     * @brief Check if x is the right child of its parent.
-     * @param x Node to check
-     * @return true if x is a right child
-     */
     bool isRight(int x) { return right(par(x)) == x; }
 
-    /**
-     * @brief Rotate node x up one level in the splay tree.
-     * @param x Node to rotate
-     */
     void rotate(int x) {
         int p = par(x), g = par(p), t = isRight(x);
         if (!isRoot(p)) nodes[g].ch[isRight(p)] = x;
@@ -1883,10 +1426,6 @@ struct LCT {
         update(p); update(x);
     }
 
-    /**
-     * @brief Splay node x to the root of its splay tree.
-     * @param x Node to splay
-     */
     void splay(int x) {
         while (!isRoot(x)) {
             int p = par(x);
@@ -1895,10 +1434,6 @@ struct LCT {
         }
     }
 
-    /**
-     * @brief Expose the path from root to x (make it a single preferred path).
-     * @param x Target node
-     */
     void expose(int x) {
         for (int p = 0; x; p = x, x = par(x)) {
             splay(x);
@@ -1909,42 +1444,22 @@ struct LCT {
         }
     }
 
-    /**
-     * @brief Make x the root of its tree (re-root).
-     * @param x Node to make root
-     */
     void makeRoot(int x) {
         expose(x); splay(x);
         val(x) = -val(x);
         swap(left(x), right(x));
     }
 
-    /**
-     * @brief Check if x and y are in the same tree.
-     * @param x First node
-     * @param y Second node
-     * @return true if connected
-     */
     bool connected(int x, int y) {
         return getRoot(x) == getRoot(y);
     }
 
-    /**
-     * @brief Get the root of x's tree.
-     * @param x Node to find root for
-     * @return Root node index
-     */
     int getRoot(int x) {
         expose(x); splay(x);
         while (left(x)) x = left(x);
         splay(x); return x;
     }
 
-    /**
-     * @brief Add edge between x and y.
-     * @param x First node
-     * @param y Second node
-     */
     void link(int x, int y) {
         expose(x); splay(x);
         expose(y); splay(y);
@@ -1952,42 +1467,21 @@ struct LCT {
         update(x);
     }
 
-    /**
-     * @brief Remove edge between x and y.
-     * @param x First node
-     * @param y Second node
-     */
     void cut(int x, int y) {
         expose(y); splay(x);
         right(x) = par(y) = 0;
         update(x);
     }
 
-    /**
-     * @brief Query aggregate on path from x to y.
-     * @param x First node
-     * @param y Second node
-     * @return Aggregate value on path x→y
-     */
     T query(int x, int y) {
         makeRoot(x); expose(y);
         return siz(y);
     }
 
-    /**
-     * @brief Query aggregate of x's subtree.
-     * @param x Target node
-     * @return Subtree aggregate value
-     */
     T querySubtree(int x) {
         expose(x); return val(x);
     }
 
-    /**
-     * @brief Set the value of node x.
-     * @param x Target node
-     * @param v New value
-     */
     void set(int x, T v) {
         val(x) = v; splay(x);
     }

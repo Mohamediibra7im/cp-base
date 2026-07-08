@@ -47,15 +47,6 @@ Concatenate $t = p + \# + s$ (sentinel prevents overlap). Compute $\pi$ on $t$. 
 using namespace std;
 using ll = long long;
 
-/**
- * @brief Compute the prefix function (pi array) for string s.
- *
- * pi[i] = length of the longest proper prefix of s[0..i]
- * that is also a suffix of s[0..i].
- *
- * @param s Input string
- * @return vector<int> where pi[i] is the prefix function value at position i
- */
 vector<int> prefixFunction(const string& s) {
     int n = s.size();
     vector<int> pi(n);
@@ -70,13 +61,6 @@ vector<int> prefixFunction(const string& s) {
     return pi;
 }
 
-/**
- * @brief Find all occurrences of pattern p in string s using KMP.
- *
- * @param s Text string
- * @param p Pattern string
- * @return vector<int> of starting indices (0-indexed) where p occurs in s
- */
 vector<int> kmpSearch(const string& s, const string& p) {
     string t = p + "#" + s;
     vector<int> pi = prefixFunction(t);
@@ -91,7 +75,6 @@ vector<int> kmpSearch(const string& s, const string& p) {
     }]);
   }
 
-  // --- Manacher ---
   const [manacher] = await db.insert(templates).values({
     title: "Manacher's Algorithm",
     slug: "manacher",
@@ -148,16 +131,6 @@ Odd palindromes → odd $i$ in $t$. Even palindromes → even $i$ in $t$.
 using namespace std;
 using ll = long long;
 
-/**
- * @brief Find all palindromic substrings using Manacher's algorithm.
- *
- * Transforms s into t = "#a#b#a#" and computes the palindrome radius
- * array p where p[i] is the radius of the palindrome centered at t[i].
- *
- * @param s Input string
- * @return vector<int> where p[i] is the radius of the palindrome
- *         centered at position i in the transformed string
- */
 vector<int> manacher(const string& s) {
     string t = "#";
     for (char c : s) {
@@ -182,7 +155,6 @@ vector<int> manacher(const string& s) {
     }]);
   }
 
-  // --- Rolling Hash ---
   const [rollingHash] = await db.insert(templates).values({
     title: "Rolling Hash (Hashing)",
     slug: "rolling-hash",
@@ -259,18 +231,17 @@ This allows comparing concatenations without constructing the actual string.
 ## Usage
 
 \`\`\`cpp
-// String usage (1-indexed after construction)
+
 string s = "abcabc";
 RollingHash<ll, 1> h(s);
-auto sub = h.sub(1, 3);                     // hash of "abc"
-bool eq = h.equal(1, 3, 4, 6);              // true (abc == abc)
-auto single = h.at(2);                       // hash of 'b'
-auto merged = h.mergeHash(1, 2, 4, 5);       // hash of "ab" + "bc"
+auto sub = h.sub(1, 3);
+bool eq = h.equal(1, 3, 4, 6);
+auto single = h.at(2);
+auto merged = h.mergeHash(1, 2, 4, 5);
 
-// Vector usage (0-indexed)
 vector<int> vec = {1, 2, 3, 1, 2, 3};
 RollingHash<ll, 0> hv(vec);
-hv.equal(0, 2, 3, 5);  // true
+hv.equal(0, 2, 3, 5);
 \`\`\`
 `,
   }).returning();
@@ -282,16 +253,6 @@ hv.equal(0, 2, 3, 5);  // true
 using namespace std;
 using ll = long long;
 
-/**
- * @brief Polynomial rolling hash with double hashing for collision resistance.
- *
- * Uses randomized bases and moduli from a set of safe primes to prevent
- * adversarial collisions. Supports 1-indexed strings (Base=1) and
- * 0-indexed vectors (Base=0).
- *
- * @tparam T Integer type (default: long long)
- * @tparam Base 0 for 1-indexed vectors, 1 for 0-indexed strings
- */
 template <typename T = long long, int Base = 0>
 struct RollingHash {
     mt19937 rng;
@@ -364,26 +325,12 @@ struct RollingHash {
         }
     }
 
-    /**
-     * @brief Get the double hash of substring/range [l, r].
-     * @param l Left endpoint (1-indexed for Base=0, 0-indexed for Base=1)
-     * @param r Right endpoint (inclusive)
-     * @return pair<T,T> double hash value
-     */
     inline pair<T, T> sub(int l, int r) const {
         T F = (h1[r] - (h1[l - 1] * pow1[r - l + 1] % m1) + m1) % m1;
         T S = (h2[r] - (h2[l - 1] * pow2[r - l + 1] % m2) + m2) % m2;
         return {F, S};
     }
 
-    /**
-     * @brief Get the double hash of concatenation s[l1..r1] + s[l2..r2].
-     * @param l1 Start of first range
-     * @param r1 End of first range (inclusive)
-     * @param l2 Start of second range
-     * @param r2 End of second range (inclusive)
-     * @return pair<T,T> double hash of concatenated ranges
-     */
     inline pair<T, T> mergeHash(int l1, int r1, int l2, int r2) const {
         auto a = sub(l1, r1), b = sub(l2, r2);
         T F = ((a.first * pow1[r2 - l2 + 1]) + b.first) % m1;
@@ -391,19 +338,10 @@ struct RollingHash {
         return {F, S};
     }
 
-    /**
-     * @brief Get the hash of a single element at position idx.
-     * @param idx Element position
-     * @return pair<T,T> double hash of the single element
-     */
     inline pair<T, T> at(int idx) const {
         return sub(idx, idx);
     }
 
-    /**
-     * @brief Check if s[l1..r1] == s[l2..r2] using double hash comparison.
-     * @return true if the two ranges are equal
-     */
     inline bool equal(int l1, int r1, int l2, int r2) const {
         return sub(l1, r1) == sub(l2, r2);
     }
@@ -418,7 +356,6 @@ template <typename T, int Base> T RollingHash<T, Base>::m2 = 0;`),
     }]);
   }
 
-  // --- Hashed Deque ---
   const [hashedDeque] = await db.insert(templates).values({
     title: "Hashed Deque",
     slug: "hashed-deque",
@@ -476,15 +413,6 @@ $$H' = H - a_0 \\cdot b^{\\text{len}-1} \\mod m$$
 using namespace std;
 using ll = long long;
 
-/**
- * @brief Double-ended queue with O(1) rolling polynomial double hash.
- *
- * Maintains a double hash of the entire sequence so that comparing
- * two deques for equality is O(1). Supports push/pop from both ends
- * with O(1) amortized time per operation.
- *
- * @tparam T Element type
- */
 template <typename T>
 class HashedDeque {
 private:
@@ -500,11 +428,6 @@ private:
 
     vector<vector<ll>> p, inv;
 
-    /**
-     * @brief Check if x is a prime number.
-     * @param x Number to test
-     * @return true if x is prime
-     */
     static bool isPrime(ll x) {
         if (x < 2 || (x % 2 == 0 && x != 2)) return false;
         for (ll i = 3; i * i <= x; i += 2) {
@@ -513,19 +436,11 @@ private:
         return true;
     }
 
-    /**
-     * @brief Find the next prime number >= x.
-     * @param x Starting value
-     * @return Smallest prime >= x
-     */
     static ll nextPrime(ll x) {
         while (!isPrime(x)) ++x;
         return x;
     }
 
-    /**
-     * @brief Initialize the two random prime moduli (once, thread-safe).
-     */
     static void getMods() {
         static once_flag flag;
         call_once(flag, []() {
@@ -538,9 +453,6 @@ private:
         });
     }
 
-    /**
-     * @brief Compute base^exp mod modVal using binary exponentiation.
-     */
     ll fastPower(ll baseVal, ll exp, ll modVal) {
         ll res = 1;
         while (exp > 0) {
@@ -552,9 +464,6 @@ private:
         return res;
     }
 
-    /**
-     * @brief Precompute powers and inverse powers up to N.
-     */
     void initialize() {
         p = inv = vector<vector<ll>>(N, vector<ll>(2, 1));
         getMods();
@@ -575,7 +484,6 @@ public:
         return uniform_int_distribution<ll>(l, r)(rng);
     }
 
-    /** @brief Append element to back, O(1). */
     void pushBack(T x) {
         for (int i = 0; i < 2; ++i)
             val[i] = ((val[i] * base) % mod[i] + x) % mod[i];
@@ -583,7 +491,6 @@ public:
         ++len;
     }
 
-    /** @brief Prepend element to front, O(1). */
     void pushFront(T x) {
         for (int i = 0; i < 2; ++i)
             val[i] = ((x * p[len][i]) % mod[i] + val[i]) % mod[i];
@@ -591,7 +498,6 @@ public:
         ++len;
     }
 
-    /** @brief Remove element from back, O(1). */
     void popBack() {
         for (int i = 0; i < 2; ++i) {
             val[i] = ((val[i] - curr.back()) % mod[i] + mod[i]) % mod[i];
@@ -601,7 +507,6 @@ public:
         --len;
     }
 
-    /** @brief Remove element from front, O(1). */
     void popFront() {
         --len;
         for (int i = 0; i < 2; ++i) {
@@ -611,12 +516,10 @@ public:
         curr.pop_front();
     }
 
-    /** @return Current number of elements, O(1). */
     int size() const {
         return len;
     }
 
-    /** @brief O(1) equality check via double hash comparison. */
     bool operator==(const HashedDeque<T>& rhs) const {
         return len == rhs.len && val == rhs.val;
     }
@@ -627,7 +530,6 @@ template <typename T> vector<ll> HashedDeque<T>::mod;`),
     }]);
   }
 
-  // --- Hash Segment Tree ---
   const [hashSegTree] = await db.insert(templates).values({
     title: "Hash Segment Tree",
     slug: "hash-segment-tree",

@@ -58,21 +58,10 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Binary search for target in a sorted array.
- *
- * Repeatedly halves the search interval by comparing the midpoint
- * to the target. Returns the index if found, -1 otherwise.
- *
- * @param arr  Sorted vector of integers (ascending order).
- * @param n    Size of the array.
- * @param target  Value to search for.
- * @return Index of target if found, -1 otherwise.
- */
 int binarySearch(const vector<int>& arr, int n, int target) {
     int l = 0, r = n - 1;
     while (l <= r) {
-        int mid = l + (r - l) / 2;  // overflow-safe
+        int mid = l + (r - l) / 2;
         if (arr[mid] == target) return mid;
         if (arr[mid] < target)
             l = mid + 1;
@@ -82,17 +71,15 @@ int binarySearch(const vector<int>& arr, int n, int target) {
     return -1;
 }
 
-// --- Example usage (remove in production) ---
 int main() {
     vector<int> arr = {1, 3, 5, 7, 9};
-    cout << binarySearch(arr, 5, 7) << "\\n";  // 3
-    cout << binarySearch(arr, 5, 4) << "\\n";  // -1
+    cout << binarySearch(arr, 5, 7) << "\\n";
+    cout << binarySearch(arr, 5, 4) << "\\n";
     return 0;
 }`),
     }]);
   }
 
-  // ─── Lower Bound ───────────────────────────────────────────────────
   const [lowerB] = await db.insert(templates).values({
     title: "Lower Bound",
     slug: "lower-bound",
@@ -121,9 +108,9 @@ Maintain an answer variable \`ans\` initialized to $-1$. At each step, compute m
 
 \`\`\`cpp
 int arr[] = {1, 3, 3, 5, 7};
-int idx = lowerBound(arr, 5, 3);  // returns 1 (first 3)
-int idx2 = lowerBound(arr, 5, 4); // returns 3 (first element >= 4 is 5)
-int idx3 = lowerBound(arr, 5, 10); // returns -1 (all < 10)
+int idx = lowerBound(arr, 5, 3);
+int idx2 = lowerBound(arr, 5, 4);
+int idx3 = lowerBound(arr, 5, 10);
 \`\`\`
 
 ## When to Use
@@ -161,18 +148,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Finds the index of the first element >= target.
- *
- * Uses binary search with an answer variable. When nums[m] >= target,
- * records m as a candidate and continues searching left for an
- * earlier match.
- *
- * @param nums  Sorted vector of integers (ascending order).
- * @param n     Size of the array.
- * @param target  The value to search for.
- * @return Index of first element >= target, or -1 if all are smaller.
- */
 int lowerBound(const vector<int>& nums, int n, int target) {
     int l = 0, r = n - 1, ans = -1;
     while (l <= r) {
@@ -187,18 +162,16 @@ int lowerBound(const vector<int>& nums, int n, int target) {
     return ans;
 }
 
-// --- Example usage (remove in production) ---
 int main() {
     vector<int> nums = {1, 3, 3, 5, 7};
-    cout << lowerBound(nums, 5, 3) << "\\n";  // 1
-    cout << lowerBound(nums, 5, 4) << "\\n";  // 3
-    cout << lowerBound(nums, 5, 10) << "\\n"; // -1
+    cout << lowerBound(nums, 5, 3) << "\\n";
+    cout << lowerBound(nums, 5, 4) << "\\n";
+    cout << lowerBound(nums, 5, 10) << "\\n";
     return 0;
 }`),
     }]);
   }
 
-  // ─── Upper Bound (custom: last element < target) ──────────────────
   const [upperB] = await db.insert(templates).values({
     title: "Upper Bound (Custom)",
     slug: "upper-bound",
@@ -229,9 +202,9 @@ The algorithm maintains an answer variable \`ans\` initialized to $-1$. At each 
 
 \`\`\`cpp
 int arr[] = {1, 3, 5, 7, 9};
-int idx = upperBound(arr, 5, 5);  // returns 1 (arr[1] = 3 < 5, arr[2] = 5 >= 5)
-int idx2 = upperBound(arr, 5, 0); // returns -1 (no element < 0)
-int idx3 = upperBound(arr, 5, 10); // returns 4 (arr[4] = 9 < 10)
+int idx = upperBound(arr, 5, 5);
+int idx2 = upperBound(arr, 5, 0);
+int idx3 = upperBound(arr, 5, 10);
 \`\`\`
 
 ## When to Use
@@ -275,18 +248,6 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Finds the index of the last element strictly less than target.
- *
- * Custom upper bound implementation. NOT equivalent to std::upper_bound.
- * Uses binary search with an answer variable. When nums[m] < target,
- * records m and searches right for a later match.
- *
- * @param nums  Sorted vector of integers (ascending order).
- * @param n     Size of the array.
- * @param target  The value to search for.
- * @return Index of last element < target, or -1 if none.
- */
 int upperBound(const vector<int>& nums, int n, int target) {
     int l = 0, r = n - 1, ans = -1;
     while (l <= r) {
@@ -301,18 +262,16 @@ int upperBound(const vector<int>& nums, int n, int target) {
     return ans;
 }
 
-// --- Example usage (remove in production) ---
 int main() {
     vector<int> nums = {1, 3, 5, 7, 9};
-    cout << upperBound(nums, 5, 5) << "\\n";  // 1 (arr[1] = 3 < 5)
-    cout << upperBound(nums, 5, 0) << "\\n";  // -1
-    cout << upperBound(nums, 5, 10) << "\\n"; // 4
+    cout << upperBound(nums, 5, 5) << "\\n";
+    cout << upperBound(nums, 5, 0) << "\\n";
+    cout << upperBound(nums, 5, 10) << "\\n";
     return 0;
 }`),
     }]);
   }
 
-  // ─── Binary Search on Answer ───────────────────────────────────────
   const [bsAnswer] = await db.insert(templates).values({
     title: "Binary Search on Answer",
     slug: "binary-search-on-answer",
@@ -334,16 +293,16 @@ Given a search range $[\\text{lo}, \\text{hi}]$ and a predicate $P(x)$ that is m
 The loop invariant maintains: \`lo\` is always the answer side, \`hi\` is the other side.
 
 \`\`\`cpp
-// Find minimum x such that P(x) is true in [lo, hi]
+
 int binarySearchAnswer(int lo, int hi) {
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
         if (check(mid))
-            hi = mid;       // mid is valid, search left
+            hi = mid;
         else
-            lo = mid + 1;   // mid is invalid, search right
+            lo = mid + 1;
     }
-    return lo;  // first valid x
+    return lo;
 }
 \`\`\`
 
@@ -406,47 +365,32 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Binary search on answer — find minimum x such that check(x) is true.
- *
- * Requires a monotonic predicate: if check(x) is true, then check(y)
- * is true for all y >= x. The function finds the smallest valid x
- * in [lo, hi]. If no valid x exists, returns hi + 1.
- *
- * @param lo  Lower bound of search range (inclusive).
- * @param hi  Upper bound of search range (inclusive).
- * @param check  Monotonic predicate: returns true if x is a valid answer.
- * @return Minimum x in [lo, hi] where check(x) is true, or hi+1 if none.
- */
 int binarySearchOnAnswer(int lo, int hi, bool (*check)(int)) {
     while (lo < hi) {
         int mid = lo + (hi - lo) / 2;
         if (check(mid))
-            hi = mid;       // mid is valid, try smaller
+            hi = mid;
         else
-            lo = mid + 1;   // mid is invalid, need larger
+            lo = mid + 1;
     }
-    // lo == hi; verify it's actually valid
+
     return check(lo) ? lo : hi + 1;
 }
 
-// --- Example: find minimum x such that x*x >= target ---
 bool check(ll x) {
     ll target = 17;
     return x * x >= target;
 }
 
-// --- Example usage (remove in production) ---
 int main() {
-    // Find smallest x where x*x >= 17
+
     int ans = binarySearchOnAnswer(0, 100, check);
-    cout << ans << "\\n";  // 5 (since 5*5 = 25 >= 17, 4*4 = 16 < 17)
+    cout << ans << "\\n";
     return 0;
 }`),
     }]);
   }
 
-  // ─── Ternary Search ────────────────────────────────────────────────
   const [ternary] = await db.insert(templates).values({
     title: "Ternary Search",
     slug: "ternary-search",
@@ -474,7 +418,7 @@ After $k$ iterations, the remaining interval has length $\\frac{2}{3}^k (r - l)$
 To find the **minimum** of a unimodal function, simply negate the comparison:
 
 \`\`\`cpp
-if (f(m1) > f(m2)) l = m1;  // flipped
+if (f(m1) > f(m2)) l = m1;
 else r = m2;
 \`\`\`
 

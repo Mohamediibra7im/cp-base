@@ -59,28 +59,12 @@ root = bst.deleteNode(root, 5);
       templateId: bst.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Binary Search Tree node with insert, delete, search, and traversals.
- *
- * Maintains the BST invariant: left < root < right.
- * Duplicates are inserted into the left subtree.
- */
 struct BST {
     int data;
     BST *left, *right;
 
-    /**
-     * @brief Construct a BST node.
-     * @param data Value to store in the node.
-     */
     BST(int data = 0) : data(data), left(nullptr), right(nullptr) {}
 
-    /**
-     * @brief Recursively insert a value and return the (possibly new) root.
-     * @param root Current subtree root.
-     * @param val  Value to insert.
-     * @return Root of the updated subtree.
-     */
     BST* insert(BST* root, int val) {
         if (!root) return new BST(val);
         if (val > root->data)
@@ -90,10 +74,6 @@ struct BST {
         return root;
     }
 
-    /**
-     * @brief In-order traversal (sorted order).
-     * @param root Current subtree root.
-     */
     void inorder(BST* root) {
         if (!root) return;
         inorder(root->left);
@@ -101,10 +81,6 @@ struct BST {
         inorder(root->right);
     }
 
-    /**
-     * @brief Pre-order traversal.
-     * @param root Current subtree root.
-     */
     void preorder(BST* root) {
         if (!root) return;
         cout << root->data << " ";
@@ -112,10 +88,6 @@ struct BST {
         preorder(root->right);
     }
 
-    /**
-     * @brief Post-order traversal.
-     * @param root Current subtree root.
-     */
     void postorder(BST* root) {
         if (!root) return;
         postorder(root->left);
@@ -123,10 +95,6 @@ struct BST {
         cout << root->data << " ";
     }
 
-    /**
-     * @brief Level-order (BFS) traversal.
-     * @param root Current subtree root.
-     */
     void levelOrder(BST* root) {
         if (!root) return;
         queue<BST*> bfs;
@@ -140,12 +108,6 @@ struct BST {
         }
     }
 
-    /**
-     * @brief Search for a value in the BST.
-     * @param root Current subtree root.
-     * @param val  Value to search for.
-     * @return true if found, false otherwise.
-     */
     bool search(BST* root, int val) {
         if (!root) return false;
         if (root->data == val) return true;
@@ -153,38 +115,18 @@ struct BST {
         return search(root->left, val);
     }
 
-    /**
-     * @brief Find the node with the minimum value in a subtree.
-     * @param node Root of the subtree.
-     * @return Pointer to the minimum node.
-     */
     BST* minValueNode(BST* node) {
         BST* cur = node;
         while (cur && cur->left) cur = cur->left;
         return cur;
     }
 
-    /**
-     * @brief Find the node with the maximum value in a subtree.
-     * @param node Root of the subtree.
-     * @return Pointer to the maximum node.
-     */
     BST* maxValueNode(BST* node) {
         BST* cur = node;
         while (cur && cur->right) cur = cur->right;
         return cur;
     }
 
-    /**
-     * @brief Delete a node by key and return the updated root.
-     *
-     * Handles three cases: leaf node, single child, and two children
-     * (replaced by in-order successor).
-     *
-     * @param root Current subtree root.
-     * @param key  Value to delete.
-     * @return Root of the updated subtree.
-     */
     BST* deleteNode(BST* root, int key) {
         if (!root) return root;
         if (key < root->data)
@@ -263,17 +205,6 @@ cout << seg.query(1, 5);        // 22
       templateId: segTree.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Generic segment tree for range queries and point updates.
- *
- * Stores a binary tree in an array where node i covers a contiguous range.
- * Supports any commutative, associative operation via the Op template parameter.
- *
- * @tparam T        Element type (default int).
- * @tparam Op       Binary operation type (default plus<T>).
- * @tparam Base     0-indexed (Base=0) or 1-indexed (Base=1) input.
- * @tparam numsType Input array element type (default T).
- */
 template <typename T = int, typename Op = plus<T>, int Base = 0, typename numsType = T>
 class SegmentTree {
 private:
@@ -312,13 +243,7 @@ private:
     }
 
 public:
-    /**
-     * @brief Construct a segment tree.
-     * @param n   Size of the underlying array.
-     * @param nums Initial values (optional).
-     * @param op  Binary operation (optional).
-     * @param def Identity element (optional).
-     */
+
     SegmentTree(int n = 0, const vector<numsType>& nums = vector<numsType>(),
                 Op op = Op{}, T def = T{})
         : n(n), maxLevel(1), DEFAULT(def), operation(op) {
@@ -327,41 +252,19 @@ public:
         if (!nums.empty()) build(nums, 1, 1, n);
     }
 
-    /**
-     * @brief Rebuild the tree from a new array.
-     * @param nums New input array.
-     */
     void build(const vector<numsType>& nums) {
         fill(tree.begin(), tree.end(), DEFAULT);
         build(nums, 1, 1, n);
     }
 
-    /**
-     * @brief Point update: set position index to value.
-     * @param index 0-based or 1-based index (depending on Base).
-     * @param value New value.
-     */
     void update(int index, numsType value) { update(index, value, 1, 1, n); }
 
-    /**
-     * @brief Range query over [l, r].
-     * @param l Left boundary (inclusive).
-     * @param r Right boundary (inclusive).
-     * @return Result of operation over the range.
-     */
     T query(int l, int r) const { return query(l, r, 1, 1, n); }
 
-    /**
-     * @brief Point query at a single index.
-     * @param index Position to query.
-     * @return Value at that position.
-     */
     T operator[](int index) const { return query(index, index, 1, 1, n); }
 
-    /** @brief Number of elements in the tree. */
     int size() const { return n; }
 
-    /** @brief Pretty-print the tree structure to stdout. */
     void print() const {
         if (int(tree.size()) <= 1) return;
         int level = 0;
@@ -444,14 +347,8 @@ cout << seg.query(1, 5);      // 45
       templateId: lazySeg.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Segment tree with lazy propagation for range updates and range queries.
- *
- * Customize the CUSTOMIZE block to change the operation.
- * Default: range add + range sum.
- */
 struct LazyPST {
-    // ═══ CUSTOMIZE ════════════════════════════════════
+
     using T = long long;
     using Lazy = long long;
     T IDENTITY = 0;
@@ -459,36 +356,28 @@ struct LazyPST {
     T combine(T a, T b) { return a + b; }
     T apply(T val, Lazy lz, int len) { return val + lz * len; }
     Lazy compose(Lazy oldLz, Lazy newLz) { return oldLz + newLz; }
-    // ═══════════════════════════════════════════════════
 
     struct Node { T val; Lazy lazy; };
 
     int n;
     vector<Node> tree;
 
-    /**
-     * @brief Construct the lazy segment tree.
-     * @param n Size of the array.
-     * @param v Optional initial values.
-     */
     LazyPST(int n, const vector<T>& v = vector<T>())
         : n(n), tree(4 * n + 4, {IDENTITY, LAZY_ID}) {
         if (!v.empty()) build(v, 1, 1, n);
     }
 
 private:
-    /** @brief Pull children values up to parent. */
+
     void pushUp(int idx) {
         tree[idx].val = combine(tree[idx * 2].val, tree[idx * 2 + 1].val);
     }
 
-    /** @brief Apply a lazy tag to a node, updating its value and composing the tag. */
     void applyNode(int idx, int lx, int rx, Lazy lz) {
         tree[idx].val = apply(tree[idx].val, lz, rx - lx + 1);
         tree[idx].lazy = compose(tree[idx].lazy, lz);
     }
 
-    /** @brief Push the lazy tag down to children before recursing. */
     void pushDown(int idx, int lx, int rx) {
         if (tree[idx].lazy == LAZY_ID) return;
         int mid = (lx + rx) / 2;
@@ -528,34 +417,13 @@ private:
     }
 
 public:
-    /**
-     * @brief Range update: apply v to every element in [l, r].
-     * @param l Left boundary (1-indexed).
-     * @param r Right boundary (1-indexed).
-     * @param v Lazy value to apply.
-     */
+
     void update(int l, int r, Lazy v) { update(l, r, v, 1, 1, n); }
 
-    /**
-     * @brief Point update: apply v to a single index.
-     * @param i Index (1-indexed).
-     * @param v Lazy value to apply.
-     */
     void update(int i, Lazy v) { update(i, i, v, 1, 1, n); }
 
-    /**
-     * @brief Range query over [l, r].
-     * @param l Left boundary (1-indexed).
-     * @param r Right boundary (1-indexed).
-     * @return Combined value over the range.
-     */
     T query(int l, int r) { return query(l, r, 1, 1, n); }
 
-    /**
-     * @brief Point query at a single index.
-     * @param i Index (1-indexed).
-     * @return Value at that position.
-     */
     T operator[](int i) { return query(i, i, 1, 1, n); }
 };`)
     }]);
@@ -611,25 +479,14 @@ cout << pst.query(1, 10, 1);      // prefix sum at version 1
       templateId: pst.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Persistent segment tree using path copying.
- *
- * Each update creates O(log n) new nodes, sharing the rest with the
- * previous version. Supports historical range queries.
- *
- * @tparam T    Element type (default int).
- * @tparam Base 0-indexed (Base=0) or 1-indexed (Base=1) input.
- */
 template <typename T = int, int Base = 0>
 struct PersistentST {
     struct Node {
         T val, prefix;
         Node *left, *right;
 
-        /** @brief Construct a leaf node with given value. */
         Node(T val = 0) : val(val), prefix(max(T(0), val)), left(this), right(this) {}
 
-        /** @brief Construct an internal node from children. */
         Node(Node* node, Node* l, Node* r)
             : val(node->val), prefix(node->prefix), left(l), right(r) {}
     };
@@ -637,18 +494,11 @@ struct PersistentST {
     vector<Node*> roots;
     T N, Lx, Rx;
 
-    /**
-     * @brief Construct the persistent segment tree.
-     * @param n  Maximum number of versions.
-     * @param lx Left boundary of the value range.
-     * @param rx Right boundary of the value range.
-     */
     PersistentST(int n = 0, T lx = -1e9, T rx = 1e9)
         : N(n), Lx(lx), Rx(rx) {
         roots = vector<Node*>(n + 5, new Node());
     }
 
-    /** @brief Combine two child nodes (sum + max prefix). */
     Node* operation(Node* a, Node* b) {
         Node* m = new Node();
         m->val = a->val + b->val;
@@ -656,7 +506,6 @@ struct PersistentST {
         return m;
     }
 
-    /** @brief Recursively build the tree from an array over [l, r]. */
     Node* build(const vector<T>& nums, T l, T r) {
         if (l == r) return new Node(nums[l - !Base]);
         T mx = l + (r - l) / 2;
@@ -665,13 +514,8 @@ struct PersistentST {
         return new Node(operation(L, R), L, R);
     }
 
-    /**
-     * @brief Build version 0 from the given array.
-     * @param nums Input array.
-     */
     void build(const vector<T>& nums) { roots[0] = build(nums, Lx, Rx); }
 
-    /** @brief Recursively update a position, creating new nodes along the path. */
     Node* update(Node* root, int idx, T val, T lx, T rx) {
         if (idx < lx || idx > rx) return root;
         if (lx == rx) return new Node(val);
@@ -681,28 +525,14 @@ struct PersistentST {
         return new Node(operation(L, R), L, R);
     }
 
-    /**
-     * @brief Create a new version from a previous version.
-     * @param idx       Position to update.
-     * @param val       New value.
-     * @param currTime  Target version index.
-     * @param prevTime  Source version index.
-     */
     void insert(int idx, T val, int currTime, int prevTime) {
         roots[currTime] = update(roots[prevTime], idx, val, Lx, Rx);
     }
 
-    /**
-     * @brief Update the current version in place.
-     * @param idx       Position to update.
-     * @param val       New value.
-     * @param currTime  Version index to modify.
-     */
     void update(int idx, T val, int currTime) {
         roots[currTime] = update(roots[currTime], idx, val, Lx, Rx);
     }
 
-    /** @brief Recursively query range [l, r] at a given root. */
     Node* query(Node* root, int l, int r, T lx, T rx) {
         if (root == nullptr) return new Node();
         if (lx > r || l > rx) return new Node();
@@ -713,21 +543,8 @@ struct PersistentST {
         return operation(L, R);
     }
 
-    /**
-     * @brief Query the max prefix sum over [l, r] at a given version.
-     * @param l     Left boundary.
-     * @param r     Right boundary.
-     * @param time  Version to query.
-     * @return Maximum prefix sum.
-     */
     T query(int l, int r, int time) { return query(roots[time], l, r, Lx, Rx)->prefix; }
 
-    /**
-     * @brief Get the value at a single position at a given version.
-     * @param time Version to query.
-     * @param idx  Position.
-     * @return Value at (time, idx).
-     */
     T get(int time, int idx) { return query(idx, idx, time); }
 };`)
     }]);
@@ -783,15 +600,6 @@ cout << seg.query(1, 2, 1, 2);
       templateId: segTree2d.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief 2D segment tree for rectangle queries and point updates.
- *
- * Nested segment tree: outer tree on rows, inner tree on columns.
- *
- * @tparam T    Element type (default int).
- * @tparam Op   Binary operation type (default plus<T>).
- * @tparam Base 0-indexed or 1-indexed input.
- */
 template <typename T = int, typename Op = plus<T>, int Base = 0>
 struct SegmentTree2D {
     int n, m, rows, cols;
@@ -815,7 +623,6 @@ struct SegmentTree2D {
                   Op op = Op{}, T def = T{})
         : DEFAULT(def), operation(op) { init(n, m); build(nums); }
 
-    /** @brief Build the inner tree for a given outer node over rows [lx, rx]. */
     void buildY(int vx, int lx, int rx, int vy, int ly, int ry,
                 const vector<vector<T>>& vec) {
         if (Base ? lx >= int(vec.size()) : lx > int(vec.size())) return;
@@ -831,7 +638,6 @@ struct SegmentTree2D {
         }
     }
 
-    /** @brief Build the outer tree recursively. */
     void buildX(int vx, int lx, int rx, const vector<vector<T>>& vec) {
         if (lx != rx) {
             int mx = (lx + rx) / 2;
@@ -841,16 +647,11 @@ struct SegmentTree2D {
         buildY(vx, lx, rx, 1, 1, m, vec);
     }
 
-    /**
-     * @brief Build the tree from a 2D grid.
-     * @param vec 2D input grid.
-     */
     void build(const vector<vector<T>>& vec) {
         for (auto& row : tree) fill(row.begin(), row.end(), DEFAULT);
         buildX(1, 1, n, vec);
     }
 
-    /** @brief Query the inner tree for columns [ly, ry]. */
     T queryY(int vx, int vy, int ly0, int ry0, int ly, int ry) const {
         if (ly > ry) return DEFAULT;
         if (ly == ly0 && ry0 == ry) return tree[vx][vy];
@@ -859,7 +660,6 @@ struct SegmentTree2D {
                          queryY(vx, R(vy), my + 1, ry0, max(ly, my + 1), ry));
     }
 
-    /** @brief Query the outer tree for rows [lx, rx]. */
     T queryX(int vx, int lx0, int rx0, int lx, int rx, int ly, int ry) const {
         if (lx > rx) return DEFAULT;
         if (lx == lx0 && rx0 == rx) return queryY(vx, 1, 1, m, ly, ry);
@@ -868,19 +668,10 @@ struct SegmentTree2D {
                          queryX(R(vx), mx + 1, rx0, max(lx, mx + 1), rx, ly, ry));
     }
 
-    /**
-     * @brief Rectangle query over [lx, rx] x [ly, ry].
-     * @param lx Top row (inclusive).
-     * @param rx Bottom row (inclusive).
-     * @param ly Left column (inclusive).
-     * @param ry Right column (inclusive).
-     * @return Combined value over the rectangle.
-     */
     T query(int lx, int rx, int ly, int ry) const {
         return queryX(1, 1, n, lx, rx, ly, ry);
     }
 
-    /** @brief Update the inner tree at position (x, y). */
     void updateY(int vx, int lx, int rx, int vy, int ly, int ry,
                  int x, int y, T val) {
         if (ly == ry) {
@@ -894,7 +685,6 @@ struct SegmentTree2D {
         }
     }
 
-    /** @brief Update the outer tree at position (x, y). */
     void updateX(int vx, int lx, int rx, int x, int y, T val) {
         if (lx != rx) {
             int mx = (lx + rx) / 2;
@@ -904,26 +694,12 @@ struct SegmentTree2D {
         updateY(vx, lx, rx, 1, 1, m, x, y, val);
     }
 
-    /**
-     * @brief Point update at position (x, y).
-     * @param x   Row index (1-indexed).
-     * @param y   Column index (1-indexed).
-     * @param val New value.
-     */
     void update(int x, int y, T val) { updateX(1, 1, n, x, y, val); }
 
-    /**
-     * @brief Point query at position (x, y).
-     * @param x Row index (1-indexed).
-     * @param y Column index (1-indexed).
-     * @return Value at (x, y).
-     */
     T get(int x, int y) const { return query(x, x, y, y); }
 
-    /** @brief Number of rows. */
     int rowsSize() const { return n; }
 
-    /** @brief Number of columns. */
     int colsSize() const { return m; }
 };`)
     }]);
@@ -983,16 +759,6 @@ cout << ft.query(1, 4);
       templateId: fenwick.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Fenwick tree (Binary Indexed Tree) for prefix queries and point updates.
- *
- * Uses the lowbit operation for efficient traversal. The Op must be invertible
- * (e.g., plus/minus for sum, xor for XOR). Does NOT work for min/max/gcd.
- *
- * @tparam T      Element type (default int).
- * @tparam Op     Binary operation (default plus<T>).
- * @tparam InvOp  Inverse operation (default minus<T>).
- */
 template <typename T = int, typename Op = plus<T>, typename InvOp = minus<T>>
 struct FenwickTree {
     int n;
@@ -1001,22 +767,11 @@ struct FenwickTree {
     InvOp invOp;
     vector<T> tree;
 
-    /**
-     * @brief Construct an empty Fenwick tree.
-     * @param sz    Number of elements.
-     * @param op    Binary operation (optional).
-     * @param invOp Inverse operation (optional).
-     * @param def   Identity element (optional).
-     */
     FenwickTree(int sz = 0, Op op = Op{}, InvOp invOp = InvOp{}, T def = T{})
         : n(sz), DEFAULT(def), op(op), invOp(invOp) {
         tree.assign(n + 1, DEFAULT);
     }
 
-    /**
-     * @brief Build the tree from an array in O(n).
-     * @param nums Input array (0-indexed).
-     */
     void build(const vector<T>& nums) {
         for (int i = 0; i < int(nums.size()); i++) tree[i + 1] = nums[i];
         for (int i = 1; i <= n; i++) {
@@ -1025,21 +780,11 @@ struct FenwickTree {
         }
     }
 
-    /**
-     * @brief Add val to the element at index idx (0-indexed).
-     * @param idx Position (0-indexed).
-     * @param val Value to add.
-     */
     void add(int idx, T val) {
         for (++idx; idx <= n; idx += idx & -idx)
             tree[idx] = op(tree[idx], val);
     }
 
-    /**
-     * @brief Compute the prefix aggregate over [0, idx].
-     * @param idx Right endpoint (0-indexed).
-     * @return Aggregate of elements [0, idx].
-     */
     T prefix(int idx) const {
         T ans = DEFAULT;
         for (++idx; idx > 0; idx -= idx & -idx)
@@ -1047,25 +792,13 @@ struct FenwickTree {
         return ans;
     }
 
-    /**
-     * @brief Range query over [l, r] (0-indexed).
-     * @param l Left endpoint (inclusive).
-     * @param r Right endpoint (inclusive).
-     * @return Aggregate of elements [l, r].
-     */
     T query(int l, int r) const {
         if (l > r) return DEFAULT;
         return invOp(prefix(r), l ? prefix(l - 1) : DEFAULT);
     }
 
-    /**
-     * @brief Point query at index idx.
-     * @param idx Position (0-indexed).
-     * @return Value at idx.
-     */
     T get(int idx) const { return query(idx, idx); }
 
-    /** @brief Number of elements. */
     int size() const { return n; }
 };`)
     }]);
@@ -1113,55 +846,29 @@ cout << ft.query(1, 1, 2, 3);
       templateId: fenwick2d.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief 2D Fenwick tree for rectangle sum queries and point updates.
- *
- * @tparam T Element type (default int). Use long long for large sums.
- */
 template <typename T = int>
 struct FenwickTree2D {
     int n, m;
     T DEFAULT;
     vector<vector<T>> tree;
 
-    /**
-     * @brief Construct an empty 2D Fenwick tree.
-     * @param rows Number of rows.
-     * @param cols Number of columns.
-     */
     FenwickTree2D(int rows = 0, int cols = 0)
         : n(rows), m(cols), DEFAULT(T{}) {
         tree.assign(n + 1, vector<T>(m + 1, DEFAULT));
     }
 
-    /**
-     * @brief Build the tree from a 2D grid.
-     * @param nums 2D input grid (0-indexed).
-     */
     void build(const vector<vector<T>>& nums) {
         for (int i = 0; i < int(nums.size()); i++)
             for (int j = 0; j < int(nums[0].size()); j++)
                 add(i + 1, j + 1, nums[i][j]);
     }
 
-    /**
-     * @brief Add val to position (x, y) (1-indexed).
-     * @param x   Row index.
-     * @param y   Column index.
-     * @param val Value to add.
-     */
     void add(int x, int y, T val) {
         for (int i = x; i <= n; i += i & -i)
             for (int j = y; j <= m; j += j & -j)
                 tree[i][j] += val;
     }
 
-    /**
-     * @brief 2D prefix sum: sum of all elements in [1..x] x [1..y].
-     * @param x Row endpoint.
-     * @param y Column endpoint.
-     * @return Prefix sum.
-     */
     T getSum(int x, int y) const {
         T s = DEFAULT;
         for (int i = x; i > 0; i -= i & -i)
@@ -1170,14 +877,6 @@ struct FenwickTree2D {
         return s;
     }
 
-    /**
-     * @brief Rectangle sum query over [x1, y1] to [x2, y2].
-     * @param x1 Top-left row.
-     * @param y1 Top-left column.
-     * @param x2 Bottom-right row.
-     * @param y2 Bottom-right column.
-     * @return Sum over the rectangle.
-     */
     T query(int x1, int y1, int x2, int y2) const {
         if (x1 > x2) swap(x1, x2);
         if (y1 > y2) swap(y1, y2);
@@ -1231,38 +930,21 @@ cout << ft.query(1, 6);
       templateId: fenwickRange.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Fenwick tree supporting range add and range sum queries.
- *
- * Uses two BITs to maintain a difference array representation.
- * Supports adding a value to a range and querying the sum of a range.
- *
- * @tparam T Element type (default int). Use long long for large values.
- */
 template <typename T = int>
 struct FenwickTreeRange {
     int N;
     T DEFAULT;
     vector<T> M, C;
 
-    /**
-     * @brief Construct the range-update Fenwick tree.
-     * @param sz Number of elements.
-     */
     FenwickTreeRange(int sz = 0) : N(sz + 1), DEFAULT(T{}) {
         M.assign(N + 1, DEFAULT);
         C.assign(N + 1, DEFAULT);
     }
 
-    /**
-     * @brief Build the tree from an initial array.
-     * @param nums Input array (0-indexed). Each element is added as a point update.
-     */
     void build(const vector<T>& nums) {
         for (int i = 0; i < int(nums.size()); i++) add(i, i, nums[i]);
     }
 
-    /** @brief Internal: add (addM, addC) to BIT at position idx. */
     void addRange(int idx, T addM, T addC) {
         for (++idx; idx <= N; idx += idx & -idx) {
             M[idx] += addM;
@@ -1270,29 +952,13 @@ struct FenwickTreeRange {
         }
     }
 
-    /**
-     * @brief Range add: add val to every element in [l, r] (0-indexed).
-     * @param l   Left endpoint.
-     * @param r   Right endpoint.
-     * @param val Value to add.
-     */
     void add(int l, int r, T val) {
         addRange(l, val, -val * (l - 1));
         addRange(r + 1, -val, val * r);
     }
 
-    /**
-     * @brief Point add: add val to element at idx (0-indexed).
-     * @param idx Position.
-     * @param val Value to add.
-     */
     void add(int idx, T val) { add(idx, idx, val); }
 
-    /**
-     * @brief Prefix sum over [0, idx].
-     * @param idx Right endpoint (0-indexed).
-     * @return Sum of elements [0, idx].
-     */
     T get(int idx) const {
         T ans = DEFAULT;
         int pos = idx;
@@ -1301,18 +967,11 @@ struct FenwickTreeRange {
         return ans;
     }
 
-    /**
-     * @brief Range sum over [l, r] (0-indexed).
-     * @param l Left endpoint.
-     * @param r Right endpoint.
-     * @return Sum of elements [l, r].
-     */
     T query(int l, int r) const {
         if (l > r) return DEFAULT;
         return get(r) - get(l - 1);
     }
 
-    /** @brief Number of elements. */
     int size() const { return N - 1; }
 };`)
     }]);
@@ -1362,23 +1021,11 @@ cout << st.query(1, n);              // O(1) min
       templateId: sparseTable.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/** @brief Default min operation for sparse table. */
 template <typename T>
 struct MinOp {
     constexpr T operator()(const T& a, const T& b) const { return a < b ? a : b; }
 };
 
-/**
- * @brief Static sparse table for range queries with O(1) idempotent queries.
- *
- * Preprocesses the array in O(n log n). For idempotent operations (min, max, gcd),
- * queries run in O(1). For non-idempotent operations (sum), queries run in O(log n).
- *
- * @tparam T        Element type (default int).
- * @tparam Op       Binary operation (default MinOp<T>).
- * @tparam Base     0-indexed (Base=0) or 1-indexed (Base=1) input.
- * @tparam numsType Input array element type (default T).
- */
 template <typename T = int, typename Op = MinOp<T>, int Base = 0, typename numsType = T>
 class SparseTable {
 private:
@@ -1388,7 +1035,6 @@ private:
     Op operation;
     T DEFAULT;
 
-    /** @brief Build the sparse table from pre-filled first column. */
     void buildTable() {
         for (int log = 1; log < LOG; log++)
             for (int i = 1; i + (1 << log) - 1 <= n; i++)
@@ -1396,13 +1042,11 @@ private:
                                           table[i + (1 << (log - 1))][log - 1]);
     }
 
-    /** @brief O(1) query for idempotent operations (overlapping intervals). */
     T queryO1(int L, int R) {
         int log = binLog[R - L + 1];
         return operation(table[L][log], table[R - (1 << log) + 1][log]);
     }
 
-    /** @brief O(log n) query for non-idempotent operations (binary lifting). */
     T queryLogN(int L, int R) {
         T ans = DEFAULT;
         for (int log = LOG; log >= 0; log--) {
@@ -1415,13 +1059,7 @@ private:
     }
 
 public:
-    /**
-     * @brief Construct and build the sparse table.
-     * @param N   Array size.
-     * @param vec Input array (1-indexed if Base=1, 0-indexed if Base=0).
-     * @param op  Binary operation (optional).
-     * @param def Identity element (optional, defaults to numeric_limits<T>::max()).
-     */
+
     SparseTable(int N = 0, const vector<numsType>& vec = vector<numsType>(),
                 Op op = Op{}, T def = numeric_limits<T>::max())
         : n(N), LOG(__lg(n) + 1), operation(op), DEFAULT(def) {
@@ -1432,13 +1070,6 @@ public:
         buildTable();
     }
 
-    /**
-     * @brief Range query over [L, R].
-     * @param L          Left endpoint (1-indexed).
-     * @param R          Right endpoint (1-indexed).
-     * @param isOverlap  false = O(1) idempotent, true = O(log n) non-idempotent.
-     * @return Result of the operation over [L, R].
-     */
     T query(int L, int R, bool isOverlap = false) {
         return !isOverlap ? queryO1(L, R) : queryLogN(L, R);
     }
@@ -1505,23 +1136,10 @@ cout << dsu.getComponentsNumber(); // 3
       templateId: dsu.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Disjoint Set Union with path compression and union by size.
- *
- * Maintains disjoint sets with O(alpha(n)) amortized per operation.
- * Tracks component sizes and supports iterating over all components.
- *
- * @tparam T    Integer type for node indices (default int).
- * @tparam Base Starting index (0 or 1, default 1).
- */
 template <typename T = int, int Base = 1>
 struct DSU {
     vector<T> parent, Gsize, nxt, tail, pos, roots;
 
-    /**
-     * @brief Initialize DSU with MaxNodes elements.
-     * @param MaxNodes Number of elements (indices Base to MaxNodes+Base-1).
-     */
     DSU(int MaxNodes) {
         parent = Gsize = roots = tail = pos = nxt = vector<T>(MaxNodes + Base);
         for (int i = Base; i < MaxNodes + Base; i++) {
@@ -1531,29 +1149,12 @@ struct DSU {
         }
     }
 
-    /**
-     * @brief Find the leader (representative) of the set containing node.
-     *        Uses path compression.
-     * @param node Element to find.
-     * @return Leader of the set.
-     */
     T findLeader(int node) {
         return parent[node] = (parent[node] == node ? node : findLeader(parent[node]));
     }
 
-    /**
-     * @brief Check if two elements are in the same set.
-     * @param u First element.
-     * @param v Second element.
-     * @return true if same set, false otherwise.
-     */
     bool isSameSets(int u, int v) { return findLeader(u) == findLeader(v); }
 
-    /**
-     * @brief Merge the sets containing u and v (union by size).
-     * @param u First element.
-     * @param v Second element.
-     */
     void unionSets(int u, int v) {
         int leaderU = findLeader(u), leaderV = findLeader(v);
         if (leaderU == leaderV) return;
@@ -1568,7 +1169,6 @@ struct DSU {
         tail[leaderU] = tail[leaderV];
     }
 
-    /** @brief Print all components (for debugging). */
     void print() {
         for (int root = Base; root < int(roots.size()); root++) {
             for (int u = roots[root]; ~u; u = nxt[u])
@@ -1576,10 +1176,6 @@ struct DSU {
         }
     }
 
-    /**
-     * @brief Get all components as a list of lists.
-     * @return Vector of vectors, each inner vector is one component.
-     */
     vector<vector<int>> getComponents() {
         vector<vector<int>> components;
         for (int root = Base; root < int(roots.size()); root++) {
@@ -1590,14 +1186,8 @@ struct DSU {
         return components;
     }
 
-    /**
-     * @brief Get the size of the set containing u.
-     * @param u Element to query.
-     * @return Size of the set.
-     */
     int getSize(int u) { return Gsize[findLeader(u)]; }
 
-    /** @brief Number of disjoint sets. */
     int getComponentsNumber() { return int(roots.size()) - Base; }
 };`)
     }]);
@@ -1647,136 +1237,71 @@ ms.erase(3);
 using namespace std;
 using namespace __gnu_pbds;
 
-/** @brief Ordered map backed by a red-black tree with subtree size metadata. */
 template <typename K, typename V, typename Comp = std::less<K>>
 using orderedMap = tree<K, V, Comp, rb_tree_tag, tree_order_statistics_node_update>;
 
-/** @brief Ordered set (no duplicates) with order statistics. */
 template <typename K, typename Comp = std::less<K>>
 using orderedSet = orderedMap<K, null_type, Comp>;
 
-/** @brief Ordered multimap with subtree size metadata. */
 template <typename K, typename V, typename Comp = std::less_equal<K>>
 using orderedMultimap = tree<K, V, Comp, rb_tree_tag, tree_order_statistics_node_update>;
 
-/** @brief Ordered multiset (allows duplicates) with order statistics. */
 template <typename K, typename Comp = std::less_equal<K>>
 using orderedMultiset = orderedMultimap<K, null_type, Comp>;
 
-/**
- * @brief Wrapper around ordered_multiset providing count, index, and rank operations.
- *
- * @tparam T            Element type (default int).
- * @tparam CompFunction Comparator (default less_equal for ascending order).
- */
 template <typename T = int, typename CompFunction = std::less_equal<T>>
 struct OrderedMultiset {
     orderedMultiset<T, CompFunction> mst;
     int Mode;
 
-    /**
-     * @brief Construct an empty ordered multiset.
-     * @param isSmaller true for ascending (default), false for descending.
-     */
     OrderedMultiset(bool isSmaller = true) {
         mst.clear();
         Mode = !isSmaller ? 1 : -1;
     }
 
-    /**
-     * @brief Construct from an existing vector.
-     * @param vec       Initial elements.
-     * @param isSmaller Sort direction.
-     */
     OrderedMultiset(vector<T>& vec, bool isSmaller = true) {
         mst.clear();
         for (auto& x : vec) mst.insert(x);
         Mode = !isSmaller ? 1 : -1;
     }
 
-    /**
-     * @brief Insert a value.
-     * @param val Value to insert.
-     */
     void insert(T val) { mst.insert(val); }
 
-    /**
-     * @brief Check if a value exists in the set.
-     * @param val Value to check.
-     * @return true if present, false otherwise.
-     */
     bool isExist(T val) {
         if (mst.upper_bound(val) == mst.end()) return false;
         return (*mst.upper_bound(val) == val);
     }
 
-    /**
-     * @brief Erase one occurrence of a value.
-     * @param val Value to erase.
-     */
     void erase(T val) {
         if (isExist(val)) mst.erase(mst.upper_bound(val));
     }
 
-    /**
-     * @brief Access the k-th element (0-indexed).
-     * @param idx Position in sorted order.
-     * @return The element at that position.
-     */
     T at(int idx) { return (*mst.find_by_order(idx)); }
 
-    /** @brief Access the k-th element (0-indexed). */
     T operator[](int idx) { return at(idx); }
 
-    /**
-     * @brief Find the first index (position) of a value.
-     * @param val Value to find.
-     * @return 0-indexed position, or -1 if not found.
-     */
     int firstIdx(T val) {
         if (!isExist(val)) return -1;
         return mst.order_of_key(val);
     }
 
-    /**
-     * @brief Find the last index (position) of a value.
-     * @param val Value to find.
-     * @return 0-indexed position, or -1 if not found.
-     */
     int lastIdx(T val) {
         if (!isExist(val)) return -1;
         if (at(int(mst.size()) - 1) == val) return int(mst.size()) - 1;
         return firstIdx(*mst.lower_bound(val)) - 1;
     }
 
-    /**
-     * @brief Count occurrences of a value.
-     * @param val Value to count.
-     * @return Number of occurrences (0 if absent).
-     */
     T count(T val) {
         if (!isExist(val)) return 0;
         return lastIdx(val) - firstIdx(val) + 1;
     }
 
-    /** @brief Remove all elements. */
     void clear() { mst.clear(); }
 
-    /** @brief Number of elements. */
     int size() { return int(mst.size()); }
 
-    /**
-     * @brief Number of elements strictly less than val.
-     * @param val Threshold value.
-     * @return Count of elements < val.
-     */
     int orderOfKey(T val) { return mst.order_of_key(val - Mode); }
 
-    /**
-     * @brief Iterator to the k-th element.
-     * @param idx Position (0-indexed).
-     * @return Iterator to the element.
-     */
     typename orderedMultiset<T, CompFunction>::iterator findByOrder(int idx) {
         return mst.find_by_order(idx);
     }
@@ -1831,24 +1356,14 @@ cout << t.search("hello");     // 0
       templateId: trie.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/** @brief Alphabet mode for the trie, controlling child array size and character mapping. */
 enum class TrieMode { Lowercase, Uppercase, Digits };
 
-/**
- * @brief Prefix tree (trie) for string insert, search, erase, and prefix queries.
- *
- * @tparam Mode Alphabet mode: Lowercase (26), Uppercase (26), or Digits (10).
- */
 template <TrieMode Mode>
 class Trie {
 public:
-    /** @brief Construct an empty trie with a root node. */
+
     Trie() : root(new Node()) {}
 
-    /**
-     * @brief Insert a word into the trie.
-     * @param word The string to insert.
-     */
     void insert(const string& word) {
         Node* curr = root;
         for (char c : word) {
@@ -1861,11 +1376,6 @@ public:
         curr->isWord = true;
     }
 
-    /**
-     * @brief Search for an exact word in the trie.
-     * @param word The string to search for.
-     * @return true if the word exists, false otherwise.
-     */
     bool search(const string& word) const {
         const Node* curr = root;
         for (char c : word) {
@@ -1876,20 +1386,11 @@ public:
         return curr->isWord;
     }
 
-    /**
-     * @brief Erase one occurrence of a word from the trie.
-     * @param word The string to erase.
-     */
     void erase(const string& word) {
         if (!search(word)) return;
         erase(word, 0, root);
     }
 
-    /**
-     * @brief Check if a string is a prefix of any inserted word.
-     * @param word The prefix to check.
-     * @return true if the prefix exists.
-     */
     bool isPrefix(const string& word) const {
         const Node* curr = root;
         for (char c : word) {
@@ -1901,7 +1402,7 @@ public:
     }
 
 private:
-    /** @brief Number of children per node based on the alphabet mode. */
+
     inline static constexpr int charSize() {
         switch (Mode) {
             case TrieMode::Lowercase: return 26;
@@ -1911,7 +1412,6 @@ private:
         return 0;
     }
 
-    /** @brief Map a character to its 0-based index in the children array. */
     inline static int charToIndex(char c) {
         switch (Mode) {
             case TrieMode::Lowercase: return c - 'a';
@@ -1929,7 +1429,6 @@ private:
 
     Node* root;
 
-    /** @brief Recursive erase: decrement freq and delete empty nodes. */
     void erase(const string& word, size_t idx, Node* curr) {
         if (idx == word.size()) { curr->isWord = false; return; }
         int index = charToIndex(word[idx]);
@@ -1988,33 +1487,21 @@ cout << bt.search(10);  // 1
       templateId: binaryTrie.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Bit-level trie for integer insert, search, erase, and XOR queries.
- *
- * Stores integers as bit strings of length LOG+1 (MSB to LSB).
- * Supports greedy XOR maximization traversal.
- */
 class BinaryTrie {
 public:
     struct Node {
         Node* child[2];
         int freq;
 
-        /** @brief Construct an empty node with zero frequency. */
         Node() : freq(0) { child[0] = child[1] = nullptr; }
     };
 
     Node* root;
-    /** @brief Number of bits to consider (30 for int up to ~10^9). */
+
     static constexpr int LOG = 30;
 
-    /** @brief Construct an empty binary trie. */
     BinaryTrie() : root(new Node()) {}
 
-    /**
-     * @brief Insert an integer into the trie.
-     * @param x Value to insert.
-     */
     void insert(int x) {
         Node* curr = root;
         for (int bit = LOG; bit >= 0; --bit) {
@@ -2026,19 +1513,10 @@ public:
         }
     }
 
-    /**
-     * @brief Erase one occurrence of an integer.
-     * @param x Value to erase.
-     */
     void erase(int x) {
         if (search(x)) erase(x, LOG, root);
     }
 
-    /**
-     * @brief Check if an integer exists in the trie.
-     * @param x Value to search for.
-     * @return true if present, false otherwise.
-     */
     bool search(int x) const {
         Node* curr = root;
         for (int bit = LOG; bit >= 0; --bit) {
@@ -2050,7 +1528,7 @@ public:
     }
 
 private:
-    /** @brief Recursive erase: decrement freq and delete empty nodes. */
+
     void erase(int x, int bit, Node* curr) {
         if (bit < 0) return;
         int bitVal = (x >> bit) & 1;
@@ -2107,16 +1585,6 @@ auto res = hld.query(u, v,
       templateId: hld.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Heavy-Light Decomposition for path and subtree queries on trees.
- *
- * Decomposes a tree into O(log n) chains so that any root-to-leaf path
- * crosses at most O(log n) light edges. Works with any segment tree
- * or Fenwick tree for the underlying range structure.
- *
- * @tparam T           Value type (default int).
- * @tparam VAL_ON_EDGE false for node values (default), true for edge values.
- */
 template <typename T = int, bool VAL_ON_EDGE = false>
 class HLD {
 private:
@@ -2124,7 +1592,6 @@ private:
     vector<int> dep, par, root, pos, SubtreeSz, child;
     int nxtPos;
 
-    /** @brief First DFS: compute depths, parents, subtree sizes, and heavy children. */
     void init(int u, int p = -1, int d = 0) {
         dep[u] = d;
         par[u] = p;
@@ -2138,7 +1605,6 @@ private:
         }
     }
 
-    /** @brief Second DFS: assign positions along chains. Heavy child continues chain. */
     void build(int u, bool newChain = true) {
         root[u] = newChain ? u : root[par[u]];
         pos[u] = nxtPos++;
@@ -2149,20 +1615,17 @@ private:
         }
     }
 
-    /** @brief Ensure u is the deeper node (closer to leaves). */
     void makeULower(int& u, int& v) {
         if (dep[root[u]] < dep[root[v]] || (root[u] == root[v] && dep[u] < dep[v]))
             swap(u, v);
     }
 
-    /** @brief Move u to the parent of its chain's root. Returns the chain segment. */
     pair<int, int> moveUp(int& u) {
         pair<int, int> ret = {pos[root[u]], pos[u]};
         u = par[root[u]];
         return ret;
     }
 
-    /** @brief Decompose the path u-v into chain segments. */
     vector<pair<int, int>> queryPath(int u, int v) {
         vector<pair<int, int>> ret;
         while (root[u] != root[v]) {
@@ -2177,19 +1640,13 @@ private:
         return ret;
     }
 
-    /** @brief Get the node on the edge between u and v. */
     int getChild(int u, int v) {
         if (par[u] == v) return u;
         return v;
     }
 
 public:
-    /**
-     * @brief Construct the HLD decomposition.
-     * @param n        Number of nodes.
-     * @param G        Adjacency list.
-     * @param treeRoot Root of the tree (default 1).
-     */
+
     HLD(int n, const vector<vector<int>>& G, int treeRoot = 1)
         : adj(G), dep(n + 5), par(n + 5), root(n + 5), pos(n + 5),
           SubtreeSz(n + 5), child(n + 5), nxtPos(1) {
@@ -2197,37 +1654,15 @@ public:
         build(treeRoot);
     }
 
-    /**
-     * @brief Point update on a node.
-     * @param u     Node to update.
-     * @param val   New value.
-     * @param segUpdate Segment tree update function.
-     */
     void update(int u, T val, const function<void(T, T)>& segUpdate) {
         segUpdate(pos[u], val);
     }
 
-    /**
-     * @brief Point update on an edge (u, v).
-     * @param u     First endpoint.
-     * @param v     Second endpoint.
-     * @param val   New value.
-     * @param segUpdate Segment tree update function.
-     */
     void update(int u, int v, T val, const function<void(T, T)>& segUpdate) {
         u = getChild(u, v);
         segUpdate(pos[u], val);
     }
 
-    /**
-     * @brief Path query from u to v.
-     * @param u_q          First endpoint.
-     * @param v_q          Second endpoint.
-     * @param operation    Combine function (e.g., plus for sum).
-     * @param segQuery     Segment tree query function.
-     * @param defaultValue Identity element.
-     * @return Combined result over the path.
-     */
     T query(int u_q, int v_q,
             const function<T(T, T)>& operation,
             const function<T(T, T)>& segQuery,
@@ -2282,17 +1717,6 @@ auto pse = prevSmaller(a);  // {-1, -1, 1, 1, 3}
       templateId: monotonicStack.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Find the next greater element index for each position.
- *
- * Processes from right to left. Maintains a stack of indices whose
- * values are in decreasing order. Pop elements <= nums[i].
- *
- * @tparam T Element type.
- * @param nums   Input array.
- * @param strict true for strict greater (default), false for >=.
- * @return Vector of 0-indexed indices (n if no next greater exists).
- */
 template <typename T>
 vector<int> nextGreater(const vector<T>& nums, bool strict = true) {
     int n = nums.size();
@@ -2307,17 +1731,6 @@ vector<int> nextGreater(const vector<T>& nums, bool strict = true) {
     return res;
 }
 
-/**
- * @brief Find the previous greater element index for each position.
- *
- * Processes from left to right. Maintains a stack of indices whose
- * values are in decreasing order.
- *
- * @tparam T Element type.
- * @param nums   Input array.
- * @param strict true for strict greater (default), false for >=.
- * @return Vector of 0-indexed indices (-1 if no previous greater exists).
- */
 template <typename T>
 vector<int> prevGreater(const vector<T>& nums, bool strict = true) {
     int n = nums.size();
@@ -2332,17 +1745,6 @@ vector<int> prevGreater(const vector<T>& nums, bool strict = true) {
     return res;
 }
 
-/**
- * @brief Find the next smaller element index for each position.
- *
- * Processes from right to left. Maintains a stack of indices whose
- * values are in increasing order. Pop elements >= nums[i].
- *
- * @tparam T Element type.
- * @param nums   Input array.
- * @param strict true for strict smaller (default), false for <=.
- * @return Vector of 0-indexed indices (n if no next smaller exists).
- */
 template <typename T>
 vector<int> nextSmaller(const vector<T>& nums, bool strict = true) {
     int n = nums.size();
@@ -2357,17 +1759,6 @@ vector<int> nextSmaller(const vector<T>& nums, bool strict = true) {
     return res;
 }
 
-/**
- * @brief Find the previous smaller element index for each position.
- *
- * Processes from left to right. Maintains a stack of indices whose
- * values are in increasing order.
- *
- * @tparam T Element type.
- * @param nums   Input array.
- * @param strict true for strict smaller (default), false for <=.
- * @return Vector of 0-indexed indices (-1 if no previous smaller exists).
- */
 template <typename T>
 vector<int> prevSmaller(const vector<T>& nums, bool strict = true) {
     int n = nums.size();
@@ -2428,50 +1819,27 @@ for (int i = 0; i < n; i++) {
       templateId: monotonicQueue.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/** @brief Default max operation for monotonic structures. */
 template <typename T>
 struct MaxOp {
     constexpr T operator()(const T& a, const T& b) const { return a > b ? a : b; }
 };
 
-/**
- * @brief Monotonic stack: maintains a stack with aggregate information.
- *
- * Each push computes the running aggregate. Popping removes the most
- * recently pushed element and its associated aggregate.
- *
- * @tparam T  Element type (default int).
- * @tparam Op Binary operation (default MaxOp<T>).
- */
 template <typename T = int, typename Op = MaxOp<T>>
 struct MonotonicStack {
     vector<T> st, mono;
     Op operation;
     T DEFAULT;
 
-    /**
-     * @brief Construct an empty monotonic stack.
-     * @param op         Binary operation (optional).
-     * @param defaultVal Identity element (optional).
-     */
     MonotonicStack(Op op = Op{}, T defaultVal = T{})
         : operation(op), DEFAULT(defaultVal) {
         mono.push_back(DEFAULT);
     }
 
-    /**
-     * @brief Push a value onto the stack.
-     * @param x Value to push.
-     */
     void push(T x) {
         st.push_back(x);
         mono.push_back(operation(mono.back(), x));
     }
 
-    /**
-     * @brief Pop the top element and return it.
-     * @return The popped value.
-     */
     T pop() {
         T res = st.back();
         st.pop_back();
@@ -2479,52 +1847,26 @@ struct MonotonicStack {
         return res;
     }
 
-    /** @brief Top element of the stack. */
     T top() const { return st.back(); }
 
-    /** @brief Aggregate of all elements currently in the stack. */
     T monotonicVal() const { return mono.back(); }
 
-    /** @brief Whether the stack is empty. */
     bool empty() const { return st.empty(); }
 
-    /** @brief Number of elements in the stack. */
     int size() const { return st.size(); }
 };
 
-/**
- * @brief Monotonic queue: sliding window aggregate using two monotonic stacks.
- *
- * Simulates a queue by transferring elements from an input stack (s2)
- * to an output stack (s1) when s1 is empty. Each stack maintains its
- * own monotonic aggregate; the overall aggregate is op(s1, s2).
- *
- * @tparam T  Element type (default int).
- * @tparam Op Binary operation (default MaxOp<T>).
- */
 template <typename T = int, typename Op = MaxOp<T>>
 struct MonotonicQueue {
     MonotonicStack<T, Op> s1, s2;
     Op operation;
     T DEFAULT;
 
-    /**
-     * @brief Construct an empty monotonic queue.
-     * @param op         Binary operation (optional).
-     * @param defaultVal Identity element (optional).
-     */
     MonotonicQueue(Op op = Op{}, T defaultVal = T{})
         : s1(op, defaultVal), s2(op, defaultVal), operation(op), DEFAULT(defaultVal) {}
 
-    /**
-     * @brief Push a value into the queue.
-     * @param x Value to push.
-     */
     void push(T x) { s2.push(x); }
 
-    /**
-     * @brief Pop the front element.
-     */
     void pop() {
         if (s1.empty()) {
             while (!s2.empty()) s1.push(s2.pop());
@@ -2532,10 +1874,6 @@ struct MonotonicQueue {
         s1.pop();
     }
 
-    /**
-     * @brief Access the front element.
-     * @return The front value.
-     */
     T front() {
         if (s1.empty()) {
             while (!s2.empty()) s1.push(s2.pop());
@@ -2543,20 +1881,14 @@ struct MonotonicQueue {
         return s1.top();
     }
 
-    /**
-     * @brief Aggregate (min or max) of all elements in the queue.
-     * @return Combined value from both stacks.
-     */
     T monotonicVal() const {
         if (s1.empty()) return s2.monotonicVal();
         if (s2.empty()) return s1.monotonicVal();
         return operation(s1.monotonicVal(), s2.monotonicVal());
     }
 
-    /** @brief Whether the queue is empty. */
     bool empty() const { return s1.empty() && s2.empty(); }
 
-    /** @brief Total number of elements. */
     int size() const { return s1.size() + s2.size(); }
 };`)
     }]);
@@ -2609,14 +1941,6 @@ cout << st.getSize();     // 4
       templateId: splayTree.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Self-adjusting splay tree with value-based key.
- *
- * Supports insert, erase, search, k-th element, and count-less-than,
- * all in O(log n) amortized time. Supports duplicates via frequency count.
- *
- * @tparam T Key type (default int).
- */
 template <typename T = int>
 struct SplayTree {
 
@@ -2625,18 +1949,15 @@ struct SplayTree {
         T val;
         int subSz, freq;
 
-        /** @brief Construct the sentinel (EMPTY) node. */
         Node() : subSz(0), freq(0) {
             par = ch[0] = ch[1] = this;
             val = numeric_limits<T>::min();
         }
 
-        /** @brief Construct a data node with given value. */
         Node(T V) : val(V), subSz(1), freq(1) {
             par = ch[0] = ch[1] = EMPTY;
         }
 
-        /** @brief Recompute subtree size from children. */
         void update() { subSz = freq + ch[0]->subSz + ch[1]->subSz; }
     };
 
@@ -2644,19 +1965,15 @@ struct SplayTree {
     Node* root;
     enum dir { LEFT, RIGHT };
 
-    /** @brief Construct an empty splay tree. */
     SplayTree() { root = EMPTY; }
 
-    /** @brief Link parent p to child c in direction d. */
     void link(Node* p, Node* c, int d) {
         if (p != EMPTY) p->ch[d] = c, p->update();
         if (c != EMPTY) c->par = p;
     }
 
-    /** @brief Determine direction: 0=left, 1=right. */
     int getDir(Node* p, Node* c) { return p->ch[RIGHT] == c; }
 
-    /** @brief Rotate node p in direction d. */
     void rotate(Node* p, int d) {
         Node* q = p->ch[d];
         Node* gp = p->par;
@@ -2666,7 +1983,6 @@ struct SplayTree {
         link(gp, q, gd);
     }
 
-    /** @brief Splay node q to the root via zig/zig-zig/zig-zag rotations. */
     void splay(Node* q) {
         while (q->par != EMPTY) {
             Node* p = q->par;
@@ -2680,7 +1996,6 @@ struct SplayTree {
         root = q;
     }
 
-    /** @brief Find the node closest to val (exact match or predecessor/successor). */
     Node* find(Node* p, T val) {
         if (p == EMPTY) return EMPTY;
         Node* c = p->ch[val > p->val];
@@ -2688,14 +2003,12 @@ struct SplayTree {
         return find(c, val);
     }
 
-    /** @brief Splay the node closest to val to the root. */
     Node* splayByValue(Node* p, T val) {
         p = find(p, val);
         splay(p);
         return p;
     }
 
-    /** @brief Recursive insert: splay to position, then attach new node. */
     Node* insert(Node* p, T val) {
         if (p == EMPTY) return new Node(val);
         p = splayByValue(p, val);
@@ -2712,13 +2025,8 @@ struct SplayTree {
         return p;
     }
 
-    /**
-     * @brief Insert a value.
-     * @param val Value to insert.
-     */
     void insert(T val) { root = insert(root, val); }
 
-    /** @brief Split the tree into elements < val and elements >= val. */
     void split(Node* p, T val, Node*& ls, Node*& ge) {
         p = splayByValue(p, val);
         if (p->val < val) {
@@ -2732,7 +2040,6 @@ struct SplayTree {
         }
     }
 
-    /** @brief Merge two trees where all elements in ls < all elements in ge. */
     Node* merge(Node* ls, Node* ge) {
         if (ls == EMPTY) return ge;
         if (ge == EMPTY) return ls;
@@ -2741,7 +2048,6 @@ struct SplayTree {
         return ge;
     }
 
-    /** @brief Erase a value from the tree. */
     Node* erase(Node* p, T val) {
         p = splayByValue(p, val);
         if (p->val != val) return p;
@@ -2754,13 +2060,8 @@ struct SplayTree {
         return merge(ls, ge);
     }
 
-    /**
-     * @brief Erase one occurrence of a value.
-     * @param val Value to erase.
-     */
     void erase(T val) { root = erase(root, val); }
 
-    /** @brief Find the k-th element (0-indexed) and splay it to root. */
     Node* kth(Node* p, T k) {
         if (p == EMPTY) return EMPTY;
         if (k > p->subSz) return EMPTY;
@@ -2770,11 +2071,6 @@ struct SplayTree {
         return p;
     }
 
-    /**
-     * @brief Get the k-th smallest element (0-indexed).
-     * @param k Position (0-indexed).
-     * @return The k-th element.
-     */
     T kth(T k) {
         auto p = kth(root, k);
         splay(p);
@@ -2782,20 +2078,13 @@ struct SplayTree {
         return p->val;
     }
 
-    /**
-     * @brief Count elements strictly less than val.
-     * @param val Threshold value.
-     * @return Number of elements < val.
-     */
     int countLess(T val) {
         root = splayByValue(root, val);
         return root->ch[LEFT]->subSz + (root->val < val ? root->freq : 0);
     }
 
-    /** @brief Total number of elements. */
     int getSize() { return root->subSz; }
 
-    /** @brief In-order print (for debugging). */
     void print(Node* p, int depth) {
         if (p == EMPTY) return;
         print(p->ch[LEFT], depth + 1);
@@ -2803,14 +2092,8 @@ struct SplayTree {
         print(p->ch[RIGHT], depth + 1);
     }
 
-    /** @brief Print the tree structure. */
     void print() { print(root, 0); cout << "-----------------------------------\\n"; }
 
-    /**
-     * @brief Check if a value exists in the tree.
-     * @param val Value to search for.
-     * @return true if found, false otherwise.
-     */
     bool search(T val) {
         root = splayByValue(root, val);
         return root->val == val;
@@ -2870,24 +2153,12 @@ using ll = long long;
 
 const ll LINF = 1e18;
 
-/**
- * @brief Aggregate data for max subarray sum queries.
- *
- * Stores the total sum, maximum prefix, maximum suffix, and maximum
- * subarray sum for a segment. The combine() function merges two segments.
- */
 struct Data {
     ll val, sum, pref, suff, maxSeg;
     Data() : val(0), sum(0), pref(-LINF), suff(-LINF), maxSeg(-LINF) {}
     Data(ll v) : val(v), sum(val), pref(val), suff(val), maxSeg(val) {}
 };
 
-/**
- * @brief Combine two adjacent segments for max subarray sum.
- * @param a Left segment.
- * @param b Right segment.
- * @return Combined segment.
- */
 Data combine(const Data& a, const Data& b) {
     Data res;
     res.sum = a.sum + b.sum;
@@ -2897,15 +2168,6 @@ Data combine(const Data& a, const Data& b) {
     return res;
 }
 
-/**
- * @brief Implicit splay tree for sequence split/merge and range queries.
- *
- * Uses position as the key (implicit). Supports insert, erase, replace,
- * and range queries with lazy propagation. The Data struct stores aggregate
- * information (default: max subarray sum).
- *
- * @tparam T Aggregate data type (default Data for max subarray sum).
- */
 template <typename T = Data>
 struct ImplicitSplayTree {
 
@@ -2915,17 +2177,14 @@ struct ImplicitSplayTree {
         int subSz;
         bool isLazy;
 
-        /** @brief Construct the sentinel (EMPTY) node. */
         Node() : subSz(0), update(0), isLazy(false) {
             par = ch[0] = ch[1] = this;
         }
 
-        /** @brief Construct a data node with given value. */
         Node(T V) : val(V), subSz(1), update(0), isLazy(false) {
             par = ch[0] = ch[1] = EMPTY;
         }
 
-        /** @brief Recompute subtree aggregate from children. */
         void updateNode() {
             subSz = ch[0]->subSz + ch[1]->subSz + 1;
             auto v = val.val;
@@ -2933,7 +2192,6 @@ struct ImplicitSplayTree {
             val.val = v;
         }
 
-        /** @brief Push lazy tag down to children. */
         void pushDown() {
             if (this == EMPTY || !isLazy) return;
             val = Data(update * subSz);
@@ -2942,7 +2200,6 @@ struct ImplicitSplayTree {
             isLazy = false;
         }
 
-        /** @brief Apply a lazy update to this node. */
         void lazyUpdate(ll c) {
             if (this == EMPTY) return;
             update = c;
@@ -2954,19 +2211,15 @@ struct ImplicitSplayTree {
     Node* root;
     enum dir { LEFT, RIGHT };
 
-    /** @brief Construct an empty implicit splay tree. */
     ImplicitSplayTree() { root = EMPTY; }
 
-    /** @brief Link parent p to child c in direction d. */
     void link(Node* p, Node* c, int d) {
         if (p != EMPTY) p->ch[d] = c, p->updateNode();
         if (c != EMPTY) c->par = p;
     }
 
-    /** @brief Determine direction: 0=left, 1=right. */
     int getDir(Node* p, Node* c) { return p->ch[RIGHT] == c; }
 
-    /** @brief Rotate node p in direction d. */
     void rotate(Node* p, int d) {
         Node* q = p->ch[d];
         Node* gp = p->par;
@@ -2976,7 +2229,6 @@ struct ImplicitSplayTree {
         link(gp, q, gd);
     }
 
-    /** @brief Splay node q to the root. */
     void splay(Node* q) {
         while (q->par != EMPTY) {
             Node* p = q->par;
@@ -2990,7 +2242,6 @@ struct ImplicitSplayTree {
         root = q;
     }
 
-    /** @brief Split at position idx into [0, idx) and [idx, n). */
     void split(Node* p, int idx, Node*& ls, Node*& ge) {
         if (idx >= p->subSz) { ls = p; ge = EMPTY; return; }
         p = splayByIdx(p, idx);
@@ -3000,14 +2251,12 @@ struct ImplicitSplayTree {
         link(EMPTY, ls, RIGHT);
     }
 
-    /** @brief Splay the node at index idx to the root. */
     Node* splayByIdx(Node* p, int idx) {
         p = at(p, idx);
         splay(p);
         return p;
     }
 
-    /** @brief Merge two trees where all elements in ls come before ge. */
     Node* merge(Node* ls, Node* ge) {
         if (ls == EMPTY) return ge;
         if (ge == EMPTY) return ls;
@@ -3016,10 +2265,8 @@ struct ImplicitSplayTree {
         return ge;
     }
 
-    /** @brief Merge another tree into this one. */
     void merge(Node* p) { root = merge(root, p); }
 
-    /** @brief Find the node at index k. */
     Node* at(Node* p, int k) {
         if (p == EMPTY) return EMPTY;
         p->pushDown();
@@ -3030,11 +2277,6 @@ struct ImplicitSplayTree {
         return p;
     }
 
-    /**
-     * @brief Insert a value at a given position.
-     * @param idx Position to insert at (0-indexed).
-     * @param val Value to insert.
-     */
     void insert(int idx, int val) {
         Node *before, *after;
         split(root, idx, before, after);
@@ -3042,10 +2284,6 @@ struct ImplicitSplayTree {
         root = merge(merge(before, between), after);
     }
 
-    /**
-     * @brief Erase the element at a given position.
-     * @param idx Position to erase (0-indexed).
-     */
     void erase(int idx) {
         Node *before, *after, *between;
         split(root, idx + 1, before, after);
@@ -3054,11 +2292,6 @@ struct ImplicitSplayTree {
         root = merge(before, after);
     }
 
-    /**
-     * @brief Replace the element at a given position.
-     * @param idx Position to replace (0-indexed).
-     * @param val New value.
-     */
     void replace(int idx, int val) {
         Node *before, *after, *between;
         split(root, idx + 1, before, after);
@@ -3067,12 +2300,6 @@ struct ImplicitSplayTree {
         root = merge(merge(before, between), after);
     }
 
-    /**
-     * @brief Range query over [s, e].
-     * @param s Left endpoint (0-indexed).
-     * @param e Right endpoint (0-indexed).
-     * @return Aggregate over the range.
-     */
     ll query(int s, int e) {
         Node *before, *after, *between;
         split(root, e + 1, before, after);
@@ -3082,7 +2309,6 @@ struct ImplicitSplayTree {
         return ans;
     }
 
-    /** @brief Total number of elements. */
     int getSize() { return root->subSz; }
 };
 
@@ -3134,29 +2360,16 @@ pq.pop();          // removes 3
       templateId: heap.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/** @brief Less-than comparator for max-heap behavior (std::priority_queue default). */
 template <typename T>
 struct MaxCmp {
     bool operator()(const T& a, const T& b) const { return a < b; }
 };
 
-/** @brief Greater-than comparator for min-heap behavior. */
 template <typename T>
 struct MinCmp {
     bool operator()(const T& a, const T& b) const { return a > b; }
 };
 
-/**
- * @brief Binary heap with custom comparator.
- *
- * Supports push, pop, top, and size. Default is min-heap (MinCmp).
- * For max-heap, use MaxCmp<T> as the comparator.
- *
- * Indexing: 1-based. Parent of i is i/2, children are 2*i and 2*i+1.
- *
- * @tparam T    Element type (default int).
- * @tparam Comp Comparator type (default MinCmp<T> for min-heap).
- */
 template <typename T = int, typename Comp = MinCmp<T>>
 struct Heap {
 
@@ -3164,13 +2377,10 @@ struct Heap {
     int sz = 0;
     Comp comp;
 
-    /** @brief Construct an empty heap. */
     Heap() = default;
 
-    /** @brief Construct a heap with given comparator. */
     Heap(Comp c) : comp(c) {}
 
-    /** @brief Bubble up the element at position i. */
     void heapifyUp(int i) {
         while (i > 1 && comp(pq[i], pq[i / 2])) {
             swap(pq[i], pq[i / 2]);
@@ -3178,7 +2388,6 @@ struct Heap {
         }
     }
 
-    /** @brief Bubble down the element at position i. */
     void heapifyDown(int i) {
         while (2 * i <= sz) {
             int j = 2 * i;
@@ -3189,17 +2398,12 @@ struct Heap {
         }
     }
 
-    /**
-     * @brief Insert a value into the heap.
-     * @param x Value to insert.
-     */
     void push(T x) {
         pq.push_back(x);
         sz++;
         heapifyUp(sz);
     }
 
-    /** @brief Remove and return the top element (min or max). */
     void pop() {
         swap(pq[1], pq[sz]);
         pq.pop_back();
@@ -3207,13 +2411,10 @@ struct Heap {
         heapifyDown(1);
     }
 
-    /** @brief Top element (minimum for MinCmp, maximum for MaxCmp). */
     T top() const { return pq[1]; }
 
-    /** @brief Whether the heap is empty. */
     bool empty() const { return sz == 0; }
 
-    /** @brief Number of elements. */
     int size() const { return sz; }
 };`)
     }]);
@@ -3265,40 +2466,20 @@ cout << cc.getValue(1);     // 10
       templateId: coordCompression.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
 
-/**
- * @brief Coordinate compression: map sparse values to dense 0-indexed indices.
- *
- * Call add() for all values, then init(). After init(), use getRank()
- * to map a value to its 0-indexed position in sorted order, or
- * getValue() to retrieve the original value at a given rank.
- */
 struct CoordinateCompression {
     vector<int> val;
 
-    /** @brief Register a value for compression. */
     void add(int x) { val.push_back(x); }
 
-    /** @brief Sort and deduplicate registered values. */
     void init() {
         sort(val.begin(), val.end());
         val.erase(unique(val.begin(), val.end()), val.end());
     }
 
-    /**
-     * @brief Get the 0-indexed rank of a value.
-     * @param x Value to look up.
-     * @return Rank in sorted order.
-     */
     int getRank(int x) { return lower_bound(val.begin(), val.end(), x) - val.begin(); }
 
-    /**
-     * @brief Get the original value at a given rank.
-     * @param idx Rank (0-indexed).
-     * @return Original value at that position.
-     */
     int getValue(int idx) { return val[idx]; }
 
-    /** @brief Number of distinct values. */
     int size() { return val.size(); }
 };`)
     }]);

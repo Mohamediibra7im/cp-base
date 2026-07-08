@@ -65,13 +65,6 @@ const int MAXN = 2e6 + 5;
 
 ll fact[MAXN], invfact[MAXN];
 
-/**
- * @brief Fast modular exponentiation.
- * @param base The base (will be reduced mod mod).
- * @param exp The exponent (non-negative).
- * @param mod The modulus (must be positive).
- * @return base^exp mod mod
- */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -83,20 +76,10 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-/**
- * @brief Compute modular inverse using Fermat's Little Theorem.
- * @param x The value to invert.
- * @param mod The prime modulus.
- * @return x^{-1} mod mod
- */
 ll modInverse(ll x, ll mod) {
     return power(x, mod - 2, mod);
 }
 
-/**
- * @brief Precompute factorials and inverse factorials up to MAXN-1.
- *        Call once before using nCr/nPr.
- */
 void factorialInit() {
     fact[0] = 1;
     for (int i = 1; i < MAXN; i++)
@@ -106,23 +89,11 @@ void factorialInit() {
         invfact[i] = (i + 1) * invfact[i + 1] % MOD;
 }
 
-/**
- * @brief Compute binomial coefficient nCr mod MOD.
- * @param n Total elements.
- * @param r Elements to choose.
- * @return $\\binom{n}{k}$ mod MOD, or 0 if invalid.
- */
 ll nCr(ll n, ll r) {
     if (n < r || r < 0) return 0;
     return fact[n] * invfact[r] % MOD * invfact[n - r] % MOD;
 }
 
-/**
- * @brief Compute permutation count nPr mod MOD.
- * @param n Total elements.
- * @param r Elements to arrange.
- * @return P(n, r) mod MOD, or 0 if invalid.
- */
 ll nPr(ll n, ll r) {
     if (n < r || r < 0) return 0;
     return fact[n] * invfact[n - r] % MOD;
@@ -181,13 +152,6 @@ using namespace std;
 using ll = long long;
 const ll MOD = 1e9 + 7;
 
-/**
- * @brief Fast modular exponentiation.
- * @param base The base (will be reduced mod mod).
- * @param exp The exponent (non-negative).
- * @param mod The modulus (must be positive).
- * @return base^exp mod mod
- */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -199,23 +163,10 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-/**
- * @brief Compute modular inverse using Fermat's Little Theorem.
- * @param x The value to invert.
- * @param mod The prime modulus.
- * @return x^{-1} mod mod
- */
 ll modInverse(ll x, ll mod) {
     return power(x, mod - 2, mod);
 }
 
-/**
- * @brief Count distinct necklaces of n beads with k colors (rotations only).
- *        Uses Burnside's Lemma on the cyclic group C_n.
- * @param n Number of beads.
- * @param k Number of colors.
- * @return Number of distinct necklaces mod MOD.
- */
 ll necklaceCount(ll n, ll k) {
     ll ans = 0;
     for (ll i = 1; i <= n; i++)
@@ -272,13 +223,6 @@ using namespace std;
 using ll = long long;
 const ll MOD = 1e9 + 7;
 
-/**
- * @brief Fast modular exponentiation.
- * @param base The base (will be reduced mod mod).
- * @param exp The exponent (non-negative).
- * @param mod The modulus (must be positive).
- * @return base^exp mod mod
- */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -290,22 +234,10 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-/**
- * @brief Compute modular inverse using Fermat's Little Theorem.
- * @param x The value to invert.
- * @param mod The prime modulus.
- * @return x^{-1} mod mod
- */
 ll modInverse(ll x, ll mod) {
     return power(x, mod - 2, mod);
 }
 
-/**
- * @brief Compute the n-th Catalan number mod MOD using the closed form.
- *        Formula: C_n = (1/(n+1)) * C(2n, n)
- * @param n The index (0-indexed).
- * @return C_n mod MOD
- */
 ll catalan(ll n) {
     ll res = 1;
     for (ll i = 0; i < n; i++)
@@ -313,15 +245,9 @@ ll catalan(ll n) {
     return res * modInverse(n + 1, MOD) % MOD;
 }
 
-// Catalan via DP (use for small n only, O(n^2) time)
 const int MAXN_CATALAN = 20;
 ll catalanDp[MAXN_CATALAN];
 
-/**
- * @brief Precompute Catalan numbers via DP recurrence.
- *        C_{n+1} = sum_{i=0}^{n} C_i * C_{n-i}
- *        Limited to n < MAXN_CATALAN.
- */
 void initCatalanDp() {
     catalanDp[0] = catalanDp[1] = 1;
     for (int i = 2; i < MAXN_CATALAN; i++) {
@@ -389,15 +315,8 @@ using namespace std;
 
 using ll = long long;
 
-/**
- * @brief Count numbers from 1 to r that are coprime with n.
- *        Uses inclusion-exclusion over prime factors of n.
- * @param n The number whose prime factors define the exclusions.
- * @param r The upper bound of the range [1, r].
- * @return Count of integers in [1, r] coprime to n.
- */
 int coprimeCount(int n, int r) {
-    // Step 1: extract distinct prime factors of n
+
     vector<int> p;
     for (int i = 2; i * i <= n; ++i) {
         if (n % i == 0) {
@@ -407,8 +326,6 @@ int coprimeCount(int n, int r) {
     }
     if (n > 1) p.push_back(n);
 
-    // Step 2: inclusion-exclusion over all non-empty subsets of primes
-    // Numbers divisible by an odd-sized subset are added, even-sized subtracted
     int sum = 0;
     for (int msk = 1; msk < (1 << (int)p.size()); ++msk) {
         int mult = 1, bits = 0;
@@ -421,18 +338,10 @@ int coprimeCount(int n, int r) {
         if (bits % 2 == 1) sum += r / mult;
         else sum -= r / mult;
     }
-    // Total numbers minus those divisible by at least one prime factor
+
     return r - sum;
 }
 
-/**
- * @brief Count integers in [1, n] divisible by at least one value in a.
- *        Uses inclusion-exclusion over all subsets.
- *        Guards against LCM overflow by skipping when LCM exceeds n.
- * @param n The upper bound of the range [1, n].
- * @param a Vector of divisors.
- * @return Count of integers in [1, n] divisible by at least one element of a.
- */
 int divisibleByAny(int n, vector<int> &a) {
     int m = (int)a.size();
     int sum = 0;
@@ -443,17 +352,17 @@ int divisibleByAny(int n, vector<int> &a) {
         for (int i = 0; i < m; i++) {
             if (mask & (1 << i)) {
                 bits++;
-                // Compute LCM safely: lcm(a,b) = a / gcd(a,b) * b
+
                 ll g = __gcd(lcmVal, (ll)a[i]);
                 lcmVal = lcmVal / g * a[i];
-                // If LCM exceeds n, no multiples exist in [1, n]
+
                 if (lcmVal > n) {
                     overflow = true;
                     break;
                 }
             }
         }
-        if (overflow) continue;  // skip: floor(n / lcmVal) == 0
+        if (overflow) continue;
         if (bits % 2 == 1) sum += (int)(n / lcmVal);
         else sum -= (int)(n / lcmVal);
     }
