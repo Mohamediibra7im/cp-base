@@ -25,7 +25,8 @@ function getHighlighter() {
   return highlighterPromise;
 }
 
-export function CodeBlock({ code, language }: { code: string; language: string }) {
+export function CodeBlock({ code: originalCode, language }: { code: string; language: string }) {
+  const code = useMemo(() => originalCode.trimEnd(), [originalCode]);
   const [html, setHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeLine, setActiveLine] = useState<number | null>(null);

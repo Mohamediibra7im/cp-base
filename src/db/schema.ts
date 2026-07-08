@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const categories = pgTable("categories", {
@@ -9,6 +9,7 @@ export const categories = pgTable("categories", {
   icon: text("icon").notNull().default("Code"),
   color: text("color").notNull().default("#3b82f6"),
   order: integer("order").notNull().default(0),
+  hidden: boolean("hidden").notNull().default(false),
 });
 
 export const templates = pgTable("templates", {
@@ -22,6 +23,12 @@ export const templates = pgTable("templates", {
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  hidden: boolean("hidden").notNull().default(false),
+});
+
+export const siteSettings = pgTable("site_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
 });
 
 export const templateCodes = pgTable("template_codes", {

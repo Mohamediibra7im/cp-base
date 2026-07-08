@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   try {
     const [template] = await db.select().from(templates).where(eq(templates.slug, slug));
-    if (!template) {
+    if (!template || template.hidden) {
       return {
         title: "Template Not Found | CP-Base",
         openGraph: { images: ["/opengraph-image"] },
@@ -31,6 +31,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
 
     const [category] = await db.select().from(categories).where(eq(categories.id, template.categoryId));
+    if (!category || category.hidden) {
+      return {
+        title: "Template Not Found | CP-Base",
+        openGraph: { images: ["/opengraph-image"] },
+        twitter: { card: "summary_large_image" },
+      };
+    }
 
     const title = `${template.title} | CP-Base`;
     const description = template.description || `Optimized competitive programming template for ${template.title}.`;
@@ -79,9 +86,11 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
 
   try {
     [template] = await db.select().from(templates).where(eq(templates.slug, slug));
-    if (!template) notFound();
+    if (!template || template.hidden) notFound();
 
     [category] = await db.select().from(categories).where(eq(categories.id, template.categoryId));
+    if (!category || category.hidden) notFound();
+
     codes = await db.select().from(templateCodes).where(eq(templateCodes.templateId, template.id));
   } catch {
     return (

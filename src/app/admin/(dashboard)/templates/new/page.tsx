@@ -60,6 +60,10 @@ const HELP_TEXTS: Record<string, { title: string; description: string }> = {
     title: "Search Keywords",
     description: "Provide comma-separated keywords/tags. Used to boost query relevancy scores (e.g. 'graphs, sorting, templates')."
   },
+  hidden: {
+    title: "Hidden Flag",
+    description: "If set to hidden, this template will not appear on the home page or in the templates list for regular visitors. It remains visible to administrators."
+  },
   notes: {
     title: "Markdown Documentation",
     description: "Write details, explanations, sample uses, inputs/outputs, or notes in GitHub Flavored Markdown. Supports math equations with $$."
@@ -91,6 +95,7 @@ export default function NewTemplate() {
     complexity: "",
     notes: "",
     tags: "",
+    hidden: false,
   });
   const [codes, setCodes] = useState<CodeEntry[]>([{ language: "cpp", code: "" }]);
   const [formattingIdx, setFormattingIdx] = useState<number | null>(null);
@@ -387,6 +392,40 @@ export default function NewTemplate() {
                       className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none md:max-w-md w-full"
                       onFocus={() => { playClick(); setFocusedField("tags"); }}
                     />
+                  </div>
+                </div>
+
+                {/* Hidden toggle */}
+                <div
+                  className={`py-3 px-2 border border-transparent transition-all ${
+                    focusedField === "hidden" ? "bg-primary/[0.03] border-primary/10" : ""
+                  }`}
+                  onClick={() => { playClick(); setFocusedField("hidden"); }}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <Label htmlFor="hidden-toggle" className="text-xs font-bold tracking-wider text-foreground flex items-center gap-1.5 cursor-pointer select-none">
+                      <span className={focusedField === "hidden" ? "text-primary animate-pulse" : "text-transparent"}>▶</span>
+                      <span>Hide Template (Admin Panel Only)</span>
+                    </Label>
+                    <div className="md:max-w-md w-full flex">
+                      <button
+                        id="hidden-toggle"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClick();
+                          setForm((f) => ({ ...f, hidden: !f.hidden }));
+                        }}
+                        className={`px-3 py-1 border text-xs font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer ${
+                          form.hidden
+                            ? "border-destructive bg-destructive/10 text-destructive shadow-[0_0_10px_rgba(239,68,68,0.15)]"
+                            : "border-primary bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]"
+                        }`}
+                        onFocus={() => { playClick(); setFocusedField("hidden"); }}
+                      >
+                        {form.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

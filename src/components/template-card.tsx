@@ -29,11 +29,6 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
               template_{template.slug}.cpp
             </span>
           </div>
-          {template.complexity && (
-            <span className="text-[9px] text-primary/60 font-bold border border-primary/20 bg-primary/5 px-1 py-[1px]">
-              {template.complexity}
-            </span>
-          )}
         </div>
 
         <div className="p-4 flex flex-col flex-1">

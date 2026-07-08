@@ -5,107 +5,224 @@ export async function seedBitManip(db: Db, catMap: CatMap) {
   const categoryId = catMap["bit-manipulation"];
   if (!categoryId) return;
 
-  const [bitUtils] = await db.insert(templates).values({
-    title: "Bit Utilities",
-    slug: "bit-utilities",
-    description: "Comprehensive bit manipulation utility functions",
-    categoryId,
-    tags: ["bit-manipulation", "bitwise", "utilities"],
-    complexity: "O(1) per operation",
-    notes: `# Bit Manipulation
+  const [bitUtils] = await db
+    .insert(templates)
+    .values({
+      title: "Bit Utilities",
+      slug: "bit-utilities",
+      description: "Comprehensive bit manipulation utility functions",
+      categoryId,
+      tags: ["bit-manipulation", "bitwise", "utilities"],
+      complexity: "O(1) per operation",
+      notes: [
+        "# Bit Manipulation Utilities",
+        "",
+        "Bit manipulation operates directly on the binary (base-2) representation of integers. Each bit position corresponds to a power of two, so bitwise operations map cleanly onto arithmetic properties. Mastering these primitives is essential in competitive programming because they run in $O(1)$ time and unlock compact solutions to subset, counting, and masking problems.",
+        "",
+        "## When to Use",
+        "",
+        "- **Subset enumeration / bitmask DP** — iterate over all $2^n$ subsets of a set of size $n$",
+        "- **Counting parity** — check whether the number of set bits is odd or even",
+        "- **Isolating properties** — extract the lowest set bit, find MSB/LSB positions",
+        "- **Power-of-two checks** — fast modular arithmetic, size alignment",
+        "- **State compression** — represent a set of $n$ elements as an $n$-bit integer",
+        "- **Game theory / Sprague-Grundy** — XOR is the Grundy merge operator",
+        "",
+        "## Formulas",
+        "",
+        "| Operation | Formula |",
+        "|-----------|---------|",
+        "| Check bit $i$ | $(n \\gg i) \\mathbin{\\&} 1$ |",
+        "| Set bit $i$ | $n \\mathbin{\\mid} (1 \\ll i)$ |",
+        "| Clear bit $i$ | $n \\mathbin{\\&} \\sim(1 \\ll i)$ |",
+        "| Toggle bit $i$ | $n \\mathbin{\\oplus} (1 \\ll i)$ |",
+        "| Lowest set bit | $n \\mathbin{\\&} (-n)$ |",
+        "| Clear lowest set bit | $n \\mathbin{\\&} (n - 1)$ |",
+        "| Is power of two | $n > 0 \\land n \\mathbin{\\&} (n - 1) = 0$ |",
+        "| Is $a$ subset of $b$ | $a \\mathbin{\\&} b = a$ |",
+        "",
+        "## Edge Cases",
+        "",
+        "- **$n = 0$** — no bits are set; MSB/LSB position functions return $-1$; countBits returns $0$",
+        "- **$i \\notin [0, 63]$** — shift by $\\ge 64$ is undefined behavior on 64-bit integers; always validate $i$",
+        "- **Negative numbers** — signed right-shift is implementation-defined; these functions assume non-negative inputs",
+        "- **Power of two** — $0$ is **not** a power of two; the function correctly returns false",
+        "- **generateSubsets with empty set** — returns one subset (the empty set)",
+        "",
+        "## Complexity",
+        "",
+        "| Function | Time | Space |",
+        "|----------|------|-------|",
+        "| All bit primitives | $O(1)$ | $O(1)$ |",
+        "| generateSubsets | $O(n \\cdot 2^n)$ | $O(n \\cdot 2^n)$ |",
+        "| countBits | $O(1)$ | $O(1)$ |",
+        "",
+        "## Usage Examples",
+        "",
+        "```cpp",
+        "// Check if n is a power of two",
+        "long long n = 16;",
+        "if (isPowerOfTwo(n)) { /* ... */ }",
+        "",
+        "// Toggle bit 3 (the 4's place)",
+        "long long result = toggleBit(0b1010, 3); // 0b1110 = 14",
+        "",
+        "// Enumerate all subsets of {1, 2, 3}",
+        "vector<vector<int>> subsets = generateSubsets({1, 2, 3});",
+        "// Result: {}, {1}, {2}, {1,2}, {3}, {1,3}, {2,3}, {1,2,3}",
+        "```",
+      ].join("\n"),
+    })
+    .returning();
 
-Computers represent integers as binary numbers. Bit manipulation operations work directly on the binary representation.
-
-## Common Operations
-
-- **Check bit**: $(n \\gg i) \\& 1$
-- **Set bit**: $n \\mid (1 \\ll i)$
-- **Clear bit**: $n \\& \\sim(1 \\ll i)$
-- **Toggle bit**: $n \\oplus (1 \\ll i)$
-- **Power of two**: $n \\& (n-1) = 0$ (excluding $n=0$)
-- **Lowest set bit**: $n \\& -n$
-- **Clear lowest set bit**: $n \\& (n-1)$
-- **Count set bits**: \`__builtin_popcountll(n)\`
-- **Count leading zeros**: \`__builtin_clzll(n)\`
-- **Count trailing zeros**: \`__builtin_ctzll(n)\`
-
-## Tricks
-
-- Subset enumeration: iterate mask from 0 to $(1 \\ll n) - 1$
-- Check if $a$ is subset of $b$: $(a \\& b) = a$
-- Generate all subsets: use bitmask iteration`,
-  }).returning();
   if (bitUtils) {
-    await db.insert(templateCodes).values([{
-      templateId: bitUtils.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
-using namespace std;
-typedef long long ll;
+    await db.insert(templateCodes).values([
+      {
+        templateId: bitUtils.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 
-// Check if i-th bit is set
-bool Knowbit(ll n, int i) { return (n >> i) & 1; }
+/**
+ * @brief Check if the i-th bit (0-indexed from LSB) is set.
+ * @param n  The integer to inspect.
+ * @param i  Bit position to check (0-based, must be in [0, 63]).
+ * @return   1 if bit i is set, 0 otherwise.
+ */
+bool checkBit(ll n, int i) {
+    return (n >> i) & 1;
+}
 
-// Turn on the i-th bit
-ll Setbit(ll n, int i) { return n | (1LL << i); }
+/**
+ * @brief Set the i-th bit to 1.
+ * @param n  The integer to modify.
+ * @param i  Bit position to set (0-based, must be in [0, 63]).
+ * @return   Value with bit i set to 1.
+ */
+ll setBit(ll n, int i) {
+    return n | (1LL << i);
+}
 
-// Turn off the i-th bit
-ll Resetbit(ll n, int i) { return n & (~(1LL << i)); }
+/**
+ * @brief Clear the i-th bit to 0.
+ * @param n  The integer to modify.
+ * @param i  Bit position to clear (0-based, must be in [0, 63]).
+ * @return   Value with bit i cleared to 0.
+ */
+ll resetBit(ll n, int i) {
+    return n & ~(1LL << i);
+}
 
-// Flip the i-th bit
-ll flip(ll n, int i) { return n ^ (1LL << i); }
+/**
+ * @brief Toggle (flip) the i-th bit.
+ * @param n  The integer to modify.
+ * @param i  Bit position to toggle (0-based, must be in [0, 63]).
+ * @return   Value with bit i inverted.
+ */
+ll toggleBit(ll n, int i) {
+    return n ^ (1LL << i);
+}
 
-// Check if n is a power of two
-bool isPowerOfTwo(int n) { return n && !(n & (n - 1)); }
+/**
+ * @brief Check whether n is a power of two.
+ * @param n  The integer to test (treated as non-negative).
+ * @return   true if n > 0 and exactly one bit is set.
+ */
+bool isPowerOfTwo(ll n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
 
-// Count number of set bits
-int countBits(ll n) { return __builtin_popcountll(n); }
+/**
+ * @brief Count the number of set bits (population count).
+ * @param n  The integer whose bits to count.
+ * @return   Number of 1-bits in the binary representation.
+ */
+int countBits(ll n) {
+    return __builtin_popcountll(n);
+}
 
-// Lowest set bit
-ll lowestSetBit(ll n) { return n & (-n); }
+/**
+ * @brief Isolate the lowest set bit.
+ * @param n  The integer (must be nonzero for meaningful result).
+ * @return   A value with only the lowest set bit of n remaining.
+ */
+ll lowestSetBit(ll n) {
+    return n & (-n);
+}
 
-// Clear lowest set bit
-ll clearLowestBit(ll n) { return n & (n - 1); }
+/**
+ * @brief Clear the lowest set bit.
+ * @param n  The integer (must be nonzero for meaningful result).
+ * @return   Value with the lowest set bit of n cleared.
+ */
+ll clearLowestBit(ll n) {
+    return n & (n - 1);
+}
 
-// Check if a is subset of b
-bool isSubset(ll a, ll b) { return (a & b) == a; }
+/**
+ * @brief Check if a is a subset of b (in set-bit sense).
+ * @param a  The candidate subset bitmask.
+ * @param b  The superset bitmask.
+ * @return   true if every set bit in a is also set in b.
+ */
+bool isSubset(ll a, ll b) {
+    return (a & b) == a;
+}
 
-// MSB position (0-indexed), -1 if n==0
+/**
+ * @brief Get the position of the most significant set bit (0-indexed).
+ * @param n  The integer to inspect.
+ * @return   0-based position of the MSB, or -1 if n == 0.
+ */
 int msbPosition(ll n) {
     if (n == 0) return -1;
     return 63 - __builtin_clzll(n);
 }
 
-// LSB position (0-indexed), -1 if n==0
+/**
+ * @brief Get the position of the least significant set bit (0-indexed).
+ * @param n  The integer to inspect.
+ * @return   0-based position of the LSB, or -1 if n == 0.
+ */
 int lsbPosition(ll n) {
     if (n == 0) return -1;
     return __builtin_ctzll(n);
 }
 
-// Number of bits needed to represent n
+/**
+ * @brief Compute the number of bits needed to represent n.
+ * @param n  The integer (non-negative).
+ * @return   Minimum number of bits required, at least 1.
+ */
 int bitLength(ll n) {
     if (n == 0) return 1;
     return msbPosition(n) + 1;
 }
 
-// Convert n to given base
-vector<ll> convertToBase(ll n, ll base) {
-    vector<ll> vect;
-    while (n) { vect.push_back(n % base); n /= base; }
-    reverse(vect.begin(), vect.end());
-    return vect;
-}
-
-// Generate all subsets of a set using bitmask
-vector<vector<int>> generateSubsets(const vector<int> &s) {
-    int n = s.size();
-    vector<vector<int>> ans;
+/**
+ * @brief Generate all subsets of a set using bitmask enumeration.
+ * @param s  The input set (no duplicates required).
+ * @return   A vector of all 2^n subsets, each as a vector.
+ */
+std::vector<std::vector<int>> generateSubsets(
+    const std::vector<int>& s
+) {
+    int n = (int)s.size();
+    std::vector<std::vector<int>> ans;
+    ans.reserve(1LL << n);
     for (int mask = 0; mask < (1 << n); mask++) {
-        vector<int> v;
-        for (int i = 0; i < n; i++)
-            if (Knowbit(mask, i)) v.push_back(s[i]);
-        ans.push_back(v);
+        std::vector<int> subset;
+        for (int i = 0; i < n; i++) {
+            if (checkBit(mask, i)) {
+                subset.push_back(s[i]);
+            }
+        }
+        ans.push_back(subset);
     }
     return ans;
-}`)
-    }]);
+}
+`),
+      },
+    ]);
   }
 }

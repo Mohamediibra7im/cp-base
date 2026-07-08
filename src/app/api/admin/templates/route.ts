@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     tags: body.tags || [],
     complexity: body.complexity || "",
     notes: body.notes || "",
+    hidden: body.hidden ?? false,
   }).returning();
 
   if (body.codes && template) {
@@ -69,6 +70,7 @@ export async function PUT(request: Request) {
       tags: body.tags,
       complexity: body.complexity,
       notes: body.notes,
+      hidden: body.hidden ?? false,
       updatedAt: new Date(),
     })
     .where(eq(schema.templates.id, body.id));

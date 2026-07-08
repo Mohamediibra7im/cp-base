@@ -1,5 +1,5 @@
 import { getDb, schema } from "@/db";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { TemplatesList } from "@/components/templates-list";
 import { SearchInput } from "@/components/search-input";
 import { Terminal } from "lucide-react";
@@ -51,15 +51,14 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   let totalTemplates = 0;
 
   try {
-    templates = await db.query.templates.findMany({
+    const rawTemplates = await db.query.templates.findMany({
+      where: eq(schema.templates.hidden, false),
       with: { category: true },
       orderBy: (t, { desc }) => [desc(t.createdAt)],
     });
 
-    const [countRow] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.templates);
-    totalTemplates = countRow?.count ?? 0;
+    templates = rawTemplates.filter((t) => t.category && !t.category.hidden);
+    totalTemplates = templates.length;
   } catch {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">

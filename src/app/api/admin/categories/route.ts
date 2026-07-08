@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const db = getDb();
@@ -23,7 +24,12 @@ export async function POST(request: Request) {
     icon: body.icon || "Code",
     color: body.color || "#3b82f6",
     order: body.order || 0,
+    hidden: body.hidden ?? false,
   }).returning();
+
+  revalidatePath("/");
+  revalidatePath("/category/[slug]");
+
   return NextResponse.json(category, { status: 201 });
 }
 
@@ -33,8 +39,20 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
   await db.update(categories)
-    .set({ name: body.name, slug: body.slug, description: body.description, icon: body.icon, color: body.color, order: body.order })
+    .set({
+      name: body.name,
+      slug: body.slug,
+      description: body.description,
+      icon: body.icon,
+      color: body.color,
+      order: body.order,
+      hidden: body.hidden ?? false,
+    })
     .where(eq(categories.id, body.id));
+
+  revalidatePath("/");
+  revalidatePath("/category/[slug]");
+
   return NextResponse.json({ success: true });
 }
 

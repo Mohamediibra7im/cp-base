@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/db";
 import { categories, templates } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { TemplateCard } from "@/components/template-card";
 import * as LucideIcons from "lucide-react";
 import { ArrowLeft, Home } from "lucide-react";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   try {
     const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
-    if (!category) {
+    if (!category || category.hidden) {
       return {
         title: "Category Not Found | CP-Base",
         openGraph: { images: ["/opengraph-image"] },
@@ -66,10 +66,10 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
   try {
     [category] = await db.select().from(categories).where(eq(categories.slug, slug));
-    if (!category) notFound();
+    if (!category || category.hidden) notFound();
 
     rows = await db.query.templates.findMany({
-      where: eq(templates.categoryId, category.id),
+      where: and(eq(templates.categoryId, category.id), eq(templates.hidden, false)),
       with: { category: true },
       orderBy: (t, { desc }) => [desc(t.createdAt)],
     });

@@ -15,25 +15,63 @@ export async function seedCombinatorics(db: Db, catMap: CatMap) {
     complexity: "O(MAXN) precompute, O(1) per query",
     notes: `# Binomial Coefficients
 
-$\\binom{n}{k}$ = number of ways to select $k$ elements from $n$ without order.
+$\\binom{n}{k}$ counts ways to choose $k$ from $n$ elements (order irrelevant).
 
-**Formula**: $\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$
+## Formula
 
-**Properties**:
-- $\\binom{n}{k} = \\binom{n-1}{k-1} + \\binom{n-1}{k}$ (Pascal's Triangle)
-- $\\sum_{k=0}^n \\binom{n}{k} = 2^n$
-- $\\binom{n}{0} = \\binom{n}{n} = 1$`,
+$$\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$$
+
+## Properties
+
+- **Pascal's Identity**: $\\binom{n}{k} = \\binom{n-1}{k-1} + \\binom{n-1}{k}$
+- **Sum over all k**: $\\sum_{k=0}^{n} \\binom{n}{k} = 2^n$
+- **Boundary**: $\\binom{n}{0} = \\binom{n}{n} = 1$
+
+## Modular Computation
+
+For prime $p$, compute $\\binom{n}{k} \\bmod p$ using Fermat's Little Theorem:
+
+$$\\binom{n}{k} \\equiv n! \\cdot (k!)^{-1} \\cdot ((n-k)!)^{-1} \\pmod{p}$$
+
+where $a^{-1} \\equiv a^{p-2} \\pmod{p}$.
+
+## When to Use
+
+- Counting subsets, combinations of items
+- Paths on grid: $(0,0)$ to $(n,m)$ is $\\binom{n+m}{n}$
+- Intermediate step in inclusion-exclusion or counting formulas
+
+## Complexity
+
+- **Precomputation**: $O(\\text{MAXN})$ for factorials
+- **Query**: $O(1)$ per $\\binom{n}{k}$
+
+## Usage
+
+\`\`\`cpp
+factorialInit();
+long long ans = nCr(n, k);  // $\\binom{n}{k} \\bmod 10^9+7$
+long long perm = nPr(n, k); // $P(n,k) = \\frac{n!}{(n-k)!}$
+\`\`\``,
   }).returning();
   if (binom) {
     await db.insert(templateCodes).values([{
       templateId: binom.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
-const ll mod = 1e9 + 7;
+
+using ll = long long;
+const ll MOD = 1e9 + 7;
 const int MAXN = 2e6 + 5;
 
 ll fact[MAXN], invfact[MAXN];
 
+/**
+ * @brief Fast modular exponentiation.
+ * @param base The base (will be reduced mod mod).
+ * @param exp The exponent (non-negative).
+ * @param mod The modulus (must be positive).
+ * @return base^exp mod mod
+ */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -45,23 +83,49 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-void factorial_init() {
+/**
+ * @brief Compute modular inverse using Fermat's Little Theorem.
+ * @param x The value to invert.
+ * @param mod The prime modulus.
+ * @return x^{-1} mod mod
+ */
+ll modInverse(ll x, ll mod) {
+    return power(x, mod - 2, mod);
+}
+
+/**
+ * @brief Precompute factorials and inverse factorials up to MAXN-1.
+ *        Call once before using nCr/nPr.
+ */
+void factorialInit() {
     fact[0] = 1;
     for (int i = 1; i < MAXN; i++)
-        fact[i] = i * fact[i - 1] % mod;
-    invfact[MAXN - 1] = power(fact[MAXN - 1], mod - 2, mod);
+        fact[i] = i * fact[i - 1] % MOD;
+    invfact[MAXN - 1] = modInverse(fact[MAXN - 1], MOD);
     for (int i = MAXN - 2; i >= 0; i--)
-        invfact[i] = (i + 1) * invfact[i + 1] % mod;
+        invfact[i] = (i + 1) * invfact[i + 1] % MOD;
 }
 
+/**
+ * @brief Compute binomial coefficient nCr mod MOD.
+ * @param n Total elements.
+ * @param r Elements to choose.
+ * @return $\\binom{n}{k}$ mod MOD, or 0 if invalid.
+ */
 ll nCr(ll n, ll r) {
     if (n < r || r < 0) return 0;
-    return fact[n] * invfact[r] % mod * invfact[n - r] % mod;
+    return fact[n] * invfact[r] % MOD * invfact[n - r] % MOD;
 }
 
+/**
+ * @brief Compute permutation count nPr mod MOD.
+ * @param n Total elements.
+ * @param r Elements to arrange.
+ * @return P(n, r) mod MOD, or 0 if invalid.
+ */
 ll nPr(ll n, ll r) {
     if (n < r || r < 0) return 0;
-    return fact[n] * invfact[n - r] % mod;
+    return fact[n] * invfact[n - r] % MOD;
 }`)
     }]);
   }
@@ -74,23 +138,56 @@ ll nPr(ll n, ll r) {
     categoryId: categoryId,
     tags: ["combinatorics", "burnside", "necklace", "group-theory"],
     complexity: "O(n log MOD)",
-    notes: `# Burnside's Lemma / Pólya Enumeration Theorem
+    notes: `# Burnside's Lemma
 
-Burnside's lemma counts equivalence classes under group actions.
+Counts distinct objects under a group action (e.g., necklace rotations).
 
-For a set of colorings with $k$ colors and $n$ beads under rotation:
+## Formula
 
-$$\\text{Necklaces} = \\frac{1}{n}\\sum_{i=1}^n k^{\\gcd(i,n)}$$
+Let $G$ act on finite set $X$. Number of distinct orbits:
 
-**Key idea**: For each group element $g$, count the number of colorings fixed by $g$. The number of equivalence classes is the average of these fixed counts.`,
+$$|X/G| = \\frac{1}{|G|} \\sum_{g \\in G} |X^g|$$
+
+where $X^g = \\{x \\in X : g \\cdot x = x\\}$ (fixed elements).
+
+## Necklace Application
+
+For $n$ beads with $k$ colors under **rotations**, a rotation by $i$ positions fixes $k^{\\gcd(i,n)}$ colorings:
+
+$$\\text{Necklaces} = \\frac{1}{n} \\sum_{i=1}^{n} k^{\\gcd(i, n)}$$
+
+## When to Use
+
+- Distinct colorings of a necklace under rotation
+- "How many distinct objects up to symmetry?"
+- Grid/polygon coloring under rotational symmetry
+
+## Complexity
+
+- **Time**: $O(n \\log n)$ for gcd + modular exponentiation
+- **Space**: $O(1)$
+
+## Usage
+
+\`\`\`cpp
+long long ans = necklaceCount(n, k);  // n beads, k colors, rotations only
+\`\`\``,
   }).returning();
   if (burn) {
     await db.insert(templateCodes).values([{
       templateId: burn.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
-const ll mod = 1e9 + 7;
 
+using ll = long long;
+const ll MOD = 1e9 + 7;
+
+/**
+ * @brief Fast modular exponentiation.
+ * @param base The base (will be reduced mod mod).
+ * @param exp The exponent (non-negative).
+ * @param mod The modulus (must be positive).
+ * @return base^exp mod mod
+ */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -102,16 +199,28 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-ll inv(ll x, ll mod) {
+/**
+ * @brief Compute modular inverse using Fermat's Little Theorem.
+ * @param x The value to invert.
+ * @param mod The prime modulus.
+ * @return x^{-1} mod mod
+ */
+ll modInverse(ll x, ll mod) {
     return power(x, mod - 2, mod);
 }
 
-// Number of distinct necklaces of n beads with k colors (rotations only)
-ll necklace_count(ll n, ll k) {
+/**
+ * @brief Count distinct necklaces of n beads with k colors (rotations only).
+ *        Uses Burnside's Lemma on the cyclic group C_n.
+ * @param n Number of beads.
+ * @param k Number of colors.
+ * @return Number of distinct necklaces mod MOD.
+ */
+ll necklaceCount(ll n, ll k) {
     ll ans = 0;
     for (ll i = 1; i <= n; i++)
-        ans = (ans + power(k, __gcd(i, n), mod)) % mod;
-    return ans * inv(n, mod) % mod;
+        ans = (ans + power(k, __gcd(i, n), MOD)) % MOD;
+    return ans * modInverse(n, MOD) % MOD;
 }`)
     }]);
   }
@@ -123,24 +232,53 @@ ll necklace_count(ll n, ll k) {
     description: "Catalan numbers via formula and DP (mod 1e9+7)",
     categoryId: categoryId,
     tags: ["combinatorics", "catalan", "dp", "bracket-sequences"],
-    complexity: "O(n) formula / O(n²) DP",
+    complexity: "O(n) formula / O(n^2) DP",
     notes: `# Catalan Numbers
 
-$C_0, C_1, C_2, \\dots = 1, 1, 2, 5, 14, 42, 132, 429, 1430, \\dots$
+Sequence: 1, 1, 2, 5, 14, 42, 132, 429, 1430, ...
 
-**Formulas**:
-- $C_n = \\frac{1}{n+1}\\binom{2n}{n}$ (closed form)
-- $C_{n+1} = \\sum_{i=0}^{n} C_i \\cdot C_{n-i}$ (recurrence)
+## Formulas
 
-**Applications**: bracket sequences, binary trees, polygon triangulations, monotonic lattice paths, non-crossing partitions, stack-sortable permutations.`,
+**Closed form**: $C_n = \\frac{1}{n+1}\\binom{2n}{n}$
+
+**Recurrence**: $C_{n+1} = \\sum_{i=0}^{n} C_i \\cdot C_{n-i}$
+
+## When to Use
+
+- Balanced bracket sequences ($n$ pairs of parentheses)
+- Binary tree shapes ($n$ nodes)
+- Polygon triangulation ($(n+2)$-gon)
+- Dyck paths / lattice paths below diagonal
+- Any problem matching Catalan sequence 1, 1, 2, 5, 14, 42, ...
+
+## Complexity
+
+- **Formula**: $O(n)$ with precomputed factorials
+- **DP**: $O(n^2)$ time, $O(n)$ space
+
+## Usage
+
+\`\`\`cpp
+long long c = catalan(n);        // C_n mod MOD via formula
+initCatalanDp();
+long long c2 = catalanDp[n];     // C_n via DP (small n only)
+\`\`\``,
   }).returning();
   if (catalan) {
     await db.insert(templateCodes).values([{
       templateId: catalan.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
-const ll mod = 1e9 + 7;
 
+using ll = long long;
+const ll MOD = 1e9 + 7;
+
+/**
+ * @brief Fast modular exponentiation.
+ * @param base The base (will be reduced mod mod).
+ * @param exp The exponent (non-negative).
+ * @param mod The modulus (must be positive).
+ * @return base^exp mod mod
+ */
 ll power(ll base, ll exp, ll mod) {
     base %= mod;
     ll res = 1;
@@ -152,24 +290,44 @@ ll power(ll base, ll exp, ll mod) {
     return res;
 }
 
-// Catalan number using formula: C(2n, n) / (n + 1)
+/**
+ * @brief Compute modular inverse using Fermat's Little Theorem.
+ * @param x The value to invert.
+ * @param mod The prime modulus.
+ * @return x^{-1} mod mod
+ */
+ll modInverse(ll x, ll mod) {
+    return power(x, mod - 2, mod);
+}
+
+/**
+ * @brief Compute the n-th Catalan number mod MOD using the closed form.
+ *        Formula: C_n = (1/(n+1)) * C(2n, n)
+ * @param n The index (0-indexed).
+ * @return C_n mod MOD
+ */
 ll catalan(ll n) {
     ll res = 1;
     for (ll i = 0; i < n; i++)
-        res = res * (2 * n - i) % mod * power(i + 1, mod - 2, mod) % mod;
-    return res * power(n + 1, mod - 2, mod) % mod;
+        res = res * (2 * n - i) % MOD * modInverse(i + 1, MOD) % MOD;
+    return res * modInverse(n + 1, MOD) % MOD;
 }
 
-// Catalan with DP (for small n)
-const int MAXN = 20;
-ll catalan_dp[MAXN];
+// Catalan via DP (use for small n only, O(n^2) time)
+const int MAXN_CATALAN = 20;
+ll catalanDp[MAXN_CATALAN];
 
-void init_catalan_dp() {
-    catalan_dp[0] = catalan_dp[1] = 1;
-    for (int i = 2; i < MAXN; i++) {
-        catalan_dp[i] = 0;
+/**
+ * @brief Precompute Catalan numbers via DP recurrence.
+ *        C_{n+1} = sum_{i=0}^{n} C_i * C_{n-i}
+ *        Limited to n < MAXN_CATALAN.
+ */
+void initCatalanDp() {
+    catalanDp[0] = catalanDp[1] = 1;
+    for (int i = 2; i < MAXN_CATALAN; i++) {
+        catalanDp[i] = 0;
         for (int j = 0; j < i; j++)
-            catalan_dp[i] = (catalan_dp[i] + catalan_dp[j] * catalan_dp[i - j - 1]) % mod;
+            catalanDp[i] = (catalanDp[i] + catalanDp[j] * catalanDp[i - j - 1]) % MOD;
     }
 }`)
     }]);
@@ -185,24 +343,61 @@ void init_catalan_dp() {
     complexity: "O(2^p) where p = number of prime factors",
     notes: `# Inclusion-Exclusion Principle
 
-For sets $A_1, \\dots, A_n$:
+Corrects over-counting by alternately adding/subtracting intersections.
 
-$$\\left|\\bigcup_{i=1}^n A_i\\right| = \\sum_i |A_i| - \\sum_{i<j} |A_i \\cap A_j| + \\sum_{i<j<k} |A_i \\cap A_j \\cap A_k| - \\cdots$$
+## Formula
+
+For finite sets $A_1, \\dots, A_n$:
+
+$$\\left|\\bigcup_{i=1}^{n} A_i\\right| = \\sum_{i} |A_i| - \\sum_{i<j} |A_i \\cap A_j| + \\cdots + (-1)^{n+1} |A_1 \\cap \\cdots \\cap A_n|$$
+
+## Bitmask Approach
+
+Count elements satisfying **none** of $n$ properties:
+
+$$|\\overline{A_1} \\cap \\cdots \\cap \\overline{A_n}| = \\sum_{S \\subseteq \\{1,\\dots,n\\}} (-1)^{|S|} |\\bigcap_{i \\in S} A_i|$$
+
+Iterate $2^p$ subsets via bitmask, add/subtract based on parity.
 
 ## Applications
 
-- Count numbers coprime to $n$ up to $r$: factorize $n$, use inclusion-exclusion over subsets of prime factors.
-- Count numbers divisible by any of given divisors.
-- Derangements, Stirling numbers, Euler's totient function.`,
+- **Coprime counting**: Factor $n$, IE over prime subsets
+- **Divisibility**: Count in $[1,n]$ divisible by at least one divisor
+- **Derangements**: $D_n = n! \\sum_{k=0}^{n} \\frac{(-1)^k}{k!}$
+
+## When to Use
+
+- "How many from 1 to N NOT divisible by any of these?"
+- Small property/prime set ($p \\leq 20$)
+- "At least one" or "none" conditions
+
+## Complexity
+
+- **Time**: $O(2^p \\cdot p)$ | **Space**: $O(p)$
+
+## Usage
+
+\`\`\`cpp
+int result = coprimeCount(n, r);     // numbers in [1, r] coprime to n
+int result2 = divisibleByAny(n, divs); // numbers in [1, n] divisible by any in divs
+\`\`\``,
   }).returning();
   if (inclExcl) {
     await db.insert(templateCodes).values([{
       templateId: inclExcl.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
 
-// Count numbers from 1 to r that are coprime with n
-int coprime_count(int n, int r) {
+using ll = long long;
+
+/**
+ * @brief Count numbers from 1 to r that are coprime with n.
+ *        Uses inclusion-exclusion over prime factors of n.
+ * @param n The number whose prime factors define the exclusions.
+ * @param r The upper bound of the range [1, r].
+ * @return Count of integers in [1, r] coprime to n.
+ */
+int coprimeCount(int n, int r) {
+    // Step 1: extract distinct prime factors of n
     vector<int> p;
     for (int i = 2; i * i <= n; ++i) {
         if (n % i == 0) {
@@ -212,8 +407,10 @@ int coprime_count(int n, int r) {
     }
     if (n > 1) p.push_back(n);
 
+    // Step 2: inclusion-exclusion over all non-empty subsets of primes
+    // Numbers divisible by an odd-sized subset are added, even-sized subtracted
     int sum = 0;
-    for (int msk = 1; msk < (1 << p.size()); ++msk) {
+    for (int msk = 1; msk < (1 << (int)p.size()); ++msk) {
         int mult = 1, bits = 0;
         for (int i = 0; i < (int)p.size(); ++i) {
             if (msk & (1 << i)) {
@@ -224,23 +421,41 @@ int coprime_count(int n, int r) {
         if (bits % 2 == 1) sum += r / mult;
         else sum -= r / mult;
     }
+    // Total numbers minus those divisible by at least one prime factor
     return r - sum;
 }
 
-// Count integers in [1, n] divisible by at least one from vector a
-int divisible_by_any(int n, vector<int> &a) {
-    int m = a.size();
+/**
+ * @brief Count integers in [1, n] divisible by at least one value in a.
+ *        Uses inclusion-exclusion over all subsets.
+ *        Guards against LCM overflow by skipping when LCM exceeds n.
+ * @param n The upper bound of the range [1, n].
+ * @param a Vector of divisors.
+ * @return Count of integers in [1, n] divisible by at least one element of a.
+ */
+int divisibleByAny(int n, vector<int> &a) {
+    int m = (int)a.size();
     int sum = 0;
     for (int mask = 1; mask < (1 << m); mask++) {
-        int lcm_val = 1, bits = 0;
+        ll lcmVal = 1;
+        int bits = 0;
+        bool overflow = false;
         for (int i = 0; i < m; i++) {
             if (mask & (1 << i)) {
                 bits++;
-                lcm_val = lcm_val / __gcd(lcm_val, a[i]) * a[i];
+                // Compute LCM safely: lcm(a,b) = a / gcd(a,b) * b
+                ll g = __gcd(lcmVal, (ll)a[i]);
+                lcmVal = lcmVal / g * a[i];
+                // If LCM exceeds n, no multiples exist in [1, n]
+                if (lcmVal > n) {
+                    overflow = true;
+                    break;
+                }
             }
         }
-        if (bits % 2 == 1) sum += n / lcm_val;
-        else sum -= n / lcm_val;
+        if (overflow) continue;  // skip: floor(n / lcmVal) == 0
+        if (bits % 2 == 1) sum += (int)(n / lcmVal);
+        else sum -= (int)(n / lcmVal);
     }
     return sum;
 }`)

@@ -6,320 +6,559 @@ export async function seedNumberTheory(db: Db, catMap: CatMap) {
   const categoryId = catMap["number-theory"];
   if (!categoryId) return;
 
-  // --- Sieve ---
+  // --- Sieve of Eratosthenes ---
   const [sieve] = await db.insert(templates).values({
-    title: "Sieve of Eratosthenes", slug: "sieve",
-    description: "Prime sieve with linear optimization (SPF), phi, mu precomputation",
+    title: "Sieve of Eratosthenes",
+    slug: "sieve",
+    description:
+      "Linear sieve computing primes, smallest prime factor (SPF), Euler's totient (φ), and Möbius function (μ)",
     categoryId,
     tags: ["sieve", "prime", "number-theory", "factorization"],
-    complexity: "O(n log log n)",
+    complexity: "O(n)",
     notes: `# Sieve of Eratosthenes
 
-Linear sieve that computes primes, smallest prime factor (SPF), Euler's totient (φ), and Möbius function (μ) up to n.
+A **linear-time** sieve computing primes, smallest prime factor (SPF), Euler's totient ($\\varphi$), and Möbius function ($\\mu$) up to $n$.
 
-## Usage
+## Algorithm
 
-\`\`\`cpp
-int n = 1000000;
-sieve(n);
-// prime      → list of primes ≤ n
-// is_prime   → boolean array
-// spf[i]     → smallest prime factor of i
-// phi[i]     → Euler's totient φ(i)
-// mobius[i]  → Möbius function μ(i)
-\`\`\`
+The **linear sieve** achieves $O(n)$ by ensuring every composite is crossed off exactly once. For each $i$, iterate over known primes $p$, mark $i \\cdot p$ composite, and **break** when $p \\mid i$ — this prevents double-counting since composites with a smaller prime factor will be reached later.
 
-## Properties
+The classic sieve marks composites in $O(n \\log \\log n)$; the linear variant adds $\\varphi$ and $\\mu$ computation at no extra asymptotic cost.
 
-- **spf**: smallest prime factor. \`spf[i] = p\` where p is the smallest prime dividing i.
-- **phi**: Euler's totient. φ(i) = count of numbers k < i with gcd(k,i) = 1. φ(p^k) = p^k - p^{k-1}.
-- **mobius**: μ(1) = 1. μ(i) = 0 if i is not squarefree, otherwise μ(i) = (-1)^k where k = number of prime factors.
+## When to Use
+
+- **Precompute factorizations** — Use SPF to factor any number $\\leq n$ in $O(\\log n)$.
+- **Totient/Möbius queries** — Compute $\\varphi$ and $\\mu$ for all numbers up to $n$ in one pass.
+- **Prime counting** — List of primes enables $\\pi(n)$ lookups.
 
 ## Complexity
 
-- Time: O(n)
-- Memory: O(n)`,
+- **Time:** $O(n)$ — each composite visited exactly once.
+- **Memory:** $O(n)$ for the auxiliary arrays.`,
   }).returning();
+
   if (sieve) {
-    await db.insert(templateCodes).values([{
-      templateId: sieve.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
+    await db.insert(templateCodes).values([
+      {
+        templateId: sieve.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 using namespace std;
-#define all(vec) vec.begin(), vec.end()
-#define rall(vec) vec.rbegin(), vec.rend()
-#define sz(x) int(x.size())
-#define ll long long
-vector < bool > is_prime;
-vector < int > prime, spf, phi, mobius;
-void sieve(int n){
-    is_prime.assign(n + 1, true);
+
+/**
+ * @brief Linear sieve computing primes, SPF, Euler's totient, and Möbius function.
+ * @param n Upper bound (inclusive). All arrays have indices $[0, n]$.
+ *
+ * Global outputs:
+ *   - prime     : list of all primes $\leq n$
+ *   - spf[i]    : smallest prime factor of $i$
+ *   - phi[i]    : Euler's totient $\varphi(i)$
+ *   - mobius[i] : Möbius function $\mu(i)$
+ */
+vector<bool> isPrime;
+vector<int> prime, spf, phi, mobius;
+
+void sieveOfEratosthenes(int n) {
+    isPrime.assign(n + 1, true);
     spf.assign(n + 1, n + 1);
     phi.assign(n + 1, 1);
     mobius.assign(n + 1, 1);
-    is_prime[0] = is_prime[1] = false;
-    spf[1] = 1; mobius[1] = 1;
-    for(int i = 2; i <= n; i++){
-        if(is_prime[i]){ prime.push_back(i); spf[i] = i; phi[i] = i - 1; mobius[i] = -1; }
-        for(int p : prime){
-            if(i * p > n) break;
-            is_prime[i * p] = false;
+    isPrime[0] = isPrime[1] = false;
+    spf[1] = 1;
+    mobius[1] = 1;
+
+    for (int i = 2; i <= n; i++) {
+        if (isPrime[i]) {
+            prime.push_back(i);
+            spf[i] = i;
+            phi[i] = i - 1;
+            mobius[i] = -1;
+        }
+        for (int p : prime) {
+            if (i * p > n) break;
+            isPrime[i * p] = false;
             spf[i * p] = p;
-            if(i % p == 0){ phi[i * p] = phi[i] * p; mobius[i * p] = 0; break; }
+            if (i % p == 0) {
+                phi[i * p] = phi[i] * p;
+                mobius[i * p] = 0;
+                break;
+            }
             phi[i * p] = phi[i] * (p - 1);
             mobius[i * p] = -mobius[i];
         }
     }
-}`)
-    }]);
+}`),
+      },
+    ]);
   }
 
-  // --- Miller-Rabin ---
+  // --- Miller-Rabin Primality Test ---
   const [miller] = await db.insert(templates).values({
-    title: "Miller-Rabin Primality Test", slug: "miller-rabin",
-    description: "Deterministic Miller-Rabin primality test for 64-bit integers",
+    title: "Miller-Rabin Primality Test",
+    slug: "miller-rabin",
+    description:
+      "Deterministic Miller-Rabin primality test for 64-bit integers using verified witness sets",
     categoryId,
     tags: ["primality-test", "miller-rabin", "deterministic", "64-bit"],
-    complexity: "O(log n) per test",
+    complexity: "O(k log n) per test, k = 12",
     notes: `# Miller-Rabin Primality Test
 
-Deterministic primality test for 64-bit integers. Uses bases {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37} which are sufficient for all n < 2^64.
-
-## Usage
-
-\`\`\`cpp
-isPrime(n)  // returns true if n is prime
-\`\`\`
+A **probabilistic** primality test that becomes **deterministic** for bounded ranges by choosing the right witness bases.
 
 ## Algorithm
 
-Write n-1 = d · 2^s. For each base a, compute a^d mod n. If result is 1 or n-1, continue. Otherwise square s-1 times — if any result is n-1, continue. Otherwise n is composite.
+Factor $n - 1 = d \\cdot 2^s$, then test each base $a$:
+- Compute $x = a^d \\bmod n$.
+- If $x = 1$ or $x = n-1$, pass. Otherwise square up to $s-1$ times looking for $n-1$.
+- If neither found, $n$ is composite.
+
+### Deterministic Witnesses
+
+For $n < 2^{64}$, the 12 bases $\\{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37\\}$ are sufficient — verified by Jim Sinclair (2011). Smaller ranges need fewer bases (e.g., $n < 2047$: just $\\{2\\}$).
+
+## When to Use
+
+- **Primality testing** — Check if a single 64-bit integer is prime.
+- **Preprocessing for factorization** — Called before Pollard's Rho to verify factors.
+- **Generating large primes** — Random search with primality verification.
 
 ## Complexity
 
-- Time: O(log n) per test (12 modular exponentiations worst-case)
-- Deterministic for n < 2^64`,
+- **Time:** $O(k \\log n)$ where $k$ is the number of bases (12 for 64-bit).
+- **Memory:** $O(1)$.`,
   }).returning();
+
   if (miller) {
-    await db.insert(templateCodes).values([{
-      templateId: miller.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
+    await db.insert(templateCodes).values([
+      {
+        templateId: miller.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 using namespace std;
-#define all(vec) vec.begin(), vec.end()
-#define rall(vec) vec.rbegin(), vec.rend()
-#define sz(x) int(x.size())
-#define ll long long
-ll mul_mod(ll a, ll b, ll m) { return (__int128)a * b % m; }
-ll pow_mod(ll a, ll d, ll m) { ll res = 1; a %= m; while(d){ if(d & 1) res = mul_mod(res, a, m); a = mul_mod(a, a, m); d >>= 1; } return res; }
-bool isPrime(ll n) {
+
+/**
+ * @brief Modular multiplication using 128-bit intermediate to avoid overflow.
+ * @param a First operand
+ * @param b Second operand
+ * @param m Modulus
+ * @return $(a \\cdot b) \\bmod m$
+ */
+ll mulMod(ll a, ll b, ll m) {
+    return (__int128)a * b % m;
+}
+
+/**
+ * @brief Fast modular exponentiation via binary method.
+ * @param a Base
+ * @param d Exponent
+ * @param m Modulus
+ * @return $a^d \\bmod m$
+ */
+ll powMod(ll a, ll d, ll m) {
+    ll res = 1;
+    a %= m;
+    while (d) {
+        if (d & 1) res = mulMod(res, a, m);
+        a = mulMod(a, a, m);
+        d >>= 1;
+    }
+    return res;
+}
+
+/**
+ * @brief Deterministic Miller-Rabin primality test for $n < 2^{64}$.
+ * @param n The integer to test
+ * @return true if n is prime, false otherwise
+ *
+ * Uses the 12 bases {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}
+ * which are sufficient and necessary for deterministic results below $2^{64}$.
+ */
+bool millerRabin(ll n) {
     if (n < 2) return false;
-    ll d = n - 1; int s = 0;
+    ll d = n - 1;
+    int s = 0;
     while (d % 2 == 0) { d /= 2; s++; }
-    vector < ll > bases = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
-    for (ll a : bases) {
+    for (ll a : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
         if (a >= n) continue;
-        ll x = pow_mod(a, d, n);
+        ll x = powMod(a, d, n);
         if (x == 1 || x == n - 1) continue;
         bool composite = true;
         for (int r = 1; r < s; r++) {
-            x = mul_mod(x, x, n);
+            x = mulMod(x, x, n);
             if (x == n - 1) { composite = false; break; }
         }
         if (composite) return false;
     }
     return true;
-}`)
-    }]);
+}`),
+      },
+    ]);
   }
 
-  // --- Factorization ---
-  const [factors] = await db.insert(templates).values({
-    title: "Prime Factorization", slug: "prime-factorization",
-    description: "Prime factorization with Pollard's Rho for 64-bit integers",
+  // --- Pollard's Rho Factorization ---
+  const [pollard] = await db.insert(templates).values({
+    title: "Pollard's Rho Factorization",
+    slug: "pollard-rho",
+    description:
+      "Factorize 64-bit integers into primes using Pollard's Rho with Miller-Rabin",
     categoryId,
-    tags: ["factorization", "prime-factors", "trial-division"],
-    complexity: "O(√n) / O(n^{1/4}) with Pollard Rho",
-    notes: `# Prime Factorization
+    tags: [
+      "factorization",
+      "pollard-rho",
+      "number-theory",
+      "prime-factors",
+    ],
+    complexity: "O(n^{1/4}) expected per factor",
+    notes: `# Pollard's Rho Factorization
 
-Factorizes a 64-bit integer into its prime factors using:
-- Trial division for small factors (n < 2^40)
-- Pollard's Rho algorithm for large factors (O(n^{1/4}))
-- Miller-Rabin for primality testing
+Factorize a 64-bit integer using trial division, Miller-Rabin, and Pollard's Rho.
 
-## Usage
+## Algorithm
 
-\`\`\`cpp
-vector<ll> factors = factorize(n);
-// factors = sorted list of prime factors (with multiplicity)
-// Example: factorize(12) → {2, 2, 3}
-\`\`\`
+### Birthday Paradox Intuition
 
-## How Pollard's Rho Works
+Evaluate a pseudo-random function $f(x) = (x^2 + c) \\bmod n$ repeatedly. With probability ~50% in $O(\\sqrt{p})$ steps (where $p$ is the smallest prime factor), two values $x_i, x_j$ will satisfy $\\gcd(|x_i - x_j|, n) > 1$, yielding a non-trivial factor.
 
-Uses Floyd's cycle detection with a pseudo-random function f(x) = (x^2 + c) mod n. If gcd(|x - y|, n) > 1, found a non-trivial factor. Recursively factor.
+### Floyd's Cycle Detection
+
+Use **tortoise-and-hare** to find collisions without storing all values:
+- **Tortoise** $x$: one step per iteration.
+- **Hare** $y$: two steps per iteration.
+- Compute $d = \\gcd(|x - y|, n)$ at each step. If $1 < d < n$, found a factor.
+
+If the algorithm fails with one random constant $c$, retry with a new $c$.
+
+## When to Use
+
+- **Factoring large numbers** — Any number up to $2^{64}$ that can't be trial-divided.
+- **RSA challenges** — Finding factors of semiprimes $n = p \\cdot q$.
+- **Number theory problems** — GCD-based factorization, counting divisors, totient computation.
 
 ## Complexity
 
-- Expected: O(n^{1/4}) for Pollard's Rho
-- Worst-case: O(√n) if n is prime (Miller-Rabin catches this quickly)`,
+- **Pollard's Rho:** $O(n^{1/4})$ expected per factor.
+- **Trial division:** $O(\\sqrt[3]{n})$ for small primes.`,
   }).returning();
-  if (factors) {
-    await db.insert(templateCodes).values([{
-      templateId: factors.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
+
+  if (pollard) {
+    await db.insert(templateCodes).values([
+      {
+        templateId: pollard.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 using namespace std;
-#define all(vec) vec.begin(), vec.end()
-#define rall(vec) vec.rbegin(), vec.rend()
-#define sz(x) int(x.size())
-#define ll long long
+
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
-ll mul_mod(ll a, ll b, ll m) { return (__int128)a * b % m; }
-ll pow_mod(ll a, ll d, ll m) { ll res = 1; a %= m; while(d){ if(d & 1) res = mul_mod(res, a, m); a = mul_mod(a, a, m); d >>= 1; } return res; }
-bool isPrime(ll n) {
-    if (n < 2) return false; ll d = n - 1; int s = 0; while (d % 2 == 0) { d /= 2; s++; }
+
+/** @brief Modular multiplication using 128-bit intermediate. */
+ll mulMod(ll a, ll b, ll m) { return (__int128)a * b % m; }
+
+/** @brief Fast modular exponentiation. */
+ll powMod(ll a, ll d, ll m) {
+    ll res = 1;
+    a %= m;
+    while (d) {
+        if (d & 1) res = mulMod(res, a, m);
+        a = mulMod(a, a, m);
+        d >>= 1;
+    }
+    return res;
+}
+
+/** @brief Deterministic Miller-Rabin for $n < 2^{64}$. */
+bool millerRabin(ll n) {
+    if (n < 2) return false;
+    ll d = n - 1;
+    int s = 0;
+    while (d % 2 == 0) { d /= 2; s++; }
     for (ll a : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
-        if (a >= n) continue; ll x = pow_mod(a, d, n); if (x == 1 || x == n - 1) continue;
+        if (a >= n) continue;
+        ll x = powMod(a, d, n);
+        if (x == 1 || x == n - 1) continue;
         bool composite = true;
-        for (int r = 1; r < s; r++) { x = mul_mod(x, x, n); if (x == n - 1) { composite = false; break; } }
+        for (int r = 1; r < s; r++) {
+            x = mulMod(x, x, n);
+            if (x == n - 1) { composite = false; break; }
+        }
         if (composite) return false;
     }
     return true;
 }
-ll Pollard_Rho(ll n) {
+
+/**
+ * @brief Pollard's Rho algorithm to find a non-trivial factor of $n$.
+ * @param n Composite integer $> 1$
+ * @return A non-trivial divisor of $n$
+ *
+ * Uses Floyd's cycle detection with $f(x) = x^2 + c \\pmod{n}$.
+ * Retries with different random seeds if cycle length is 1.
+ */
+ll pollardRho(ll n) {
     if (n % 2 == 0) return 2;
-    ll x = rng() % (n - 2) + 2, y = x, c = rng() % (n - 1) + 1, d = 1;
-    auto f = [&](ll x) { return (mul_mod(x, x, n) + c) % n; };
-    while (d == 1) { x = f(x); y = f(f(y)); d = gcd(abs(x - y), n); }
+    ll x = rng() % (n - 2) + 2;
+    ll y = x;
+    ll c = rng() % (n - 1) + 1;
+    ll d = 1;
+    auto f = [&](ll x) { return (mulMod(x, x, n) + c) % n; };
+    while (d == 1) {
+        x = f(x);
+        y = f(f(y));
+        d = std::gcd(abs(x - y), n);
+    }
     return d;
 }
-vector < ll > factorize(ll n) {
-    vector < ll > res;
-    function < void(ll) > rec = [&](ll n) {
+
+/**
+ * @brief Recursively factor $n$ into prime factors.
+ * @param n Integer to factor ($> 0$)
+ * @return Sorted vector of prime factors (with multiplicity)
+ *
+ * Example: factorize(12) -> {2, 2, 3}
+ */
+vector<ll> pollardRhoFactorize(ll n) {
+    vector<ll> factors;
+    function<void(ll)> rec = [&](ll n) {
         if (n == 1) return;
-        if (isPrime(n)) { res.push_back(n); return; }
-        ll d = Pollard_Rho(n); rec(d); rec(n / d);
+        if (millerRabin(n)) { factors.push_back(n); return; }
+        ll d = pollardRho(n);
+        rec(d);
+        rec(n / d);
     };
     rec(n);
-    sort(all(res));
-    return res;
-}`)
-    }]);
+    sort(factors.begin(), factors.end());
+    return factors;
+}`),
+      },
+    ]);
   }
 
   // --- Matrix Exponentiation ---
   const [matrix] = await db.insert(templates).values({
-    title: "Matrix Exponentiation", slug: "matrix-exponentiation",
-    description: "Matrix multiplication and binary exponentiation for linear recurrences",
+    title: "Matrix Exponentiation",
+    slug: "matrix-exponentiation",
+    description:
+      "Binary exponentiation on square matrices for solving linear recurrences in O(n^3 log k)",
     categoryId,
     tags: ["matrix", "exponentiation", "linear-recurrence", "fibonacci"],
-    complexity: "O(n³ log k)",
+    complexity: "O(n^3 log k)",
     notes: `# Matrix Exponentiation
 
-Raise a square matrix to power k using binary exponentiation (O(n³ log k)).
+Compute $M^k$ for a square matrix $M$ of size $n \\times n$ using **binary exponentiation** in $O(n^3 \\log k)$ time.
 
-## Usage
+## Recurrence-to-Matrix Conversion
 
-\`\`\`cpp
-int n = 2;  // matrix size
-Matrix_Power<ll> mat(n);
-mat.mat = {{1, 1}, {1, 0}};  // Fibonacci matrix
-Matrix_Power<ll> result = mat.pow(10);  // F(10)
-\`\`\`
+Given a linear recurrence $a_n = c_1 a_{n-1} + \\cdots + c_k a_{n-k}$, define the state vector $\\mathbf{v}_n = [a_n, \\ldots, a_{n-k+1}]^T$ and transition matrix $A$:
 
-## Applications
+$$\\mathbf{v}_n = A^n \\cdot \\mathbf{v}_0$$
 
-- **Fibonacci numbers**: [[1,1],[1,0]]^n = [[F_{n+1}, F_n],[F_n, F_{n-1}]]
-- **Linear recurrences**: Any linear recurrence of order k can be expressed as matrix exponentiation
-- **Graph paths**: Adjacency matrix A^k gives number of walks of length k between nodes
+**Matrix construction:** First row = coefficients. Sub-diagonal shifts previous values down.
+
+**Binary exponentiation:** Decompose $k$ in binary, square $M$ repeatedly, multiply when bit is 1. Reduces $O(k)$ multiplications to $O(\\log k)$.
+
+## When to Use
+
+- **Fibonacci / Lucas numbers** — Compute $F_n \\bmod m$ for $n$ up to $10^{18}$.
+- **Linear recurrences** — Any order-$k$ recurrence with $k$ fixed.
+- **Path counting** — $A^k$ gives walks of length $k$ in an adjacency matrix.
+- **Competition problems** — When the answer follows a recurrence and $n$ is too large for DP.
 
 ## Complexity
 
-- Time: O(n³ log k) using naive multiplication
-- Memory: O(n²)`,
+- **Time:** $O(n^3 \\log k)$ — $\\log k$ matrix multiplications, each $O(n^3)$.
+- **Memory:** $O(n^2)$.`,
   }).returning();
+
   if (matrix) {
-    await db.insert(templateCodes).values([{
-      templateId: matrix.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
+    await db.insert(templateCodes).values([
+      {
+        templateId: matrix.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 using namespace std;
-#define all(vec) vec.begin(), vec.end()
-#define rall(vec) vec.rbegin(), vec.rend()
-#define sz(x) int(x.size())
-#define ll long long
-const int MOD = 1e9 + 7;
-template < typename T = int > struct Matrix_Power {
-    int n; vector < vector < T > > mat;
-    Matrix_Power(int _n = 0, bool identity = false) : n(_n) {
-        mat.assign(n, vector < T >(n, 0));
-        if (identity) for(int i = 0; i < n; i++) mat[i][i] = 1;
+
+const ll MOD = 1e9 + 7;
+
+/**
+ * @brief Square matrix with binary exponentiation support.
+ * @tparam T Element type (default int)
+ *
+ * Provides multiplication ($O(n^3)$) and power ($O(n^3 \\log k)$).
+ * Use for computing $M^k$ in linear recurrence problems.
+ */
+template <typename T = int>
+struct MatrixExponentiation {
+    int n;
+    vector<vector<T>> mat;
+
+    /** @brief Construct $n \\times n$ matrix. If identity, sets $M = I$. */
+    MatrixExponentiation(int _n = 0, bool identity = false)
+        : n(_n), mat(_n, vector<T>(_n, 0)) {
+        if (identity) for (int i = 0; i < n; i++) mat[i][i] = 1;
     }
-    Matrix_Power operator * (const Matrix_Power &other) const {
-        Matrix_Power res(n);
-        for(int i = 0; i < n; i++) for(int k = 0; k < n; k++) if(mat[i][k])
-            for(int j = 0; j < n; j++) res.mat[i][j] = (res.mat[i][j] + (ll)mat[i][k] * other.mat[k][j]) % MOD;
+
+    /** @brief Matrix multiplication: $C = A \\cdot B \\pmod{\\text{MOD}}$ */
+    MatrixExponentiation operator*(const MatrixExponentiation& other) const {
+        MatrixExponentiation res(n);
+        for (int i = 0; i < n; i++)
+            for (int k = 0; k < n; k++)
+                if (mat[i][k])
+                    for (int j = 0; j < n; j++)
+                        res.mat[i][j] = (res.mat[i][j] + (ll)mat[i][k] * other.mat[k][j]) % MOD;
         return res;
     }
-    Matrix_Power pow(ll exp) {
-        Matrix_Power res(n, true), base = *this;
-        while(exp > 0) { if(exp & 1) res = res * base; base = base * base; exp >>= 1; }
+
+    /** @brief Compute $\\text{this}^{\\text{exp}}$ using binary exponentiation. */
+    MatrixExponentiation pow(ll exp) {
+        MatrixExponentiation res(n, true);  // identity matrix
+        MatrixExponentiation base = *this;
+        while (exp > 0) {
+            if (exp & 1) res = res * base;
+            base = base * base;
+            exp >>= 1;
+        }
         return res;
     }
-};`)
-    }]);
+};`),
+      },
+    ]);
   }
 
-  // --- Modular Int ---
+  // --- Modular Integer (ModInt) ---
   const [modint] = await db.insert(templates).values({
-    title: "Modular Integer (ModInt)", slug: "modint",
-    description: "Modular arithmetic with operator overloading for safe modular operations",
+    title: "Modular Integer (ModInt)",
+    slug: "modint",
+    description:
+      "Type-safe modular arithmetic with operator overloading for clean competitive programming",
     categoryId,
     tags: ["modint", "modular", "arithmetic", "number-theory"],
     complexity: "O(1) per operation",
     notes: `# Modular Integer (ModInt)
 
-Wrapper type for modular arithmetic with operator overloading. Handles modulo operations automatically.
+A **wrapper type** for modular arithmetic that automatically applies $\\bmod \\text{MOD}$ after every operation. This eliminates a common source of bugs in competitive programming: forgetting to reduce modulo at intermediate steps.
 
-## Usage
+## Design Philosophy
+
+### Why operator overloading?
+
+In CP, problems frequently require computing expressions like:
+
+$$\\binom{n}{k} \\cdot k! \\cdot a^{n-k} \\pmod{\\text{MOD}}$$
+
+Without ModInt, this requires writing $\\% \\text{MOD}$ after every multiplication, addition, and division — error-prone and verbose. ModInt makes the code read like textbook math:
 
 \`\`\`cpp
 using Mint = ModInt<1000000007>;
-Mint a = 5, b = 3;
-Mint c = a + b;        // 8
-Mint d = a * b;        // 15
-Mint e = a / b;        // 5 * inv(3) mod MOD
+Mint ans = C(n, k) * fact[k] * pow(a, n - k);
 \`\`\`
 
-## Methods
+### Template parameter
 
-- All basic operators: +, -, *, /, +=, -=, *=
-- \`\`\`cpp
-ModInt::pow(e)    // returns *this raised to e
-ModInt::inv()     // returns modular inverse (MOD must be prime)
-\`\`\`
+The modulus is a **template parameter** (default $10^9 + 7$), so different moduli produce different types. This prevents accidentally mixing values with different moduli at compile time.
 
-## Properties
+### Modular inverse via Fermat's Little Theorem
 
-- MOD must be prime for \`inv()\` to work (uses Fermat's little theorem)
-- Values are always kept in [0, MOD-1]
-- Division uses modular inverse: a/b = a * b^{-1}`,
+Division $a / b \\pmod{p}$ (where $p$ is prime) is implemented as $a \\cdot b^{p-2} \\pmod{p}$, since Fermat's Little Theorem gives $b^{p-1} \\equiv 1 \\pmod{p}$, hence $b^{-1} \\equiv b^{p-2}$.
+
+**Important:** \`inv()\` requires MOD to be prime. For composite moduli, use the extended Euclidean algorithm instead.
+
+### Value normalization
+
+The constructor normalizes $v$ to $[0, \\text{MOD}-1]$:
+- $v \\bmod \\text{MOD}$ if $v \\geq 0$
+- $v \\bmod \\text{MOD} + \\text{MOD}$ if $v < 0$
+
+This handles negative intermediates from subtraction.
+
+## When to Use
+
+- **Combinatorics** — Binomial coefficients, Catalan numbers, derangements.
+- **DP with large answers** — When the answer must be $\\bmod p$.
+- **Counting problems** — Any problem where intermediate values overflow 64-bit.
+- **Clean code** — Reduces modulo noise; makes formulas readable.
+
+### When NOT to use
+
+- **Small values** — If all values fit in 64-bit, plain arithmetic is faster.
+- **Non-prime moduli** — \`inv()\` requires a prime modulus. Use extended GCD for composite moduli.
+- **Performance-critical inner loops** — The function call overhead of \`pow(MOD-2)\` may matter in tight loops.
+
+## Edge Cases
+
+| Case | Behavior |
+|------|----------|
+| Negative input | Normalized to $[0, \\text{MOD}-1]$ |
+| Division by zero | Undefined behavior (no check) |
+| \`pow(0)\` | Returns 1 ($a^0 = 1$ by convention) |
+| \`inv()\` on 0 | Undefined (would need $0^{-1}$) |
+
+## Complexity
+
+- **Addition/Subtraction/Multiplication:** $O(1)$
+- **Division (via \`inv()\`):** $O(\\log \\text{MOD})$ using binary exponentiation
+- **\`pow(e)\`:** $O(\\log e)$`,
   }).returning();
+
   if (modint) {
-    await db.insert(templateCodes).values([{
-      templateId: modint.id, language: "cpp", code: stripMain(`#include <bits/stdc++.h>
+    await db.insert(templateCodes).values([
+      {
+        templateId: modint.id,
+        language: "cpp",
+        code: stripMain(`#include <bits/stdc++.h>
+using ll = long long;
 using namespace std;
-#define all(vec) vec.begin(), vec.end()
-#define rall(vec) vec.rbegin(), vec.rend()
-#define sz(x) int(x.size())
-#define ll long long
-template < int MOD = 1000000007 > struct ModInt {
+
+/**
+ * @brief Type-safe modular arithmetic wrapper with operator overloading.
+ * @tparam MOD The prime modulus (default $10^9 + 7$)
+ *
+ * Automatically reduces values to $[0, \\text{MOD}-1]$.
+ * Division uses Fermat's Little Theorem: $a/b = a \\cdot b^{\\text{MOD}-2}$.
+ *
+ * Usage:
+ *   using Mint = ModInt<998244353>;
+ *   Mint a = 5, b = 3;
+ *   Mint c = a * b + a / b;  // clean modular expressions
+ */
+template <int MOD = 1000000007>
+struct ModInt {
     int val;
-    ModInt(ll v = 0) { val = v % MOD; if (val < 0) val += MOD; }
-    ModInt operator + (const ModInt& o) const { return ModInt(val + o.val); }
-    ModInt operator - (const ModInt& o) const { return ModInt(val - o.val); }
-    ModInt operator * (const ModInt& o) const { return ModInt((ll)val * o.val); }
-    ModInt operator / (const ModInt& o) const { return *this * o.inv(); }
-    ModInt& operator += (const ModInt& o) { val = (val + o.val) % MOD; return *this; }
-    ModInt& operator -= (const ModInt& o) { val = (val - o.val + MOD) % MOD; return *this; }
-    ModInt& operator *= (const ModInt& o) { val = (ll)val * o.val % MOD; return *this; }
-    ModInt pow(ll e) const { ModInt r(1), b(val); while(e) { if(e & 1) r = r * b; b = b * b; e >>= 1; } return r; }
+
+    /** @brief Construct from ll, normalized to $[0, \\text{MOD}-1]$. */
+    ModInt(ll v = 0) {
+        val = v % MOD;
+        if (val < 0) val += MOD;
+    }
+
+    ModInt operator+(const ModInt& o) const { return ModInt(val + o.val); }
+    ModInt operator-(const ModInt& o) const { return ModInt(val - o.val); }
+    ModInt operator*(const ModInt& o) const { return ModInt((ll)val * o.val); }
+    ModInt operator/(const ModInt& o) const { return *this * o.inv(); }
+
+    ModInt& operator+=(const ModInt& o) { val = (val + o.val) % MOD; return *this; }
+    ModInt& operator-=(const ModInt& o) { val = (val - o.val + MOD) % MOD; return *this; }
+    ModInt& operator*=(const ModInt& o) { val = (ll)val * o.val % MOD; return *this; }
+
+    /** @brief Compute $\\text{this}^e$ via binary exponentiation. $O(\\log e)$ */
+    ModInt pow(ll e) const {
+        ModInt res(1), b(val);
+        while (e) {
+            if (e & 1) res = res * b;
+            b = b * b;
+            e >>= 1;
+        }
+        return res;
+    }
+
+    /** @brief Modular inverse via Fermat's Little Theorem: $a^{-1} = a^{\\text{MOD}-2}$. */
     ModInt inv() const { return pow(MOD - 2); }
-    friend ostream& operator << (ostream& os, const ModInt& m) { return os << m.val; }
-};`)
-    }]);
+
+    friend ostream& operator<<(ostream& os, const ModInt& m) { return os << m.val; }
+};`),
+      },
+    ]);
   }
 }
