@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
   },
+  alternates: {
+    canonical: "/templates",
+  },
 };
 
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

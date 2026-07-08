@@ -82,6 +82,9 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  alternates: {
+    canonical: "/",
+  },
   formatDetection: {
     email: false,
     address: false,
