@@ -19,7 +19,7 @@ const structuredData = {
   name: "CP-Base",
   description:
     "A terminal-themed competitive programming template library. Organized, searchable, and ready to copy-paste into contests.",
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://cp-base.mohmmediibrahim.dev",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "https://cp-base.vercel.app",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web Browser",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

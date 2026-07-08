@@ -16,7 +16,7 @@ const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
-    : "https://cp-base.mohmmediibrahim.dev");
+    : "https://cp-base.vercel.app");
 
 async function loadFont(weight: number): Promise<ArrayBuffer | null> {
   try {
