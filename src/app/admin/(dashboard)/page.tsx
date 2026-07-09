@@ -54,6 +54,7 @@ export default function AdminDashboard() {
       reason?: string;
     }[];
   } | null>(null);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   // Categories State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -183,25 +184,32 @@ export default function AdminDashboard() {
     }
   };
 
-  const bulkDelete = async () => {
+  const bulkDelete = () => {
     playBeep(330, 0.25);
     const selectedList = templates.filter((t) => selectedIds[t.id]);
     if (selectedList.length === 0) return;
+    setShowBulkDeleteConfirm(true);
+  };
 
-    const confirmPurge = window.confirm(`Are you sure you want to permanently delete these ${selectedList.length} templates?`);
-    if (!confirmPurge) return;
+  const confirmBulkDelete = async () => {
+    playClick();
+    const selectedList = templates.filter((t) => selectedIds[t.id]);
+    if (selectedList.length === 0) return;
 
     setBulkLoading(true);
+    setShowBulkDeleteConfirm(false);
     try {
       const promises = selectedList.map(async (tpl) => {
         return fetch(`/api/admin/templates?id=${tpl.id}`, { method: "DELETE" });
       });
 
       await Promise.all(promises);
+      playSuccess();
       toast.success(`Deleted ${selectedList.length} templates`);
       setSelectedIds({});
       fetchTemplates();
     } catch (err) {
+      playBeep(440, 0.15);
       toast.error("Failed to delete templates in bulk");
     } finally {
       setBulkLoading(false);
@@ -1177,6 +1185,53 @@ export default function AdminDashboard() {
               >
                 <span>[ ENTER ]</span>
                 <span>Force Purge File</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Retro Delete warning modal overlay (Bulk Templates) */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
+              </div>
+              <span>WARN_LEVEL_3</span>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
+                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
+                  <span className="text-destructive font-bold">$ rm -rf</span>
+                  <span>templates/ [ {selectedCount} files ]</span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
+                WARNING: You are about to permanently delete <span className="text-foreground font-semibold">{selectedCount}</span> template files.
+                This action is irreversible and will purge these files and their note documentation permanently from the mainframe index.
+              </div>
+            </div>
+            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
+              <button
+                type="button"
+                onClick={() => { playClick(); setShowBulkDeleteConfirm(false); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
+              >
+                <span>[ ESC ]</span>
+                <span>Abort Command</span>
+              </button>
+              <button
+                type="button"
+                onClick={confirmBulkDelete}
+                disabled={bulkLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer disabled:opacity-50"
+              >
+                <span>[ ENTER ]</span>
+                <span>Force Purge Files</span>
               </button>
             </div>
           </div>
