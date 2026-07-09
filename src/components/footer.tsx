@@ -37,7 +37,7 @@ export function Footer() {
       {/* Decorative colored top border accents */}
       <div className="h-0.5 w-full bg-gradient-to-r from-primary/10 via-primary/50 to-primary/10" />
 
-      <div className="mx-auto max-w-7xl px-6 relative z-10 py-12 space-y-10">
+      <div className="mx-auto max-w-7xl px-6 relative z-10 py-6 space-y-5">
         
         {/* Main Grid: Info, Navigation, System Monitor */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
