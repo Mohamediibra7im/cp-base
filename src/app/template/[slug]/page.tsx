@@ -258,7 +258,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           <span className="text-primary">$</span>
           <span className="text-foreground">cat source_code/</span>
         </div>
-        <LanguageTabs codes={codes!} />
+        <LanguageTabs codes={codes!} templateId={template.id} />
       </div>
 
       {/* Notes */}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CodeBlock } from "./code-block";
 
-export function LanguageTabs({ codes }: { codes: { language: string; code: string }[] }) {
+export function LanguageTabs({ codes, templateId }: { codes: { language: string; code: string }[]; templateId?: number }) {
   const [active, setActive] = useState(codes[0]?.language || "cpp");
   const activeCode = codes.find((c) => c.language === active);
 
@@ -40,7 +40,7 @@ export function LanguageTabs({ codes }: { codes: { language: string; code: strin
       </div>
 
       {/* Code */}
-      {activeCode && <CodeBlock code={activeCode.code} language={activeCode.language} />}
+      {activeCode && <CodeBlock code={activeCode.code} language={activeCode.language} templateId={templateId} />}
     </div>
   );
 }

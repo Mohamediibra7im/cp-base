@@ -25,7 +25,7 @@ function getHighlighter() {
   return highlighterPromise;
 }
 
-export function CodeBlock({ code: originalCode, language }: { code: string; language: string }) {
+export function CodeBlock({ code: originalCode, language, templateId }: { code: string; language: string; templateId?: number }) {
   const code = useMemo(() => originalCode.trimEnd(), [originalCode]);
   const [html, setHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -49,6 +49,14 @@ export function CodeBlock({ code: originalCode, language }: { code: string; lang
     await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+
+    if (templateId) {
+      fetch("/api/templates/copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId }),
+      }).catch((err) => console.error("Failed to increment copy count:", err));
+    }
   };
 
   return (
