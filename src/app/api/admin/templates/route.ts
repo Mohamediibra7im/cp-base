@@ -73,18 +73,20 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
 
+  const updateFields: any = {
+    updatedAt: new Date(),
+  };
+  if (body.title !== undefined) updateFields.title = body.title;
+  if (body.slug !== undefined) updateFields.slug = body.slug;
+  if (body.description !== undefined) updateFields.description = body.description;
+  if (body.categoryId !== undefined) updateFields.categoryId = body.categoryId;
+  if (body.tags !== undefined) updateFields.tags = body.tags;
+  if (body.complexity !== undefined) updateFields.complexity = body.complexity;
+  if (body.notes !== undefined) updateFields.notes = body.notes;
+  if (body.hidden !== undefined) updateFields.hidden = body.hidden;
+
   await db.update(schema.templates)
-    .set({
-      title: body.title,
-      slug: body.slug,
-      description: body.description,
-      categoryId: body.categoryId,
-      tags: body.tags,
-      complexity: body.complexity,
-      notes: body.notes,
-      hidden: body.hidden ?? false,
-      updatedAt: new Date(),
-    })
+    .set(updateFields)
     .where(eq(schema.templates.id, body.id));
 
   if (body.codes) {

@@ -39,6 +39,8 @@ export default function AdminDashboard() {
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
   const [expandedCats, setExpandedCats] = useState<Record<string | number, boolean>>({});
+  const [selectedIds, setSelectedIds] = useState<Record<number, boolean>>({});
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   // Categories State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -125,7 +127,7 @@ export default function AdminDashboard() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ...tpl,
+        id: tpl.id,
         hidden: newHidden,
       }),
     });
@@ -136,6 +138,60 @@ export default function AdminDashboard() {
     } else {
       playBeep(440, 0.15);
       toast.error("Failed to update visibility");
+    }
+  };
+
+  const bulkToggleVisibility = async () => {
+    playClick();
+    const selectedList = templates.filter((t) => selectedIds[t.id]);
+    if (selectedList.length === 0) return;
+
+    setBulkLoading(true);
+    try {
+      const promises = selectedList.map(async (tpl) => {
+        return fetch("/api/admin/templates", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: tpl.id,
+            hidden: !tpl.hidden,
+          }),
+        });
+      });
+
+      await Promise.all(promises);
+      toast.success(`Updated visibility for ${selectedList.length} templates`);
+      setSelectedIds({});
+      fetchTemplates();
+    } catch (err) {
+      toast.error("Failed to update template visibilities in bulk");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    playBeep(330, 0.25);
+    const selectedList = templates.filter((t) => selectedIds[t.id]);
+    if (selectedList.length === 0) return;
+
+    const confirmPurge = window.confirm(`Are you sure you want to permanently delete these ${selectedList.length} templates?`);
+    if (!confirmPurge) return;
+
+    setBulkLoading(true);
+    try {
+      const promises = selectedList.map(async (tpl) => {
+        return fetch(`/api/admin/templates?id=${tpl.id}`, { method: "DELETE" });
+      });
+
+      await Promise.all(promises);
+      toast.success(`Deleted ${selectedList.length} templates`);
+      setSelectedIds({});
+      fetchTemplates();
+    } catch (err) {
+      toast.error("Failed to delete templates in bulk");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -266,10 +322,12 @@ export default function AdminDashboard() {
     window.location.href = "/";
   };
 
-  const filteredTemplates = templates.filter((t) =>
-    t.title.toLowerCase().includes(search.toLowerCase()) ||
-    t.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredTemplates = useMemo(() => {
+    return templates.filter((t) =>
+      t.title.toLowerCase().includes(search.toLowerCase()) ||
+      t.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
+    );
+  }, [templates, search]);
 
   const templatesByCategory = useMemo(() => {
     const groups: Record<number | string, Template[]> = {};
@@ -301,6 +359,10 @@ export default function AdminDashboard() {
       setExpandedCats(autoExpanded);
     }
   }, [search, templatesByCategory]);
+
+  const selectedCount = useMemo(() => {
+    return Object.keys(selectedIds).filter((id) => selectedIds[Number(id)]).length;
+  }, [selectedIds]);
 
   return (
     <div className="space-y-6 font-mono">
@@ -398,6 +460,42 @@ export default function AdminDashboard() {
                 <span className="font-mono">total {filteredTemplates.length} files in {categories.length} folders</span>
               </div>
 
+              {/* Bulk Actions Banner */}
+              {selectedCount > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-3 border border-warning/30 bg-warning/5 text-warning text-xs font-mono select-none">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-1.5 w-1.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning"></span>
+                    </span>
+                    <span>{selectedCount} templates selected</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    <button
+                      onClick={bulkToggleVisibility}
+                      disabled={bulkLoading}
+                      className="px-2.5 py-1 border border-warning bg-warning/10 hover:bg-warning/20 disabled:opacity-50 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
+                    >
+                      [ toggle_visibility ]
+                    </button>
+                    <button
+                      onClick={bulkDelete}
+                      disabled={bulkLoading}
+                      className="px-2.5 py-1 border border-destructive bg-destructive/10 hover:bg-destructive/20 disabled:opacity-50 text-[10px] uppercase font-bold tracking-wider cursor-pointer text-destructive"
+                    >
+                      [ delete_selected ]
+                    </button>
+                    <button
+                      onClick={() => { playClick(); setSelectedIds({}); }}
+                      disabled={bulkLoading}
+                      className="px-2.5 py-1 border border-border/50 bg-card hover:bg-primary/5 disabled:opacity-50 text-[10px] uppercase font-bold tracking-wider cursor-pointer text-muted-foreground"
+                    >
+                      [ clear_selection ]
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2 select-none">
                 {categories.map((cat) => {
                   const list = templatesByCategory[cat.id] || [];
@@ -438,6 +536,24 @@ export default function AdminDashboard() {
                             <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
                               <thead>
                                 <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
+                                  <th className="py-2 px-3 w-8">
+                                    <input
+                                      type="checkbox"
+                                      checked={list.length > 0 && list.every((t) => selectedIds[t.id])}
+                                      onChange={(e) => {
+                                        playClick();
+                                        const checked = e.target.checked;
+                                        setSelectedIds((prev) => {
+                                          const next = { ...prev };
+                                          list.forEach((t) => {
+                                            next[t.id] = checked;
+                                          });
+                                          return next;
+                                        });
+                                      }}
+                                      className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
+                                    />
+                                  </th>
                                   <th className="py-2 px-3">Permissions</th>
                                   <th className="py-2 px-3">Filename</th>
                                   <th className="py-2 px-3">Tags</th>
@@ -448,6 +564,17 @@ export default function AdminDashboard() {
                               <tbody className="divide-y divide-border/20">
                                 {list.map((t) => (
                                   <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
+                                    <td className="py-2 px-3 w-8 select-none">
+                                      <input
+                                        type="checkbox"
+                                        checked={!!selectedIds[t.id]}
+                                        onChange={(e) => {
+                                          playClick();
+                                          setSelectedIds((prev) => ({ ...prev, [t.id]: e.target.checked }));
+                                        }}
+                                        className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
+                                      />
+                                    </td>
                                     <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
                                     <td className="py-2 px-3 font-semibold">
                                       <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
@@ -477,11 +604,12 @@ export default function AdminDashboard() {
                                       </button>
                                     </td>
                                     <td className="py-2 px-3 text-right">
-                                      <div className="flex items-center justify-end gap-2.5 select-none">
-                                        <Link href={`/admin/templates/${t.id}/edit`}>
-                                          <button className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5">
-                                            [edit]
-                                          </button>
+                                      <div className="flex items-center justify-end gap-2.5 select-none font-mono">
+                                        <Link
+                                          href={`/admin/templates/${t.id}/edit`}
+                                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5 inline-block font-mono"
+                                        >
+                                          [edit]
                                         </Link>
                                         <button
                                           onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
@@ -527,6 +655,24 @@ export default function AdminDashboard() {
                         <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
                           <thead>
                             <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
+                              <th className="py-2 px-3 w-8">
+                                <input
+                                  type="checkbox"
+                                  checked={templatesByCategory["unassigned"].every((t) => selectedIds[t.id])}
+                                  onChange={(e) => {
+                                    playClick();
+                                    const checked = e.target.checked;
+                                    setSelectedIds((prev) => {
+                                      const next = { ...prev };
+                                      templatesByCategory["unassigned"].forEach((t) => {
+                                        next[t.id] = checked;
+                                      });
+                                      return next;
+                                    });
+                                  }}
+                                  className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
+                                />
+                              </th>
                               <th className="py-2 px-3">Permissions</th>
                               <th className="py-2 px-3">Filename</th>
                               <th className="py-2 px-3">Tags</th>
@@ -537,6 +683,17 @@ export default function AdminDashboard() {
                           <tbody className="divide-y divide-border/20">
                             {templatesByCategory["unassigned"].map((t) => (
                               <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
+                                <td className="py-2 px-3 w-8 select-none">
+                                  <input
+                                    type="checkbox"
+                                    checked={!!selectedIds[t.id]}
+                                    onChange={(e) => {
+                                      playClick();
+                                      setSelectedIds((prev) => ({ ...prev, [t.id]: e.target.checked }));
+                                    }}
+                                    className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
+                                  />
+                                </td>
                                 <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
                                 <td className="py-2 px-3 font-semibold">
                                   <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
@@ -567,10 +724,11 @@ export default function AdminDashboard() {
                                 </td>
                                 <td className="py-2 px-3 text-right">
                                   <div className="flex items-center justify-end gap-2.5 select-none">
-                                    <Link href={`/admin/templates/${t.id}/edit`}>
-                                      <button className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5">
-                                        [edit]
-                                      </button>
+                                    <Link
+                                      href={`/admin/templates/${t.id}/edit`}
+                                      className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5 inline-block font-mono"
+                                    >
+                                      [edit]
                                     </Link>
                                     <button
                                       onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
