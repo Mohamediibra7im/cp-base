@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, LogOut, Terminal, FileCode, FolderOpen, Folder } from "lucide-react";
+import { Plus, Search, Edit, Trash2, LogOut, Terminal, FileCode, FolderOpen, Folder, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useTerminalTheme } from "@/components/theme-provider";
 
@@ -41,6 +41,19 @@ export default function AdminDashboard() {
   const [expandedCats, setExpandedCats] = useState<Record<string | number, boolean>>({});
   const [selectedIds, setSelectedIds] = useState<Record<number, boolean>>({});
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [importSummary, setImportSummary] = useState<{
+    open: boolean;
+    total: number;
+    successCount: number;
+    failedCount: number;
+    items: {
+      title: string;
+      slug: string;
+      categoryName: string;
+      status: "success" | "error";
+      reason?: string;
+    }[];
+  } | null>(null);
 
   // Categories State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -193,6 +206,137 @@ export default function AdminDashboard() {
     } finally {
       setBulkLoading(false);
     }
+  };
+
+  const handleBulkImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    playClick();
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result;
+        if (typeof text !== "string") return;
+
+        let data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          data = [data];
+        }
+
+        const reportItems: {
+          title: string;
+          slug: string;
+          categoryName: string;
+          status: "success" | "error";
+          reason?: string;
+        }[] = [];
+        let successCount = 0;
+        let failedCount = 0;
+
+        for (const item of data) {
+          try {
+            if (!item.title || !item.slug) {
+              reportItems.push({
+                title: item.title || "Unknown Title",
+                slug: item.slug || "unknown-slug",
+                categoryName: "None",
+                status: "error",
+                reason: "Missing title or slug",
+              });
+              failedCount++;
+              continue;
+            }
+
+            let catId = item.categoryId;
+            let catName = "unassigned";
+            if (item.categorySlug) {
+              const matchedCat = categories.find(
+                (c) => c.slug.toLowerCase() === item.categorySlug.toLowerCase()
+              );
+              if (matchedCat) {
+                catId = matchedCat.id;
+                catName = matchedCat.name;
+              }
+            } else if (catId) {
+              const matchedCat = categories.find((c) => c.id === Number(catId));
+              if (matchedCat) {
+                catName = matchedCat.name;
+              }
+            }
+
+            const res = await fetch("/api/admin/templates", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: item.title,
+                slug: item.slug,
+                description: item.description || "",
+                categoryId: catId ? Number(catId) : undefined,
+                tags: Array.isArray(item.tags) ? item.tags : (item.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean),
+                notes: item.notes || "",
+                codes: Array.isArray(item.codes) ? item.codes : item.code ? [{ language: item.language || "cpp", code: item.code }] : [],
+                hidden: !!item.hidden,
+              }),
+            });
+
+            if (res.ok) {
+              if (item.notes) {
+                await fetch("/api/admin/notes", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ slug: item.slug, content: item.notes }),
+                }).catch((err) => console.error("Error saving bulk notes:", err));
+              }
+
+              reportItems.push({
+                title: item.title,
+                slug: item.slug,
+                categoryName: catName,
+                status: "success",
+              });
+              successCount++;
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              reportItems.push({
+                title: item.title,
+                slug: item.slug,
+                categoryName: catName,
+                status: "error",
+                reason: errData.error || "API creation failed",
+              });
+              failedCount++;
+            }
+          } catch (itemErr: any) {
+            reportItems.push({
+              title: item.title || "Unknown Title",
+              slug: item.slug || "unknown-slug",
+              categoryName: "None",
+              status: "error",
+              reason: itemErr.message || "Internal processing error",
+            });
+            failedCount++;
+          }
+        }
+
+        playSuccess();
+        setImportSummary({
+          open: true,
+          total: data.length,
+          successCount,
+          failedCount,
+          items: reportItems,
+        });
+
+        fetchTemplates();
+      } catch (err) {
+        playBeep(440, 0.15);
+        toast.error("Failed to process bulk import. Check JSON syntax.");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
 
   // Categories action handlers
@@ -420,6 +564,20 @@ export default function AdminDashboard() {
             </div>
 
             <div className="flex gap-3 w-full sm:w-auto justify-end">
+              <input
+                type="file"
+                accept=".json"
+                id="bulk-import-input"
+                className="hidden"
+                onChange={handleBulkImport}
+              />
+              <label
+                htmlFor="bulk-import-input"
+                className="font-mono text-xs h-9 px-4 rounded-none tracking-wider uppercase border border-primary bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center cursor-pointer select-none"
+              >
+                <Upload className="h-4 w-4 mr-1.5" />
+                <span>[ bulk_import.sh ]</span>
+              </label>
               <Link href="/admin/templates/new">
                 <Button className="font-mono text-xs h-9 px-4 rounded-none tracking-wider uppercase border border-primary bg-primary/10 text-primary hover:bg-primary/20">
                   <Plus className="h-4 w-4 mr-1.5" />
@@ -1223,6 +1381,99 @@ export default function AdminDashboard() {
                 <span>[ ENTER ]</span>
                 <span>Save Configuration</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Bulk Import Report Modal */}
+      {importSummary && importSummary.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+          <div className="border border-primary bg-card max-w-2xl w-full shadow-2xl overflow-hidden font-mono text-xs">
+            {/* Window title bar */}
+            <div className="flex justify-between items-center bg-primary/10 border-b border-primary/20 px-3 py-2 text-primary font-bold">
+              <div className="flex items-center gap-1.5">
+                <Terminal className="h-3.5 w-3.5" />
+                <span>BULK_IMPORT_REPORT.TXT</span>
+              </div>
+              <button
+                onClick={() => { playClick(); setImportSummary(null); }}
+                className="text-[10px] text-muted-foreground hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1 py-0.5"
+              >
+                [close]
+              </button>
+            </div>
+
+            {/* Content pane */}
+            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin select-text">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-3 border border-border/85 p-3 bg-card/20 text-center">
+                <div>
+                  <div className="text-[10px] text-muted-foreground/50 uppercase">Total Files</div>
+                  <div className="text-base font-bold text-foreground">{importSummary.total}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground/50 uppercase">Success</div>
+                  <div className="text-base font-bold text-primary">{importSummary.successCount}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground/50 uppercase">Failed</div>
+                  <div className="text-base font-bold text-destructive">{importSummary.failedCount}</div>
+                </div>
+              </div>
+
+              {/* Items List Table */}
+              <div className="border border-border bg-card/5 select-text overflow-x-auto">
+                <table className="w-full text-left text-[11px] border-collapse min-w-[500px]">
+                  <thead>
+                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase select-none text-[9px]">
+                      <th className="py-2 px-3">Filename</th>
+                      <th className="py-2 px-3">Folder</th>
+                      <th className="py-2 px-3">Status</th>
+                      <th className="py-2 px-3">Log Message</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {importSummary.items.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-primary/[0.01] transition-colors leading-relaxed">
+                        <td className="py-2 px-3 font-semibold text-foreground">
+                          {item.slug}.cpp
+                        </td>
+                        <td className="py-2 px-3 text-info font-bold">
+                          {item.categoryName}/
+                        </td>
+                        <td className="py-2 px-3 select-none">
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
+                              item.status === "success"
+                                ? "border-primary/40 bg-primary/5 text-primary"
+                                : "border-destructive/40 bg-destructive/5 text-destructive"
+                            }`}
+                          >
+                            {item.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 font-mono text-[10px]">
+                          {item.status === "success" ? (
+                            <span className="text-muted-foreground/45">File written successfully</span>
+                          ) : (
+                            <span className="text-destructive font-bold">{item.reason}</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer action bar */}
+            <div className="flex justify-end p-3 border-t border-border bg-card/35 select-none">
+              <Button
+                onClick={() => { playClick(); setImportSummary(null); }}
+                className="font-mono text-[10px] h-7 px-4 rounded-none tracking-wider uppercase border border-primary bg-primary/10 text-primary hover:bg-primary/20"
+              >
+                [ finish_task.sh ]
+              </Button>
             </div>
           </div>
         </div>
