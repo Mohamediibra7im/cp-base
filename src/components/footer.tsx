@@ -1,12 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Terminal, Braces, Library, Heart, Globe, Cpu, Wifi, Code } from "lucide-react";
+import { Terminal, Braces, Library, Heart, Globe, Cpu, Wifi, Code, Clock } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const { playClick, theme } = useTerminalTheme();
+  const [time, setTime] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTime(now.toLocaleTimeString("en-US", { hour12: false }));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <footer className="border-t border-border bg-card/35 backdrop-blur-md font-mono select-none relative overflow-hidden">
@@ -110,6 +122,12 @@ export function Footer() {
               <Code className="h-3 w-3 text-muted-foreground/20" />
               <span>theme: {theme}</span>
             </div>
+            {time && (
+              <div className="flex items-center gap-1.5 animate-pulse">
+                <Clock className="h-3 w-3 text-muted-foreground/20" />
+                <span>time: {time}</span>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
