@@ -27,7 +27,11 @@ function getHighlighter() {
 
 export function CodeBlock({ code: originalCode, language, templateId }: { code: string; language: string; templateId?: number }) {
   const code = useMemo(() => {
-    return originalCode.replace(/[\s\r\n\u200B\u200C\u200D\uFEFF\u00A0]+$/, "");
+    const lines = originalCode.trimEnd().split("\n");
+    while (lines.length > 1 && lines[lines.length - 1].trim() === "") {
+      lines.pop();
+    }
+    return lines.join("\n");
   }, [originalCode]);
   const [html, setHtml] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
