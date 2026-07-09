@@ -59,12 +59,16 @@ function renderMarkdownWithMath(md: string): string {
     });
     const dataRows = rows.slice(2).filter(r => r.trim()).map(r => r.split('|').filter(c => c.trim()).map(c => c.trim()));
 
-    // Restore inline math in cell content
     const restoreCellMath = (text: string): string => {
-      return text.replace(/%%INLINE_MATH_(\d+)%%/g, (_, i) => {
-        const idx = parseInt(i);
-        return inlineMath[idx] || `%%INLINE_MATH_${i}%%`;
-      });
+      return text
+        .replace(/%%MATH_BLOCK_(\d+)%%/g, (_, i) => {
+          const idx = parseInt(i);
+          return mathBlocks[idx] || `%%MATH_BLOCK_${i}%%`;
+        })
+        .replace(/%%INLINE_MATH_(\d+)%%/g, (_, i) => {
+          const idx = parseInt(i);
+          return inlineMath[idx] || `%%INLINE_MATH_${i}%%`;
+        });
     };
 
     let html = '<div class="my-4 overflow-x-auto"><table class="w-full text-xs border-collapse border border-border">';
