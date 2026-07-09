@@ -242,8 +242,7 @@ auto merged = h.mergeHash(1, 2, 4, 5);
 vector<int> vec = {1, 2, 3, 1, 2, 3};
 RollingHash<ll, 0> hv(vec);
 hv.equal(0, 2, 3, 5);
-\`\`\`
-`,
+\`\`\``,
   }).returning();
   if (rollingHash) {
     await db.insert(templateCodes).values([{

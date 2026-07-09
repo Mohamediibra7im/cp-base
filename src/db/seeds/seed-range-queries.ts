@@ -121,8 +121,7 @@ struct SqrtDecomp {
             res += a[l++ - !Base] >= x;
         return res;
     }
-};
-`)
+};`)
     }]);
   }
 
@@ -211,8 +210,7 @@ mo.getData(arr);
 // Implement add() and remove() inside the class
 for (auto& a : mo.getAnswers())
     cout << a << "\\n";
-\`\`\`
-`,
+\`\`\``,
   }).returning();
   if (mosAlgo) {
     await db.insert(templateCodes).values([{
@@ -314,8 +312,7 @@ private:
         while (currL < q.l) remove(currL), currL++;
         while (currR > q.r) remove(currR), currR--;
     }
-};
-`)
+};`)
     }]);
   }
 
@@ -415,8 +412,7 @@ MoTree<int, int, false> mo(n, q, adj, nodeVals, 1);
 mo.getData();
 for (auto& a : mo.getAnswers())
     cout << a << "\\n";
-\`\`\`
-`,
+\`\`\``,
   }).returning();
   if (mosTree) {
     await db.insert(templateCodes).values([{
@@ -606,8 +602,7 @@ private:
         while ((1 << p) < maxN) p++;
         return p;
     }
-};
-`)
+};`)
     }]);
   }
 
@@ -690,8 +685,7 @@ PrefixSum2D<int> ps(3, 3);
 ps.buildPrefix(mat);
 cout << ps.getQuery(1, 1, 2, 2);  // 1+2+4+5 = 12
 cout << ps.getQuery(0, 0, 2, 2);  // 1+2+3+4+5+6+7+8+9 = 45
-\`\`\`
-`,
+\`\`\``,
   }).returning();
   if (pref2d) {
     await db.insert(templateCodes).values([{
@@ -730,8 +724,7 @@ struct PrefixSum2D {
             for (int j = 1; j <= m; j++)
                 cout << prefix[i][j] << ' ';
     }
-};
-`)
+};`)
     }]);
   }
 
@@ -831,8 +824,7 @@ struct PartialSum2D {
             for (int j = 1; j <= m; j++)
                 cout << diff[i][j] << ' ';
     }
-};
-`)
+};`)
     }]);
   }
 }

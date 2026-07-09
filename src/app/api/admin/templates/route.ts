@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       body.codes.map((c: { language: string; code: string }) => ({
         templateId: template.id,
         language: c.language,
-        code: c.code,
+        code: c.code.trimEnd(), // ponytail: strip trailing newlines from code
       }))
     );
   }
@@ -81,7 +81,7 @@ export async function PUT(request: Request) {
       body.codes.map((c: { language: string; code: string }) => ({
         templateId: body.id,
         language: c.language,
-        code: c.code,
+        code: c.code.trimEnd(), // ponytail: strip trailing newlines from code
       }))
     );
   }

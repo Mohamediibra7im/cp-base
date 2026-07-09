@@ -220,8 +220,7 @@ std::vector<std::vector<int>> generateSubsets(
         ans.push_back(subset);
     }
     return ans;
-}
-`),
+}`),
       },
     ]);
   }
