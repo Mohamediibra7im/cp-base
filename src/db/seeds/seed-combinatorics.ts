@@ -12,46 +12,46 @@ export async function seedCombinatorics(db: Db, catMap: CatMap) {
     description: "nCr and nPr with factorial precomputation (mod 1e9+7)",
     categoryId: categoryId,
     tags: ["combinatorics", "nCr", "nPr", "factorial"],
-    complexity: "O(MAXN) precompute, O(1) per query",
+    complexity: "$O(MAXN)$ precompute, $O(1)$ per query",
     notes: `# Binomial Coefficients
 
-$\\binom{n}{k}$ counts ways to choose $k$ from $n$ elements (order irrelevant).
+$\binom{n}{k}$ counts ways to choose $k$ from $n$ elements (order irrelevant).
 
 ## Formula
 
-$$\\binom{n}{k} = \\frac{n!}{k!(n-k)!}$$
+$$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
 
 ## Properties
 
-- **Pascal's Identity**: $\\binom{n}{k} = \\binom{n-1}{k-1} + \\binom{n-1}{k}$
-- **Sum over all k**: $\\sum_{k=0}^{n} \\binom{n}{k} = 2^n$
-- **Boundary**: $\\binom{n}{0} = \\binom{n}{n} = 1$
+- **Pascal's Identity**: $\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$
+- **Sum over all k**: $\sum_{k=0}^{n} \binom{n}{k} = 2^n$
+- **Boundary**: $\binom{n}{0} = \binom{n}{n} = 1$
 
 ## Modular Computation
 
-For prime $p$, compute $\\binom{n}{k} \\bmod p$ using Fermat's Little Theorem:
+For prime $p$, compute $\binom{n}{k} \bmod p$ using Fermat's Little Theorem:
 
-$$\\binom{n}{k} \\equiv n! \\cdot (k!)^{-1} \\cdot ((n-k)!)^{-1} \\pmod{p}$$
+$$\binom{n}{k} \equiv n! \cdot (k!)^{-1} \cdot ((n-k)!)^{-1} \pmod{p}$$
 
-where $a^{-1} \\equiv a^{p-2} \\pmod{p}$.
+where $a^{-1} \equiv a^{p-2} \pmod{p}$.
 
 ## When to Use
 
 - Counting subsets, combinations of items
-- Paths on grid: $(0,0)$ to $(n,m)$ is $\\binom{n+m}{n}$
+- Paths on grid: $(0,0)$ to $(n,m)$ is $\binom{n+m}{n}$
 - Intermediate step in inclusion-exclusion or counting formulas
 
 ## Complexity
 
-- **Precomputation**: $O(\\text{MAXN})$ for factorials
-- **Query**: $O(1)$ per $\\binom{n}{k}$
+- **Precomputation**: $O(\text{MAXN})$ for factorials
+- **Query**: $O(1)$ per $\binom{n}{k}$
 
 ## Usage
 
 \`\`\`cpp
 factorialInit();
-long long ans = nCr(n, k);  // $\\binom{n}{k} \\bmod 10^9+7$
-long long perm = nPr(n, k); // $P(n,k) = \\frac{n!}{(n-k)!}$
+long long ans = nCr(n, k);  // $\binom{n}{k} \bmod 10^9+7$
+long long perm = nPr(n, k); // $P(n,k) = \frac{n!}{(n-k)!}$
 \`\`\``,
   }).returning();
   if (binom) {
@@ -108,7 +108,7 @@ ll nPr(ll n, ll r) {
     description: "Count distinct necklaces/colorings under symmetry (rotations)",
     categoryId: categoryId,
     tags: ["combinatorics", "burnside", "necklace", "group-theory"],
-    complexity: "O(n log MOD)",
+    complexity: "$O(n log MOD)$",
     notes: `# Burnside's Lemma
 
 Counts distinct objects under a group action (e.g., necklace rotations).
@@ -117,15 +117,15 @@ Counts distinct objects under a group action (e.g., necklace rotations).
 
 Let $G$ act on finite set $X$. Number of distinct orbits:
 
-$$|X/G| = \\frac{1}{|G|} \\sum_{g \\in G} |X^g|$$
+$$|X/G| = \frac{1}{|G|} \sum_{g \in G} |X^g|$$
 
-where $X^g = \\{x \\in X : g \\cdot x = x\\}$ (fixed elements).
+where $X^g = \\{x \in X : g \cdot x = x\\}$ (fixed elements).
 
 ## Necklace Application
 
 For $n$ beads with $k$ colors under **rotations**, a rotation by $i$ positions fixes $k^{\\gcd(i,n)}$ colorings:
 
-$$\\text{Necklaces} = \\frac{1}{n} \\sum_{i=1}^{n} k^{\\gcd(i, n)}$$
+$$\text{Necklaces} = \frac{1}{n} \sum_{i=1}^{n} k^{\\gcd(i, n)}$$
 
 ## When to Use
 
@@ -135,7 +135,7 @@ $$\\text{Necklaces} = \\frac{1}{n} \\sum_{i=1}^{n} k^{\\gcd(i, n)}$$
 
 ## Complexity
 
-- **Time**: $O(n \\log n)$ for gcd + modular exponentiation
+- **Time**: $O(n \log n)$ for gcd + modular exponentiation
 - **Space**: $O(1)$
 
 ## Usage
@@ -183,16 +183,16 @@ ll necklaceCount(ll n, ll k) {
     description: "Catalan numbers via formula and DP (mod 1e9+7)",
     categoryId: categoryId,
     tags: ["combinatorics", "catalan", "dp", "bracket-sequences"],
-    complexity: "O(n) formula / O(n^2) DP",
+    complexity: "$O(n)$ formula / $O(n^2)$ DP",
     notes: `# Catalan Numbers
 
 Sequence: 1, 1, 2, 5, 14, 42, 132, 429, 1430, ...
 
 ## Formulas
 
-**Closed form**: $C_n = \\frac{1}{n+1}\\binom{2n}{n}$
+**Closed form**: $C_n = \frac{1}{n+1}\binom{2n}{n}$
 
-**Recurrence**: $C_{n+1} = \\sum_{i=0}^{n} C_i \\cdot C_{n-i}$
+**Recurrence**: $C_{n+1} = \sum_{i=0}^{n} C_i \cdot C_{n-i}$
 
 ## When to Use
 
@@ -266,22 +266,22 @@ void initCatalanDp() {
     description: "Count coprime numbers and divisibility using inclusion-exclusion over bitmasks",
     categoryId: categoryId,
     tags: ["combinatorics", "inclusion-exclusion", "counting", "bitmask"],
-    complexity: "O(2^p) where p = number of prime factors",
+    complexity: "$O(2^p)$ where p = number of prime factors",
     notes: `# Inclusion-Exclusion Principle
 
 Corrects over-counting by alternately adding/subtracting intersections.
 
 ## Formula
 
-For finite sets $A_1, \\dots, A_n$:
+For finite sets $A_1, \dots, A_n$:
 
-$$\\left|\\bigcup_{i=1}^{n} A_i\\right| = \\sum_{i} |A_i| - \\sum_{i<j} |A_i \\cap A_j| + \\cdots + (-1)^{n+1} |A_1 \\cap \\cdots \\cap A_n|$$
+$$\left|\bigcup_{i=1}^{n} A_i\right| = \sum_{i} |A_i| - \sum_{i<j} |A_i \cap A_j| + \cdots + (-1)^{n+1} |A_1 \cap \cdots \cap A_n|$$
 
 ## Bitmask Approach
 
 Count elements satisfying **none** of $n$ properties:
 
-$$|\\overline{A_1} \\cap \\cdots \\cap \\overline{A_n}| = \\sum_{S \\subseteq \\{1,\\dots,n\\}} (-1)^{|S|} |\\bigcap_{i \\in S} A_i|$$
+$$|\overline{A_1} \cap \cdots \cap \overline{A_n}| = \sum_{S \subseteq \\{1,\dots,n\\}} (-1)^{|S|} |\bigcap_{i \in S} A_i|$$
 
 Iterate $2^p$ subsets via bitmask, add/subtract based on parity.
 
@@ -289,17 +289,17 @@ Iterate $2^p$ subsets via bitmask, add/subtract based on parity.
 
 - **Coprime counting**: Factor $n$, IE over prime subsets
 - **Divisibility**: Count in $[1,n]$ divisible by at least one divisor
-- **Derangements**: $D_n = n! \\sum_{k=0}^{n} \\frac{(-1)^k}{k!}$
+- **Derangements**: $D_n = n! \sum_{k=0}^{n} \frac{(-1)^k}{k!}$
 
 ## When to Use
 
 - "How many from 1 to N NOT divisible by any of these?"
-- Small property/prime set ($p \\leq 20$)
+- Small property/prime set ($p \leq 20$)
 - "At least one" or "none" conditions
 
 ## Complexity
 
-- **Time**: $O(2^p \\cdot p)$ | **Space**: $O(p)$
+- **Time**: $O(2^p \cdot p)$ | **Space**: $O(p)$
 
 ## Usage
 

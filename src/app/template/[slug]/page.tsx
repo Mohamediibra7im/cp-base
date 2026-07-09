@@ -150,7 +150,9 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
       {/* Meta info */}
       <div className="flex flex-wrap items-center gap-3 mb-6 text-xs">
         {template!.complexity && (
-          <span className="text-muted-foreground border border-border px-2 py-0.5">{template!.complexity}</span>
+          <span className="text-muted-foreground border border-border px-2 py-0.5">
+            <MathRenderer content={template!.complexity} />
+          </span>
         )}
         {category && (
           <Link

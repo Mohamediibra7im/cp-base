@@ -12,44 +12,44 @@ export async function seedRangeQueries(db: Db, catMap: CatMap) {
     description: "Square root decomposition with sorted blocks for range queries and point updates",
     categoryId: categoryId,
     tags: ["sqrt-decomposition", "bucket", "range-query", "sorted-blocks"],
-    complexity: "O(sqrt(n)) per query/update",
+    complexity: "$O(sqrt(n))$ per query/update",
     notes: `# SQRT Decomposition
 
-Partitions an array of $n$ elements into $B = \\lceil \\sqrt{n} \\rceil$ blocks, each stored in sorted order. Enables range counting queries and point updates in $O(\\sqrt{n})$.
+Partitions an array of $n$ elements into $B = \lceil \sqrt{n} \rceil$ blocks, each stored in sorted order. Enables range counting queries and point updates in $O(\sqrt{n})$.
 
 ## How It Works
 
 ### Building
 
-Element at index $i$ goes into block $\\lfloor i / B \\rfloor$. Sort each block for binary search.
+Element at index $i$ goes into block $\lfloor i / B \rfloor$. Sort each block for binary search.
 
-### Query: Count elements $\\geq x$ in $[l, r]$
+### Query: Count elements $\geq x$ in $[l, r]$
 
 Three regions:
 
 1. **Left boundary** — scan partial block: $O(B)$
-2. **Full blocks** — binary search each for count $\\geq x$: $O(\\log B)$ per block
+2. **Full blocks** — binary search each for count $\geq x$: $O(\log B)$ per block
 3. **Right boundary** — scan partial block: $O(B)$
 
 ### Point Update
 
 Find the block, overwrite old value with new, re-sort: $O(B)$.
 
-$$B = \\lceil \\sqrt{n} \\rceil, \\quad \\text{Query} = O(B) + O\\!\\left(\\frac{n}{B} \\log B\\right) = O(\\sqrt{n})$$
+$$B = \lceil \sqrt{n} \rceil, \\quad \text{Query} = O(B) + O\\!\left(\frac{n}{B} \log B\right) = O(\sqrt{n})$$
 
 ## When to Use
 
-- **Range counting** ("count elements $\\geq k$ in $[l, r]$")
-- Simple alternative to segment tree when $O(\\sqrt{n})$ suffices
+- **Range counting** ("count elements $\geq k$ in $[l, r]$")
+- Simple alternative to segment tree when $O(\sqrt{n})$ suffices
 - Problems with point updates
 
 ## Complexity
 
 | Operation | Time |
 |-----------|------|
-| Build | $O(n \\log n)$ |
-| Query | $O(\\sqrt{n})$ |
-| Point update | $O(\\sqrt{n})$ |
+| Build | $O(n \log n)$ |
+| Query | $O(\sqrt{n})$ |
+| Point update | $O(\sqrt{n})$ |
 | Space | $O(n)$ |`,
   }).returning();
   if (sqrtDecomp) {
@@ -133,7 +133,7 @@ struct SqrtDecomp {
     description: "Offline range query processing with Hilbert curve ordering for optimal cache performance",
     categoryId: categoryId,
     tags: ["mo-algorithm", "offline", "range-query", "hilbert-curve", "two-pointers"],
-    complexity: "O((n + q) * sqrt(n))",
+    complexity: "$O((n + q) * sqrt(n))$",
     notes: `# Mo's Algorithm
 
 Mo's algorithm processes $q$ offline range queries on an array of size $n$ by reordering them to minimize the movement of two pointers. Instead of answering queries in input order, we sort them so that consecutive queries share overlapping ranges, amortizing the cost of adding/removing elements.
@@ -142,24 +142,24 @@ Mo's algorithm processes $q$ offline range queries on an array of size $n$ by re
 
 ### Two-Pointer Approach
 
-Maintain two pointers \`currL\` and \`currR\` defining the current active range $[\\text{currL}, \\text{currR}]$. To answer a new query $[L, R]$:
+Maintain two pointers \`currL\` and \`currR\` defining the current active range $[\text{currL}, \text{currR}]$. To answer a new query $[L, R]$:
 
 1. **Expand/shrink left**: Move \`currL\` toward $L$, calling \`add()\` or \`remove()\` on each element crossed.
 2. **Expand/shrink right**: Move \`currR\` toward $R$, calling \`add()\` or \`remove()\` on each element crossed.
 
-Each element is added/removed at most $O(\\sqrt{n})$ times across all queries when properly ordered.
+Each element is added/removed at most $O(\sqrt{n})$ times across all queries when properly ordered.
 
 ### Query Ordering
 
 **Classic Mo's ordering**: Sort queries by block of $L$ first, then by $R$ within each block:
 
-$$\\text{Block}(L) = \\left\\lfloor \\frac{L}{B} \\right\\rfloor, \\quad B = \\frac{n}{\\sqrt{q}}$$
+$$\text{Block}(L) = \left\lfloor \frac{L}{B} \right\rfloor, \\quad B = \frac{n}{\sqrt{q}}$$
 
-$$\\text{Order} = (\\text{Block}(L), \\; R)$$
+$$\text{Order} = (\text{Block}(L), \\; R)$$
 
-This gives $O(n\\sqrt{q})$ total complexity.
+This gives $O(n\sqrt{q})$ total complexity.
 
-**Hilbert curve ordering** (used in this template): Maps each query's $(L, R)$ pair to a point on a Hilbert space-filling curve and sorts by that value. This achieves $O(n\\sqrt{q})$ in theory but with much better cache locality and smaller constants in practice. The Hilbert curve avoids the pathological $O(nq)$ behavior that can occur with naive Mo's ordering when $R$ oscillates wildly between blocks.
+**Hilbert curve ordering** (used in this template): Maps each query's $(L, R)$ pair to a point on a Hilbert space-filling curve and sorts by that value. This achieves $O(n\sqrt{q})$ in theory but with much better cache locality and smaller constants in practice. The Hilbert curve avoids the pathological $O(nq)$ behavior that can occur with naive Mo's ordering when $R$ oscillates wildly between blocks.
 
 ### The \`add()\` / \`remove()\` Interface
 
@@ -191,9 +191,9 @@ The \`ans\` member variable holds the current aggregate. After setting the range
 
 | Operation | Time |
 |-----------|------|
-| Sorting queries (Hilbert) | $O(q \\log q)$ |
-| Processing all queries | $O((n + q) \\cdot \\sqrt{n})$ with Hilbert ordering |
-| Total | $O((n + q) \\cdot \\sqrt{n})$ |
+| Sorting queries (Hilbert) | $O(q \log q)$ |
+| Processing all queries | $O((n + q) \cdot \sqrt{n})$ with Hilbert ordering |
+| Total | $O((n + q) \cdot \sqrt{n})$ |
 | Space | $O(n + q)$ |
 
 ## Template Parameters
@@ -326,7 +326,7 @@ private:
     description: "Mo's algorithm adapted for tree path queries using Euler tour and LCA via binary lifting",
     categoryId: categoryId,
     tags: ["mo-algorithm", "tree", "path-query", "hilbert-curve", "euler-tour", "lca"],
-    complexity: "O((n + q) * sqrt(n))",
+    complexity: "$O((n + q) * sqrt(n))$",
     notes: `# Mo's Algorithm on Trees
 
 Mo's algorithm on trees answers offline path queries on a tree by reducing them to linear range queries on an Euler tour sequence. Combined with LCA (lowest common ancestor) via binary lifting, this handles arbitrary node-to-node path queries.
@@ -337,37 +337,37 @@ Mo's algorithm on trees answers offline path queries on a tree by reducing them 
 
 Perform a DFS from the root, recording each node's entry time \`S[u]\` and exit time \`E[u]\` in an Euler tour array \`FT[]\`. For a path from $u$ to $v$:
 
-1. Compute $\\text{lca} = \\text{LCA}(u, v)$.
-2. If $\\text{lca} = u$ (one node is ancestor of the other): the path maps to the range $[S[u], S[v]]$ in the Euler tour.
-3. Otherwise: the path maps to $[E[u], S[v]] \\cup \\{\\text{lca}\\}$, i.e., the range $[E[u], S[v]]$ in the Euler tour plus the LCA node (which is not included in the range).
+1. Compute $\text{lca} = \text{LCA}(u, v)$.
+2. If $\text{lca} = u$ (one node is ancestor of the other): the path maps to the range $[S[u], S[v]]$ in the Euler tour.
+3. Otherwise: the path maps to $[E[u], S[v]] \cup \\{\text{lca}\\}$, i.e., the range $[E[u], S[v]]$ in the Euler tour plus the LCA node (which is not included in the range).
 
 The key insight: a node $x$ appears in the Euler tour at positions $S[x]$ and $E[x]$. A node is "active" (counted) when it appears an odd number of times in the current range. Toggling a node's frequency between 1 and 0 when the pointer crosses $S[x]$ or $E[x]$ achieves this.
 
 ### Path Mapping
 
-Given query $(u, v)$ with $\\text{lca} = \\text{LCA}(u, v)$:
+Given query $(u, v)$ with $\text{lca} = \text{LCA}(u, v)$:
 
-- **Case 1** ($\\text{lca} = u$): Path = nodes on simple path from $u$ to $v$.
-  Map to Euler range $[S[u] + \\text{VAL\_ON\_EDGE}, S[v]]$.
+- **Case 1** ($\text{lca} = u$): Path = nodes on simple path from $u$ to $v$.
+  Map to Euler range $[S[u] + \text{VAL\_ON\_EDGE}, S[v]]$.
   The \`+ VAL_ON_EDGE\` offset skips the LCA's own entry when values are on edges.
 
-- **Case 2** ($\\text{lca} \\neq u$): Path = nodes on $u \\to \\text{lca} \\to v$.
+- **Case 2** ($\text{lca} \neq u$): Path = nodes on $u \\to \text{lca} \\to v$.
   Map to Euler range $[E[u], S[v]]$, then manually add the LCA after processing.
 
 ### LCA via Binary Lifting
 
 Precompute \`anc[u][k]\` = the $2^k$-th ancestor of $u$ using DP:
 
-$$\\text{anc}[u][0] = \\text{parent}(u)$$
-$$\\text{anc}[u][k] = \\text{anc}[\\text{anc}[u][k-1]][k-1]$$
+$$\text{anc}[u][0] = \text{parent}(u)$$
+$$\text{anc}[u][k] = \text{anc}[\text{anc}[u][k-1]][k-1]$$
 
 LCA query: lift the deeper node to the same depth, then lift both together.
 
 ### Node Toggling via \`operation()\`
 
-When the Mo's pointer crosses position $\\text{FT}[\\text{idx}]$ (a node occurrence in the Euler tour), call \`operation(idx)\`:
+When the Mo's pointer crosses position $\text{FT}[\text{idx}]$ (a node occurrence in the Euler tour), call \`operation(idx)\`:
 
-1. Get the node $u = \\text{FT}[\\text{idx}]$.
+1. Get the node $u = \text{FT}[\text{idx}]$.
 2. Toggle its frequency: \`nodeFreq[u] ^= 1\`.
 3. If $u$ is now active (freq = 1): call \`add(u)\`.
 4. If $u$ is now inactive (freq = 0): call \`remove(u)\`.
@@ -394,10 +394,10 @@ This naturally handles the "each node appears twice in Euler tour" property.
 
 | Operation | Time |
 |-----------|------|
-| DFS + LCA table build | $O(n \\log n)$ |
-| Query processing (Mo's) | $O((n + q) \\cdot \\sqrt{n})$ with Hilbert ordering |
-| LCA query | $O(\\log n)$ per query |
-| Space | $O(n \\log n)$ for ancestors + $O(n)$ for Euler tour |
+| DFS + LCA table build | $O(n \log n)$ |
+| Query processing (Mo's) | $O((n + q) \cdot \sqrt{n})$ with Hilbert ordering |
+| LCA query | $O(\log n)$ per query |
+| Space | $O(n \log n)$ for ancestors + $O(n)$ for Euler tour |
 
 ## Template Parameters
 
@@ -618,7 +618,7 @@ private:
     description: "2D prefix sum for O(1) rectangle sum queries on a static grid",
     categoryId: categoryId,
     tags: ["prefix-sum", "2d", "range-query", "static-grid", "inclusion-exclusion"],
-    complexity: "O(n*m) build, O(1) per query",
+    complexity: "$O(n*m)$ build, $O(1)$ per query",
     notes: `# Prefix Sum 2D
 
 A 2D prefix sum enables $O(1)$ sum queries over any axis-aligned rectangle in a static grid. The grid is preprocessed once, after which any rectangle sum is computed via inclusion-exclusion of four precomputed values.
@@ -627,9 +627,9 @@ A 2D prefix sum enables $O(1)$ sum queries over any axis-aligned rectangle in a 
 
 ### Building the Prefix Sum Matrix
 
-Given an $n \\times m$ grid $A$ (0-indexed), construct a 1-indexed prefix sum matrix $P$ where:
+Given an $n \times m$ grid $A$ (0-indexed), construct a 1-indexed prefix sum matrix $P$ where:
 
-$$P[i][j] = \\sum_{x=0}^{i-1} \\sum_{y=0}^{j-1} A[x][y]$$
+$$P[i][j] = \sum_{x=0}^{i-1} \sum_{y=0}^{j-1} A[x][y]$$
 
 Recurrence:
 
@@ -641,7 +641,7 @@ This is computed by iterating $i$ from $1$ to $n$ and $j$ from $1$ to $m$.
 
 Using inclusion-exclusion (all coordinates 1-indexed):
 
-$$\\text{sum}([x_1..x_2] \\times [y_1..y_2]) = P[x_2][y_2] - P[x_1-1][y_2] - P[x_2][y_1-1] + P[x_1-1][y_1-1]$$
+$$\text{sum}([x_1..x_2] \times [y_1..y_2]) = P[x_2][y_2] - P[x_1-1][y_2] - P[x_2][y_1-1] + P[x_1-1][y_1-1]$$
 
 **Why it works**: $P[x_2][y_2]$ is the sum of the entire rectangle from $(1,1)$ to $(x_2, y_2)$. Subtracting $P[x_1-1][y_2]$ removes everything above row $x_1$. Subtracting $P[x_2][y_1-1]$ removes everything left of column $y_1$. But the region above $x_1$ and left of $y_1$ was subtracted twice, so we add it back: $+ P[x_1-1][y_1-1]$.
 
@@ -674,9 +674,9 @@ P[x2][y2]  = [=============]
 
 | Operation | Time | Space |
 |-----------|------|-------|
-| Build prefix matrix | $O(n \\cdot m)$ | $O(n \\cdot m)$ |
+| Build prefix matrix | $O(n \cdot m)$ | $O(n \cdot m)$ |
 | Rectangle sum query | $O(1)$ | $O(1)$ |
-| Space total | — | $O(n \\cdot m)$ |
+| Space total | — | $O(n \cdot m)$ |
 
 ## Template Parameters
 
@@ -742,7 +742,7 @@ struct PrefixSum2D {
     description: "2D difference array for O(1) range updates and O(n*m) final propagation",
     categoryId: categoryId,
     tags: ["partial-sum", "difference-array", "2d", "range-update", "offline"],
-    complexity: "O(1) per update, O(n*m) propagation, O(1) per query",
+    complexity: "$O(1)$ per update, $O(n*m)$ propagation, $O(1)$ per query",
     notes: `# Partial Sum 2D (Difference Array)
 
 A 2D difference array for batch rectangle updates ($O(1)$ each) followed by full propagation to compute the final grid.
@@ -780,9 +780,9 @@ Each cell now holds the total accumulated value.
 | Operation | Time |
 |-----------|------|
 | Update | $O(1)$ |
-| Propagate | $O(n \\cdot m)$ |
+| Propagate | $O(n \cdot m)$ |
 | Query (after propagate) | $O(1)$ |
-| Space | $O(n \\cdot m)$ |`,
+| Space | $O(n \cdot m)$ |`,
   }).returning();
   if (part2d) {
     await db.insert(templateCodes).values([{

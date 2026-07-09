@@ -13,10 +13,10 @@ export async function seedDP(db: Db, catMap: CatMap) {
     description: "Maximum contiguous subarray sum in O(n) time using linear DP",
     categoryId: categoryId,
     tags: ["kadane", "subarray", "maximum-sum", "dp", "contiguous"],
-    complexity: "O(n) time, O(1) space",
+    complexity: "$O(n)$ time, $O(1)$ space",
     notes: `# Kadane's Algorithm
 
-Finds the **maximum sum of a contiguous subarray** in O(n) time using a single pass.
+Finds the **maximum sum of a contiguous subarray** in $O(n)$ time using a single pass.
 
 This is the simplest and most classic linear DP problem. The key insight is that at each position, you only need to decide: **extend the previous subarray or start fresh**.
 
@@ -26,14 +26,14 @@ Define $dp[i]$ as the maximum subarray sum **ending at index $i$** (i.e., the su
 
 ### Recurrence
 
-$$dp[i] = \\max(a[i], \\; dp[i-1] + a[i])$$
+$$dp[i] = \max(a[i], \\; dp[i-1] + a[i])$$
 
 - $a[i]$: start a new subarray at position $i$ (discard everything before).
 - $dp[i-1] + a[i]$: extend the previous subarray by appending $a[i]$.
 
 The answer is the global maximum:
 
-$$\\text{answer} = \\max_{0 \\le i < n} dp[i]$$
+$$\text{answer} = \max_{0 \le i < n} dp[i]$$
 
 In the template, we track \`maxEnding\` ($dp[i]$) and \`maxSubarray\` (global answer) as rolling variables — no array needed.
 
@@ -41,7 +41,7 @@ In the template, we track \`maxEnding\` ($dp[i]$) and \`maxSubarray\` (global an
 
 For \`arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]\`:
 
-| $i$ | $a[i]$ | $dp[i]$ | $\\max dp$ | Decision |
+| $i$ | $a[i]$ | $dp[i]$ | $\max dp$ | Decision |
 |-----|--------|---------|-----------|----------|
 | 0 | -2 | -2 | -2 | start fresh |
 | 1 | 1 | 1 | 1 | start fresh |
@@ -92,8 +92,8 @@ ll maxNeg = kadane(neg);  // returns -1 (least negative)
 
 ## Variations
 
-- **Circular Kadane**: maximum subarray in a circular array = $\\max(\\text{Kadane}, \\text{total} - \\text{min subarray sum})$. Edge case: all negative → return Kadane result.
-- **2D Kadane**: fix top and bottom rows, compute column-wise prefix sums, apply 1D Kadane. $O(n^3)$ for $n \\times n$ matrix.
+- **Circular Kadane**: maximum subarray in a circular array = $\max(\text{Kadane}, \text{total} - \text{min subarray sum})$. Edge case: all negative → return Kadane result.
+- **2D Kadane**: fix top and bottom rows, compute column-wise prefix sums, apply 1D Kadane. $O(n^3)$ for $n \times n$ matrix.
 - **Maximum product subarray**: track both min and max ending at each position (products can flip sign).
 - **Kadane with indices**: track the start position of the current subarray for returning the actual subarray.`,
   }).returning();
@@ -125,7 +125,7 @@ T kadane(const std::vector<T>& arr) {
     description: "Count numbers in a range satisfying digit-level constraints using DP on digits",
     categoryId: categoryId,
     tags: ["digit-dp", "dp", "digits", "counting", "range-query"],
-    complexity: "O(len \\cdot 2 \\cdot 2 \\cdot S) where S = extra state dimension",
+    complexity: "$O(len \cdot 2 \cdot 2 \cdot S)$ where S = extra state dimension",
     notes: `# Digit DP
 
 A technique for **counting numbers in a range $[L, R]$ that satisfy some digit-level property**. Instead of iterating over all numbers (which is too slow), we process digits from most significant to least significant, building the number one digit at a time while tracking constraints.
@@ -134,13 +134,13 @@ A technique for **counting numbers in a range $[L, R]$ that satisfy some digit-l
 
 ### Core Idea
 
-Convert the problem into: **count valid numbers $\\le N$** for any upper bound $N$, then use $\\text{solve}(L, R) = f(R) - f(L-1)$.
+Convert the problem into: **count valid numbers $\le N$** for any upper bound $N$, then use $\text{solve}(L, R) = f(R) - f(L-1)$.
 
 ### State Definition
 
 The DP state is defined by:
 
-$$dp(\\text{idx}, \\text{tight}, \\text{started}, \\text{custom\\_state})$$
+$$dp(\text{idx}, \text{tight}, \text{started}, \text{custom\\_state})$$
 
 - **idx**: current digit position being processed (0 = most significant)
 - **tight**: boolean — whether all digits chosen so far exactly match the prefix of the upper bound. When \`tight = 1\`, the current digit is limited to \`digit[idx]\` of the bound. When \`tight = 0\`, we can place any digit 0–9.
@@ -149,17 +149,17 @@ $$dp(\\text{idx}, \\text{tight}, \\text{started}, \\text{custom\\_state})$$
 
 ### Recurrence
 
-$$dp(\\text{idx}, \\text{tight}, \\text{started}, \\text{state}) = \\sum_{d=0}^{\\text{limit}} dp(\\text{idx}+1, \\text{ntight}, \\text{nstarted}, \\text{nstate})$$
+$$dp(\text{idx}, \text{tight}, \text{started}, \text{state}) = \sum_{d=0}^{\text{limit}} dp(\text{idx}+1, \text{ntight}, \text{nstarted}, \text{nstate})$$
 
 Where:
-- $\\text{limit} = \\text{tight} \\ ? \\ \\text{digit}[\\text{idx}] \\ : \\ 9$
-- $\\text{ntight} = \\text{tight} \\ \\wedge \\ (d = \\text{limit})$
-- $\\text{nstarted} = \\text{started} \\ \\vee \\ (d \\neq 0)$
-- $\\text{nstate}$ depends on your custom constraint
+- $\text{limit} = \text{tight} \\ ? \\ \text{digit}[\text{idx}] \\ : \\ 9$
+- $\text{ntight} = \text{tight} \\ \\wedge \\ (d = \text{limit})$
+- $\text{nstarted} = \text{started} \\ \\vee \\ (d \neq 0)$
+- $\text{nstate}$ depends on your custom constraint
 
 ### Base Case
 
-$$dp(n, \\text{\\_}, \\text{\\_}, \\text{\\_}) = \\text{started} \\ ? \\ 1 \\ : \\ 0$$
+$$dp(n, \text{\\_}, \text{\\_}, \text{\\_}) = \text{started} \\ ? \\ 1 \\ : \\ 0$$
 
 We only count the number if at least one non-zero digit was placed (to avoid counting 0 multiple times).
 
@@ -172,7 +172,7 @@ Use $-1$ sentinel in the DP table to indicate uncomputed states. The table is re
 - "Count integers in $[L, R]$ where the digits satisfy property $P$"
 - "How many numbers from $A$ to $B$ have digit sum $= K$"
 - "Count numbers with no repeated digits in range"
-- "Count numbers divisible by $K$ whose digit sum is $\\le S$"
+- "Count numbers divisible by $K$ whose digit sum is $\le S$"
 - Problems where direct enumeration is infeasible ($R$ can be up to $10^{18}$)
 
 **Do NOT use when:**
@@ -188,10 +188,10 @@ Use $-1$ sentinel in the DP table to indicate uncomputed states. The table is re
 
 ## Complexity
 
-- **State space**: $O(\\text{digits} \\cdot 2 \\cdot 2 \\cdot S)$ where $S$ is the range of your extra state
+- **State space**: $O(\text{digits} \cdot 2 \cdot 2 \cdot S)$ where $S$ is the range of your extra state
 - **Transitions per state**: $O(10)$ (digits 0–9)
-- **Total**: $O(\\text{digits} \\cdot 2 \\cdot 2 \\cdot S \\cdot 10)$
-- For a 19-digit bound with no extra state: $O(19 \\cdot 2 \\cdot 2 \\cdot 10) = O(760)$
+- **Total**: $O(\text{digits} \cdot 2 \cdot 2 \cdot S \cdot 10)$
+- For a 19-digit bound with no extra state: $O(19 \cdot 2 \cdot 2 \cdot 10) = O(760)$
 
 ## Usage
 
@@ -206,7 +206,7 @@ ll ans = solve(l, r);
    - Sum of digits: add \`dp[idx][tight][started][sum]\`
    - Last digit placed: already included as \`last_digit\`
    - Count of specific digits: add \`dp[idx][tight][started][count]\`
-2. **Modify the transition loop** $d = 0 \\to \\text{limit}$ and update \`nstate\` accordingly
+2. **Modify the transition loop** $d = 0 \\to \text{limit}$ and update \`nstate\` accordingly
 3. **Adjust the base case** if your condition requires checking the full number (e.g., modular condition)
 4. **Change the return value** from 1 to other values if you need to compute something other than count`,
   }).returning();
@@ -265,43 +265,43 @@ ll solve(ll l, ll r) {
     description: "Li Chao segment tree for dynamic line insertion and minimum/maximum query at any point",
     categoryId: categoryId,
     tags: ["cht", "li-chao", "convex-hull", "dp-optimization", "dynamic-programming"],
-    complexity: "O(log C) per insert/query, C = coordinate range",
+    complexity: "$O(log C)$ per insert/query, C = coordinate range",
     notes: `# Convex Hull Trick — Li Chao Segment Tree
 
-Dynamically maintains a set of lines $y = m_i x + c_i$ and queries $\\min_i (m_i x + c_i)$ at any $x$ in a bounded range. Unlike classic CHT (requires sorted slopes or offline), Li Chao handles **arbitrary insertion order** and **interleaved queries**.
+Dynamically maintains a set of lines $y = m_i x + c_i$ and queries $\min_i (m_i x + c_i)$ at any $x$ in a bounded range. Unlike classic CHT (requires sorted slopes or offline), Li Chao handles **arbitrary insertion order** and **interleaved queries**.
 
 ## How It Works
 
-At each segment tree node over $[L, R]$, store the line **best at the midpoint** $\\text{mid} = \\lfloor(L+R)/2\\rfloor$.
+At each segment tree node over $[L, R]$, store the line **best at the midpoint** $\text{mid} = \lfloor(L+R)/2\rfloor$.
 
 ### Insertion
 
-Given $\\ell_{\\text{new}}$ and node line $\\ell_{\\text{cur}}$ covering $[l, r]$:
+Given $\\ell_{\text{new}}$ and node line $\\ell_{\text{cur}}$ covering $[l, r]$:
 
-1. Compare at $\\text{mid} = \\lfloor(l+r)/2\\rfloor$ — swap if new is better
+1. Compare at $\text{mid} = \lfloor(l+r)/2\rfloor$ — swap if new is better
 2. At leaf ($l = r$): stop
 3. Push the worse line to the child where it wins:
-   - $\\ell_{\\text{new}}(l) < \\ell_{\\text{cur}}(l)$ → **left** child
+   - $\\ell_{\text{new}}(l) < \\ell_{\text{cur}}(l)$ → **left** child
    - Else → **right** child
 
 ### Query
 
-At $x$: evaluate stored line, recurse to child containing $x$, return $\\min$ along path.
+At $x$: evaluate stored line, recurse to child containing $x$, return $\min$ along path.
 
 ## When to Use
 
 - Lines inserted **dynamically**, not known offline
 - **Queries interleaved** with insertions
 - $x$-range is **bounded** ($[L, R]$)
-- For $\\max$: negate slopes and intercepts
+- For $\max$: negate slopes and intercepts
 
 **Classic CHT (deque)** still better when slopes monotonic + queries monotonic → $O(1)$ amortized.
 
 ## Complexity
 
-- **Insert**: $O(\\log C)$ where $C = R - L$
-- **Query**: $O(\\log C)$
-- **Space**: $O(N \\log C)$ dynamic nodes`,
+- **Insert**: $O(\log C)$ where $C = R - L$
+- **Query**: $O(\log C)$
+- **Space**: $O(N \log C)$ dynamic nodes`,
   }).returning();
   if (cht) {
     await db.insert(templateCodes).values([{

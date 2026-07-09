@@ -12,7 +12,7 @@ export async function seedDataStruct(db: Db, catMap: CatMap) {
     description: "BST with insert, delete, search, and traversals",
     categoryId: categoryId,
     tags: ["bst", "binary-search-tree", "tree"],
-    complexity: "O(log n) average, O(n) worst",
+    complexity: "$O(log n)$ average, $O(n)$ worst",
     notes: `# Binary Search Tree
 
 A binary search tree (BST) maintains the invariant: for every node, all values in the left subtree are strictly less, and all values in the right subtree are strictly greater. This ordering enables $O(\log n)$ average-case search, insert, and delete.
@@ -161,7 +161,7 @@ struct BST {
     description: "Generic segment tree supporting range queries and point updates with custom operation",
     categoryId: categoryId,
     tags: ["segment-tree", "range-query", "point-update", "data-structure"],
-    complexity: "O(log n) per query",
+    complexity: "$O(log n)$ per query",
     notes: `# Segment Tree
 
 A segment tree is a binary tree where each internal node stores the result of a commutative, associative operation over a contiguous range. The root covers $[1, n]$, splitting at the midpoint.
@@ -300,7 +300,7 @@ public:
     description: "Segment tree with lazy propagation for range updates and range queries",
     categoryId: categoryId,
     tags: ["segment-tree", "lazy-propagation", "range-update"],
-    complexity: "O(log n) per range operation",
+    complexity: "$O(log n)$ per range operation",
     notes: `# Lazy Propagation Segment Tree
 
 A lazy propagation segment tree extends the standard segment tree to support **range updates** in $O(\log n)$ by deferring work. Each node stores both a value and a lazy tag. When a range update covers an entire node, the tag is stored and the node's value is updated immediately.
@@ -436,7 +436,7 @@ public:
     description: "Immutable versioned segment tree for historical queries",
     categoryId: categoryId,
     tags: ["persistent", "segment-tree", "versioning", "immutable"],
-    complexity: "O(log n) per operation, O(n log n) memory",
+    complexity: "$O(log n)$ per operation, $O(n log n)$ memory",
     notes: `# Persistent Segment Tree
 
 A persistent segment tree preserves all previous versions after each update via **path copying**. An update creates $O(\log n)$ new nodes along the root-to-leaf path, sharing all unchanged subtrees with the previous version.
@@ -557,7 +557,7 @@ struct PersistentST {
     description: "2D segment tree for rectangle queries and point updates",
     categoryId: categoryId,
     tags: ["2d-segment-tree", "range-query", "point-update", "geometry"],
-    complexity: "O(log² n) per query/update",
+    complexity: "$O(log² n)$ per query/update",
     notes: `# Segment Tree 2D
 
 A 2D segment tree is a nested segment tree: the outer tree indexes rows, each outer node contains an inner segment tree over columns.
@@ -712,7 +712,7 @@ struct SegmentTree2D {
     description: "Binary Indexed Tree for prefix sum queries and point updates",
     categoryId: categoryId,
     tags: ["fenwick", "BIT", "range-query", "point-update"],
-    complexity: "O(log n) per operation",
+    complexity: "$O(log n)$ per operation",
     notes: `# Fenwick Tree (BIT)
 
 A Fenwick tree supports prefix sum queries and point updates in $O(\log n)$ using the **lowbit** operation: $\text{lowbit}(x) = x \\ \\& \\ (-x)$, isolating the lowest set bit.
@@ -811,14 +811,14 @@ struct FenwickTree {
     description: "2D BIT for rectangle sum and point updates",
     categoryId: categoryId,
     tags: ["2d-fenwick", "BIT", "rectangle-sum"],
-    complexity: "O(log² n) per operation",
+    complexity: "$O(log² n)$ per operation",
     notes: `# Fenwick Tree 2D
 
 A 2D Fenwick tree (Binary Indexed Tree) extends the 1D BIT to two dimensions. **2D BIT for point updates + range sum queries on a matrix.** Uses inclusion-exclusion for prefix sums:
 
-$$\\text{query}(x_1, y_1, x_2, y_2) = S(x_2, y_2) - S(x_1-1, y_2) - S(x_2, y_1-1) + S(x_1-1, y_1-1)$$
+$$\text{query}(x_1, y_1, x_2, y_2) = S(x_2, y_2) - S(x_1-1, y_2) - S(x_2, y_1-1) + S(x_1-1, y_1-1)$$
 
-**When to Use**: Matrix prefix sums with updates. Simpler alternative to 2D segment tree for additive operations. Supports point update + rectangle sum in $O(\\log n \\cdot \\log m)$ per operation.
+**When to Use**: Matrix prefix sums with updates. Simpler alternative to 2D segment tree for additive operations. Supports point update + rectangle sum in $O(\log n \cdot \log m)$ per operation.
 
 \`\`\`cpp
 FenwickTree2D<ll> ft(n, m);
@@ -837,8 +837,8 @@ cout << ft.query(1, 1, 2, 3);
 
 | Operation | Complexity |
 |-----------|------------|
-| Point update | $O(\\log n \\cdot \\log m)$ |
-| Rectangle query | $O(\\log n \\cdot \\log m)$ |
+| Point update | $O(\log n \cdot \log m)$ |
+| Rectangle query | $O(\log n \cdot \log m)$ |
 | Space | $O(nm)$ |`,
   }).returning();
   if (fenwick2d) {
@@ -894,7 +894,7 @@ struct FenwickTree2D {
     description: "BIT supporting both range updates and range sum queries",
     categoryId: categoryId,
     tags: ["fenwick", "BIT", "range-update", "range-query"],
-    complexity: "O(log n) per operation",
+    complexity: "$O(log n)$ per operation",
     notes: `# Fenwick Tree — Range Updates
 
 Supports **range add** and **range sum** simultaneously using two BITs based on the **difference array**: $d[i] = a[i] - a[i-1]$.
@@ -984,7 +984,7 @@ struct FenwickTreeRange {
     description: "Static RMQ with O(1) queries and O(n log n) preprocessing",
     categoryId: categoryId,
     tags: ["sparse-table", "RMQ", "static-query"],
-    complexity: "O(1) for idempotent ops, O(n log n) build",
+    complexity: "$O(1)$ for idempotent ops, $O(n log n)$ build",
     notes: `# Sparse Table
 
 A sparse table is a static data structure for range queries on arrays that do not change. Preprocess in $O(n \log n)$, answer each query in $O(1)$ for **idempotent** operations (where $\text{op}(x, x) = x$, e.g., min, max, gcd).
@@ -1084,7 +1084,7 @@ public:
     description: "Disjoint Set Union with path compression, union by size, and component tracking",
     categoryId: categoryId,
     tags: ["dsu", "union-find", "disjoint-set", "connectivity"],
-    complexity: "O(α(n)) amortized per operation",
+    complexity: "$O(α(n))$ amortized per operation",
     notes: `# DSU / Union-Find
 
 A Disjoint Set Union maintains disjoint sets, each identified by a **leader** (representative). Two key operations:
@@ -1200,7 +1200,7 @@ struct DSU {
     description: "Policy-based order statistics tree with find_by_order and order_of_key",
     categoryId: categoryId,
     tags: ["ordered-set", "order-statistics", "pb_ds", "tree"],
-    complexity: "O(log n) per operation",
+    complexity: "$O(log n)$ per operation",
     notes: `# Ordered Set (pb_ds)
 
 Built on GNU's policy-based data structures ($\texttt{\\_\\_gnu\\_pbds::tree}$). Extends $\texttt{std::set}$ with **order statistics**: find the $k$-th element or count elements less than a value in $O(\log n)$.
@@ -1321,7 +1321,7 @@ struct OrderedMultiset {
     description: "Prefix tree for string insert, search, erase, and prefix queries",
     categoryId: categoryId,
     tags: ["trie", "prefix-tree", "string"],
-    complexity: "O(|S|) per operation",
+    complexity: "$O(|S|)$ per operation",
     notes: `# Trie
 
 A trie (prefix tree) stores strings character by character. Each node has $|\\Sigma|$ child pointers and a word-end flag.
@@ -1452,7 +1452,7 @@ private:
     description: "Bit-based trie for XOR maximum queries and integer insert/erase",
     categoryId: categoryId,
     tags: ["binary-trie", "bitwise", "xor", "trie"],
-    complexity: "O(log MAX) per operation",
+    complexity: "$O(log MAX)$ per operation",
     notes: `# Binary Trie
 
 A binary trie stores integers as bit strings of fixed length $B = 30$ (for $\text{int}$). Each node has two children (bit 0 and bit 1). Insertion and deletion traverse from MSB to LSB.
@@ -1551,7 +1551,7 @@ private:
     description: "Path and subtree queries on trees via heavy-light decomposition",
     categoryId: categoryId,
     tags: ["hld", "heavy-light", "tree", "decomposition"],
-    complexity: "O(log² n) per path query",
+    complexity: "$O(log² n)$ per path query",
     notes: `# Heavy Light Decomposition
 
 HLD decomposes a tree into **chains** so that any root-to-leaf path crosses at most $O(\log n)$ light edges. This allows path queries to be answered by decomposing into $O(\log n)$ contiguous segments, each queryable with a segment tree.
@@ -1683,7 +1683,7 @@ public:
     description: "Next/prev greater/smaller element index queries in O(n)",
     categoryId: categoryId,
     tags: ["monotonic-stack", "stack", "next-greater", "next-smaller"],
-    complexity: "O(n) for all four queries",
+    complexity: "$O(n)$ for all four queries",
     notes: `# Monotonic Stack
 
 A monotonic stack maintains elements in sorted order. The key insight: when a new element arrives, pop all stack elements that violate the monotonic property — they are blocked and will never be the answer for future elements.
@@ -1782,7 +1782,7 @@ vector<int> prevSmaller(const vector<T>& nums, bool strict = true) {
     description: "Sliding window min/max with O(1) aggregate queries using two monotonic stacks",
     categoryId: categoryId,
     tags: ["monotonic-queue", "queue", "sliding-window"],
-    complexity: "O(1) amortized per operation",
+    complexity: "$O(1)$ amortized per operation",
     notes: `# Monotonic Queue
 
 A monotonic queue maintains the aggregate of a sliding window in $O(1)$ amortized using the **two-stack queue** pattern. Two monotonic stacks $S_1$ (output) and $S_2$ (input) simulate a queue.
@@ -1901,7 +1901,7 @@ struct MonotonicQueue {
     description: "Self-adjusting BST with amortized O(log n) operations, duplicates supported",
     categoryId: categoryId,
     tags: ["splay-tree", "bst", "self-balancing"],
-    complexity: "O(log n) amortized per operation",
+    complexity: "$O(log n)$ amortized per operation",
     notes: `# Splay Tree
 
 A splay tree is a self-adjusting BST that performs a **splay operation** after every access, moving the accessed node to the root via rotations. This gives $O(\log n)$ amortized time per operation.
@@ -2112,7 +2112,7 @@ typename SplayTree<T>::Node* SplayTree<T>::EMPTY = new typename SplayTree<T>::No
     description: "Implicit key splay tree for sequence split/merge and range queries with lazy propagation",
     categoryId: categoryId,
     tags: ["splay-tree", "implicit", "sequence", "range-query", "lazy"],
-    complexity: "O(log n) amortized per operation",
+    complexity: "$O(log n)$ amortized per operation",
     notes: `# Implicit Splay Tree
 
 An implicit splay tree uses the **position** (index) as the key, making it ideal for sequence operations: insert at position, erase at position, range queries, and lazy propagation.
@@ -2325,7 +2325,7 @@ typename ImplicitSplayTree<T>::Node* ImplicitSplayTree<T>::EMPTY =
     description: "Binary heap with custom comparator and push/pop/top/size",
     categoryId: categoryId,
     tags: ["heap", "priority-queue", "binary-heap"],
-    complexity: "O(log n) push/pop, O(1) top",
+    complexity: "$O(log n)$ push/pop, $O(1)$ top",
     notes: `# Heap
 
 A binary heap is a complete binary tree stored in an array, satisfying the heap property: for a max-heap, every parent is $\geq$ its children; for a min-heap, every parent is $\leq$ its children.
@@ -2427,7 +2427,7 @@ struct Heap {
     description: "Map arbitrary values to dense 0-indexed indices for use with BIT/segment tree",
     categoryId: categoryId,
     tags: ["coordinate-compression", "mapping", "discretization"],
-    complexity: "O(n log n) for compression, O(log n) per lookup",
+    complexity: "$O(n log n)$ for compression, $O(log n)$ per lookup",
     notes: `# Coordinate Compression
 
 Coordinate compression maps a sparse set of values to a dense $0..k-1$ index range. This is essential when using BIT/segment tree with values outside $[1, n]$ or when the value range is large but the number of distinct values is small.

@@ -14,22 +14,22 @@ export async function seedNumberTheory(db: Db, catMap: CatMap) {
       "Linear sieve computing primes, smallest prime factor (SPF), Euler's totient (φ), and Möbius function (μ)",
     categoryId,
     tags: ["sieve", "prime", "number-theory", "factorization"],
-    complexity: "O(n)",
+    complexity: "$O(n)$",
     notes: `# Sieve of Eratosthenes
 
-A **linear-time** sieve computing primes, smallest prime factor (SPF), Euler's totient ($\\varphi$), and Möbius function ($\\mu$) up to $n$.
+A **linear-time** sieve computing primes, smallest prime factor (SPF), Euler's totient ($\varphi$), and Möbius function ($\mu$) up to $n$.
 
 ## Algorithm
 
-The **linear sieve** achieves $O(n)$ by ensuring every composite is crossed off exactly once. For each $i$, iterate over known primes $p$, mark $i \\cdot p$ composite, and **break** when $p \\mid i$ — this prevents double-counting since composites with a smaller prime factor will be reached later.
+The **linear sieve** achieves $O(n)$ by ensuring every composite is crossed off exactly once. For each $i$, iterate over known primes $p$, mark $i \cdot p$ composite, and **break** when $p \\mid i$ — this prevents double-counting since composites with a smaller prime factor will be reached later.
 
-The classic sieve marks composites in $O(n \\log \\log n)$; the linear variant adds $\\varphi$ and $\\mu$ computation at no extra asymptotic cost.
+The classic sieve marks composites in $O(n \log \log n)$; the linear variant adds $\varphi$ and $\mu$ computation at no extra asymptotic cost.
 
 ## When to Use
 
-- **Precompute factorizations** — Use SPF to factor any number $\\leq n$ in $O(\\log n)$.
-- **Totient/Möbius queries** — Compute $\\varphi$ and $\\mu$ for all numbers up to $n$ in one pass.
-- **Prime counting** — List of primes enables $\\pi(n)$ lookups.
+- **Precompute factorizations** — Use SPF to factor any number $\leq n$ in $O(\log n)$.
+- **Totient/Möbius queries** — Compute $\varphi$ and $\mu$ for all numbers up to $n$ in one pass.
+- **Prime counting** — List of primes enables $\pi(n)$ lookups.
 
 ## Complexity
 
@@ -90,15 +90,15 @@ void sieveOfEratosthenes(int n) {
       "Deterministic Miller-Rabin primality test for 64-bit integers using verified witness sets",
     categoryId,
     tags: ["primality-test", "miller-rabin", "deterministic", "64-bit"],
-    complexity: "O(k log n) per test, k = 12",
+    complexity: "$O(k log n)$ per test, k = 12",
     notes: `# Miller-Rabin Primality Test
 
 A **probabilistic** primality test that becomes **deterministic** for bounded ranges by choosing the right witness bases.
 
 ## Algorithm
 
-Factor $n - 1 = d \\cdot 2^s$, then test each base $a$:
-- Compute $x = a^d \\bmod n$.
+Factor $n - 1 = d \cdot 2^s$, then test each base $a$:
+- Compute $x = a^d \bmod n$.
 - If $x = 1$ or $x = n-1$, pass. Otherwise square up to $s-1$ times looking for $n-1$.
 - If neither found, $n$ is composite.
 
@@ -114,7 +114,7 @@ For $n < 2^{64}$, the 12 bases $\\{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37\\}
 
 ## Complexity
 
-- **Time:** $O(k \\log n)$ where $k$ is the number of bases (12 for 64-bit).
+- **Time:** $O(k \log n)$ where $k$ is the number of bases (12 for 64-bit).
 - **Memory:** $O(1)$.`,
   }).returning();
 
@@ -176,7 +176,7 @@ bool millerRabin(ll n) {
       "number-theory",
       "prime-factors",
     ],
-    complexity: "O(n^{1/4}) expected per factor",
+    complexity: "$O(n^{1/4})$ expected per factor",
     notes: `# Pollard's Rho Factorization
 
 Factorize a 64-bit integer using trial division, Miller-Rabin, and Pollard's Rho.
@@ -185,7 +185,7 @@ Factorize a 64-bit integer using trial division, Miller-Rabin, and Pollard's Rho
 
 ### Birthday Paradox Intuition
 
-Evaluate a pseudo-random function $f(x) = (x^2 + c) \\bmod n$ repeatedly. With probability ~50% in $O(\\sqrt{p})$ steps (where $p$ is the smallest prime factor), two values $x_i, x_j$ will satisfy $\\gcd(|x_i - x_j|, n) > 1$, yielding a non-trivial factor.
+Evaluate a pseudo-random function $f(x) = (x^2 + c) \bmod n$ repeatedly. With probability ~50% in $O(\sqrt{p})$ steps (where $p$ is the smallest prime factor), two values $x_i, x_j$ will satisfy $\\gcd(|x_i - x_j|, n) > 1$, yielding a non-trivial factor.
 
 ### Floyd's Cycle Detection
 
@@ -199,13 +199,13 @@ If the algorithm fails with one random constant $c$, retry with a new $c$.
 ## When to Use
 
 - **Factoring large numbers** — Any number up to $2^{64}$ that can't be trial-divided.
-- **RSA challenges** — Finding factors of semiprimes $n = p \\cdot q$.
+- **RSA challenges** — Finding factors of semiprimes $n = p \cdot q$.
 - **Number theory problems** — GCD-based factorization, counting divisors, totient computation.
 
 ## Complexity
 
 - **Pollard's Rho:** $O(n^{1/4})$ expected per factor.
-- **Trial division:** $O(\\sqrt[3]{n})$ for small primes.`,
+- **Trial division:** $O(\sqrt[3]{n})$ for small primes.`,
   }).returning();
 
   if (pollard) {
@@ -290,31 +290,31 @@ vector<ll> pollardRhoFactorize(ll n) {
       "Binary exponentiation on square matrices for solving linear recurrences in O(n^3 log k)",
     categoryId,
     tags: ["matrix", "exponentiation", "linear-recurrence", "fibonacci"],
-    complexity: "O(n^3 log k)",
+    complexity: "$O(n^3 log k)$",
     notes: `# Matrix Exponentiation
 
-Compute $M^k$ for a square matrix $M$ of size $n \\times n$ using **binary exponentiation** in $O(n^3 \\log k)$ time.
+Compute $M^k$ for a square matrix $M$ of size $n \times n$ using **binary exponentiation** in $O(n^3 \log k)$ time.
 
 ## Recurrence-to-Matrix Conversion
 
-Given a linear recurrence $a_n = c_1 a_{n-1} + \\cdots + c_k a_{n-k}$, define the state vector $\\mathbf{v}_n = [a_n, \\ldots, a_{n-k+1}]^T$ and transition matrix $A$:
+Given a linear recurrence $a_n = c_1 a_{n-1} + \cdots + c_k a_{n-k}$, define the state vector $\mathbf{v}_n = [a_n, \\ldots, a_{n-k+1}]^T$ and transition matrix $A$:
 
-$$\\mathbf{v}_n = A^n \\cdot \\mathbf{v}_0$$
+$$\mathbf{v}_n = A^n \cdot \mathbf{v}_0$$
 
 **Matrix construction:** First row = coefficients. Sub-diagonal shifts previous values down.
 
-**Binary exponentiation:** Decompose $k$ in binary, square $M$ repeatedly, multiply when bit is 1. Reduces $O(k)$ multiplications to $O(\\log k)$.
+**Binary exponentiation:** Decompose $k$ in binary, square $M$ repeatedly, multiply when bit is 1. Reduces $O(k)$ multiplications to $O(\log k)$.
 
 ## When to Use
 
-- **Fibonacci / Lucas numbers** — Compute $F_n \\bmod m$ for $n$ up to $10^{18}$.
+- **Fibonacci / Lucas numbers** — Compute $F_n \bmod m$ for $n$ up to $10^{18}$.
 - **Linear recurrences** — Any order-$k$ recurrence with $k$ fixed.
 - **Path counting** — $A^k$ gives walks of length $k$ in an adjacency matrix.
 - **Competition problems** — When the answer follows a recurrence and $n$ is too large for DP.
 
 ## Complexity
 
-- **Time:** $O(n^3 \\log k)$ — $\\log k$ matrix multiplications, each $O(n^3)$.
+- **Time:** $O(n^3 \log k)$ — $\log k$ matrix multiplications, each $O(n^3)$.
 - **Memory:** $O(n^2)$.`,
   }).returning();
 
@@ -371,10 +371,10 @@ struct MatrixExponentiation {
       "Type-safe modular arithmetic with operator overloading for clean competitive programming",
     categoryId,
     tags: ["modint", "modular", "arithmetic", "number-theory"],
-    complexity: "O(1) per operation",
+    complexity: "$O(1)$ per operation",
     notes: `# Modular Integer (ModInt)
 
-A **wrapper type** for modular arithmetic that automatically applies $\\bmod \\text{MOD}$ after every operation. This eliminates a common source of bugs in competitive programming: forgetting to reduce modulo at intermediate steps.
+A **wrapper type** for modular arithmetic that automatically applies $\bmod \text{MOD}$ after every operation. This eliminates a common source of bugs in competitive programming: forgetting to reduce modulo at intermediate steps.
 
 ## Design Philosophy
 
@@ -382,9 +382,9 @@ A **wrapper type** for modular arithmetic that automatically applies $\\bmod \\t
 
 In CP, problems frequently require computing expressions like:
 
-$$\\binom{n}{k} \\cdot k! \\cdot a^{n-k} \\pmod{\\text{MOD}}$$
+$$\binom{n}{k} \cdot k! \cdot a^{n-k} \pmod{\text{MOD}}$$
 
-Without ModInt, this requires writing $\\% \\text{MOD}$ after every multiplication, addition, and division — error-prone and verbose. ModInt makes the code read like textbook math:
+Without ModInt, this requires writing $\\% \text{MOD}$ after every multiplication, addition, and division — error-prone and verbose. ModInt makes the code read like textbook math:
 
 \`\`\`cpp
 using Mint = ModInt<1000000007>;
@@ -397,22 +397,22 @@ The modulus is a **template parameter** (default $10^9 + 7$), so different modul
 
 ### Modular inverse via Fermat's Little Theorem
 
-Division $a / b \\pmod{p}$ (where $p$ is prime) is implemented as $a \\cdot b^{p-2} \\pmod{p}$, since Fermat's Little Theorem gives $b^{p-1} \\equiv 1 \\pmod{p}$, hence $b^{-1} \\equiv b^{p-2}$.
+Division $a / b \pmod{p}$ (where $p$ is prime) is implemented as $a \cdot b^{p-2} \pmod{p}$, since Fermat's Little Theorem gives $b^{p-1} \equiv 1 \pmod{p}$, hence $b^{-1} \equiv b^{p-2}$.
 
 **Important:** \`inv()\` requires MOD to be prime. For composite moduli, use the extended Euclidean algorithm instead.
 
 ### Value normalization
 
-The constructor normalizes $v$ to $[0, \\text{MOD}-1]$:
-- $v \\bmod \\text{MOD}$ if $v \\geq 0$
-- $v \\bmod \\text{MOD} + \\text{MOD}$ if $v < 0$
+The constructor normalizes $v$ to $[0, \text{MOD}-1]$:
+- $v \bmod \text{MOD}$ if $v \geq 0$
+- $v \bmod \text{MOD} + \text{MOD}$ if $v < 0$
 
 This handles negative intermediates from subtraction.
 
 ## When to Use
 
 - **Combinatorics** — Binomial coefficients, Catalan numbers, derangements.
-- **DP with large answers** — When the answer must be $\\bmod p$.
+- **DP with large answers** — When the answer must be $\bmod p$.
 - **Counting problems** — Any problem where intermediate values overflow 64-bit.
 - **Clean code** — Reduces modulo noise; makes formulas readable.
 
@@ -426,7 +426,7 @@ This handles negative intermediates from subtraction.
 
 | Case | Behavior |
 |------|----------|
-| Negative input | Normalized to $[0, \\text{MOD}-1]$ |
+| Negative input | Normalized to $[0, \text{MOD}-1]$ |
 | Division by zero | Undefined behavior (no check) |
 | \`pow(0)\` | Returns 1 ($a^0 = 1$ by convention) |
 | \`inv()\` on 0 | Undefined (would need $0^{-1}$) |
@@ -434,8 +434,8 @@ This handles negative intermediates from subtraction.
 ## Complexity
 
 - **Addition/Subtraction/Multiplication:** $O(1)$
-- **Division (via \`inv()\`):** $O(\\log \\text{MOD})$ using binary exponentiation
-- **\`pow(e)\`:** $O(\\log e)$`,
+- **Division (via \`inv()\`):** $O(\log \text{MOD})$ using binary exponentiation
+- **\`pow(e)\`:** $O(\log e)$`,
   }).returning();
 
   if (modint) {
@@ -451,8 +451,8 @@ using namespace std;
  * @brief Type-safe modular arithmetic wrapper with operator overloading.
  * @tparam MOD The prime modulus (default $10^9 + 7$)
  *
- * Automatically reduces values to $[0, \\text{MOD}-1]$.
- * Division uses Fermat's Little Theorem: $a/b = a \\cdot b^{\\text{MOD}-2}$.
+ * Automatically reduces values to $[0, \text{MOD}-1]$.
+ * Division uses Fermat's Little Theorem: $a/b = a \cdot b^{\text{MOD}-2}$.
  *
  * Usage:
  *   using Mint = ModInt<998244353>;
@@ -463,7 +463,7 @@ template <int MOD = 1000000007>
 struct ModInt {
     int val;
 
-    /** @brief Construct from ll, normalized to $[0, \\text{MOD}-1]$. */
+    /** @brief Construct from ll, normalized to $[0, \text{MOD}-1]$. */
     ModInt(ll v = 0) {
         val = v % MOD;
         if (val < 0) val += MOD;
@@ -478,7 +478,7 @@ struct ModInt {
     ModInt& operator-=(const ModInt& o) { val = (val - o.val + MOD) % MOD; return *this; }
     ModInt& operator*=(const ModInt& o) { val = (ll)val * o.val % MOD; return *this; }
 
-    /** @brief Compute $\\text{this}^e$ via binary exponentiation. $O(\\log e)$ */
+    /** @brief Compute $\text{this}^e$ via binary exponentiation. $O(\log e)$ */
     ModInt pow(ll e) const {
         ModInt res(1), b(val);
         while (e) {
@@ -489,7 +489,7 @@ struct ModInt {
         return res;
     }
 
-    /** @brief Modular inverse via Fermat's Little Theorem: $a^{-1} = a^{\\text{MOD}-2}$. */
+    /** @brief Modular inverse via Fermat's Little Theorem: $a^{-1} = a^{\text{MOD}-2}$. */
     ModInt inv() const { return pow(MOD - 2); }
 
     friend ostream& operator<<(ostream& os, const ModInt& m) { return os << m.val; }

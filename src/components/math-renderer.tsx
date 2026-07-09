@@ -58,17 +58,26 @@ function renderMarkdownWithMath(md: string): string {
       return 'left';
     });
     const dataRows = rows.slice(2).filter(r => r.trim()).map(r => r.split('|').filter(c => c.trim()).map(c => c.trim()));
+
+    // Restore inline math in cell content
+    const restoreCellMath = (text: string): string => {
+      return text.replace(/%%INLINE_MATH_(\d+)%%/g, (_, i) => {
+        const idx = parseInt(i);
+        return inlineMath[idx] || `%%INLINE_MATH_${i}%%`;
+      });
+    };
+
     let html = '<div class="my-4 overflow-x-auto"><table class="w-full text-xs border-collapse border border-border">';
     html += '<thead><tr>';
     headers.forEach((h, i) => {
-      html += `<th class="border border-border px-3 py-1.5 bg-muted/30 font-bold text-left" style="text-align:${aligns[i] || 'left'}">${h}</th>`;
+      html += `<th class="border border-border px-3 py-1.5 bg-muted/30 font-bold text-left" style="text-align:${aligns[i] || 'left'}">${restoreCellMath(h)}</th>`;
     });
     html += '</tr></thead><tbody>';
     dataRows.forEach(row => {
       if (row.length) {
         html += '<tr>';
         row.forEach((c, i) => {
-          html += `<td class="border border-border px-3 py-1" style="text-align:${aligns[i] || 'left'}">${c}</td>`;
+          html += `<td class="border border-border px-3 py-1" style="text-align:${aligns[i] || 'left'}">${restoreCellMath(c)}</td>`;
         });
         html += '</tr>';
       }

@@ -13,14 +13,14 @@ export async function seedBinarySearch(db: Db, catMap: CatMap) {
     description: "Classic binary search to find a value in a sorted array",
     categoryId: categoryId,
     tags: ["binary-search", "search", "sorted-array"],
-    complexity: "O(log n)",
+    complexity: "$O(log n)$",
     notes: `# Binary Search on Number
 
 Binary search is a divide-and-conquer algorithm that locates a target value within a **sorted** array by repeatedly halving the search interval. At each step, the midpoint is compared to the target: if equal, the search ends; if the midpoint is less, the right half is discarded; otherwise the left half is discarded.
 
-Given sorted array $A[0 \\ldots n-1]$ and target $k$, maintain an inclusive interval $[L, R]$ where $k$ may exist. Compute the midpoint $M = L + \\lfloor (R - L) / 2 \\rfloor$. If $A_M = k$, return $M$. If $A_M < k$, set $L = M + 1$; otherwise set $R = M - 1$. Repeat until $L > R$, at which point the target is absent.
+Given sorted array $A[0 \\ldots n-1]$ and target $k$, maintain an inclusive interval $[L, R]$ where $k$ may exist. Compute the midpoint $M = L + \lfloor (R - L) / 2 \rfloor$. If $A_M = k$, return $M$. If $A_M < k$, set $L = M + 1$; otherwise set $R = M - 1$. Repeat until $L > R$, at which point the target is absent.
 
-> **Overflow-safe midpoint**: Always use $M = L + \\lfloor (R - L) / 2 \\rfloor$ instead of $\\lfloor (L + R) / 2 \\rfloor$. The latter can overflow when $L + R > 2^{31} - 1$ for signed 32-bit integers.
+> **Overflow-safe midpoint**: Always use $M = L + \lfloor (R - L) / 2 \rfloor$ instead of $\lfloor (L + R) / 2 \rfloor$. The latter can overflow when $L + R > 2^{31} - 1$ for signed 32-bit integers.
 
 \`\`\`cpp
 int arr[] = {1, 3, 5, 7, 9};
@@ -48,7 +48,7 @@ int miss = binarySearch(arr, 5, 4); // returns -1
 
 ## Complexity
 
-- **Time**: $O(\\log n)$ — search space halves each iteration.
+- **Time**: $O(\log n)$ — search space halves each iteration.
 - **Space**: $O(1)$ — only a few integer variables.`,
   }).returning();
   if (bsNum) {
@@ -86,7 +86,7 @@ int main() {
     description: "Find first element ≥ target in a sorted array",
     categoryId: categoryId,
     tags: ["binary-search", "lower-bound", "sorted-array"],
-    complexity: "O(log n)",
+    complexity: "$O(log n)$",
     notes: `# Lower Bound
 
 Finds the first element \u2265 target using predicate-based binary search. Equivalent to std::lower_bound but with a custom comparator.
@@ -99,12 +99,12 @@ Finds the first element \u2265 target using predicate-based binary search. Equiv
 
 ## Complexity
 
-- Time: O(log n)
+- Time: $O(log n)$
 - Space: O(1)\`std::lower_bound\` behavior.
 
-**How it works**: Finds the first element $\\geq$ target using predicate-based binary search. Equivalent to \`std::lower_bound\` but with custom comparator logic. Returns an iterator/index to the first \`true\` position in the implicit predicate \`element >= target\`.
+**How it works**: Finds the first element $\geq$ target using predicate-based binary search. Equivalent to \`std::lower_bound\` but with custom comparator logic. Returns an iterator/index to the first \`true\` position in the implicit predicate \`element >= target\`.
 
-Maintain an answer variable \`ans\` initialized to $-1$. At each step, compute midpoint $M = L + \\lfloor (R - L) / 2 \\rfloor$. If $A_M \\geq k$, record $M$ as a candidate and search left ($R = M - 1$) to find an earlier match. If $A_M < k$, search right ($L = M + 1$). When the loop ends, \`ans\` holds the first position $\\geq$ target, or $-1$ if no such element exists.
+Maintain an answer variable \`ans\` initialized to $-1$. At each step, compute midpoint $M = L + \lfloor (R - L) / 2 \rfloor$. If $A_M \geq k$, record $M$ as a candidate and search left ($R = M - 1$) to find an earlier match. If $A_M < k$, search right ($L = M + 1$). When the loop ends, \`ans\` holds the first position $\geq$ target, or $-1$ if no such element exists.
 
 \`\`\`cpp
 int arr[] = {1, 3, 3, 5, 7};
@@ -116,13 +116,13 @@ int idx3 = lowerBound(arr, 5, 10);
 ## When to Use
 
 - Finding the first occurrence of a value in a sorted array with duplicates.
-- Smallest element $\\geq$ target ("ceiling" query).
+- Smallest element $\geq$ target ("ceiling" query).
 - Searching in \`std::set\` or \`std::map\` via \`lower_bound()\`.
 - Binary search on answer: when predicate goes \`false ... false true ... true\`, lower bound gives the first \`true\`.
 
 ## Difference from \`std::lower_bound\`
 
-This template replicates STL \`std::lower_bound\` behavior exactly. It returns the index of the first element $\\geq$ target. If you need a pointer-based version for iterators, use the STL directly.
+This template replicates STL \`std::lower_bound\` behavior exactly. It returns the index of the first element $\geq$ target. If you need a pointer-based version for iterators, use the STL directly.
 
 ## Edge Cases
 
@@ -130,7 +130,7 @@ This template replicates STL \`std::lower_bound\` behavior exactly. It returns t
 |------|----------|
 | Empty array | Returns $-1$ |
 | All elements $<$ target | Returns $-1$ |
-| All elements $\\geq$ target | Returns $0$ (first position) |
+| All elements $\geq$ target | Returns $0$ (first position) |
 | Target equals first element | Returns $0$ |
 | Duplicates of target | Returns index of **first** occurrence |
 | Single element, match | Returns $0$ |
@@ -138,7 +138,7 @@ This template replicates STL \`std::lower_bound\` behavior exactly. It returns t
 
 ## Complexity
 
-- **Time**: $O(\\log n)$ — halves search space each iteration.
+- **Time**: $O(\log n)$ — halves search space each iteration.
 - **Space**: $O(1)$ — constant auxiliary memory.`,
   }).returning();
   if (lowerB) {
@@ -178,7 +178,7 @@ int main() {
     description: "Find last element < target in a sorted array",
     categoryId: categoryId,
     tags: ["binary-search", "upper-bound", "sorted-array", "custom"],
-    complexity: "O(log n)",
+    complexity: "$O(log n)$",
     notes: `# Upper Bound (Custom)
 
 Returns the last element strictly less than the target. NOT the same as std::upper_bound (which returns first element > target).
@@ -196,7 +196,7 @@ Returns the last element strictly less than the target. NOT the same as std::upp
 
 **How it works**: Custom upper bound that returns the last element $<$ target. **NOT** the same as \`std::upper_bound\` (which returns first element $>$ target). Useful when you need the predecessor — the element immediately before where \`lower_bound\` would point.
 
-The algorithm maintains an answer variable \`ans\` initialized to $-1$. At each step, compute midpoint $M = L + \\lfloor (R - L) / 2 \\rfloor$. If $A_M < k$, record $M$ as a candidate and search right ($L = M + 1$) to find a later match. If $A_M \\geq k$, search left ($R = M - 1$). When the loop ends, \`ans\` holds the last position $<$ target, or $-1$ if no such element exists.
+The algorithm maintains an answer variable \`ans\` initialized to $-1$. At each step, compute midpoint $M = L + \lfloor (R - L) / 2 \rfloor$. If $A_M < k$, record $M$ as a candidate and search right ($L = M + 1$) to find a later match. If $A_M \geq k$, search left ($R = M - 1$). When the loop ends, \`ans\` holds the last position $<$ target, or $-1$ if no such element exists.
 
 **Relationship to STL**: This function returns the same index as \`std::upper_bound(arr, arr+n, target) - arr - 1\` when interpreted as the element just before the first element $>=$ target. Equivalently, it gives \`std::lower_bound(arr, arr+n, target) - arr - 1\`.
 
@@ -218,7 +218,7 @@ int idx3 = upperBound(arr, 5, 10);
 
 | Function | Returns |
 |----------|---------|
-| \`std::lower_bound\` | First element $\\geq$ target |
+| \`std::lower_bound\` | First element $\geq$ target |
 | \`std::upper_bound\` | First element $>$ target |
 | **This template** | **Last element $<$ target** |
 
@@ -229,16 +229,16 @@ To get STL \`std::upper_bound\` behavior (first element $>$ target), use: \`lowe
 | Case | Behavior |
 |------|----------|
 | Empty array | Returns $-1$ |
-| All elements $\\geq$ target | Returns $-1$ |
+| All elements $\geq$ target | Returns $-1$ |
 | All elements $<$ target | Returns $n - 1$ (last index) |
 | Target equals first element | Returns $-1$ (nothing is $<$ target) |
 | Duplicates of target | Returns index just before the first occurrence |
 | Single element $<$ target | Returns $0$ |
-| Single element $\\geq$ target | Returns $-1$ |
+| Single element $\geq$ target | Returns $-1$ |
 
 ## Complexity
 
-- **Time**: $O(\\log n)$ — halves search space each iteration.
+- **Time**: $O(\log n)$ — halves search space each iteration.
 - **Space**: $O(1)$ — constant auxiliary memory.`,
   }).returning();
   if (upperB) {
@@ -278,14 +278,14 @@ int main() {
     description: "Binary search over a monotonic predicate to find the optimal answer",
     categoryId: categoryId,
     tags: ["binary-search", "binary-search-on-answer", "monotonic", "predicate"],
-    complexity: "O(log(range) · cost_of_check)",
+    complexity: "$O(log(range) · cost_of_check)$",
     notes: `# Binary Search on Answer
 
-Binary search on answer is a technique for **optimization problems** where you can formulate a **monotonic predicate** $P(x)$: if $P(x)$ is true, then $P(y)$ is true for all $y \\geq x$ (or $y \\leq x$, depending on direction). This lets you binary search over the answer space instead of iterating over all candidates.
+Binary search on answer is a technique for **optimization problems** where you can formulate a **monotonic predicate** $P(x)$: if $P(x)$ is true, then $P(y)$ is true for all $y \geq x$ (or $y \leq x$, depending on direction). This lets you binary search over the answer space instead of iterating over all candidates.
 
 ## Core Idea
 
-Given a search range $[\\text{lo}, \\text{hi}]$ and a predicate $P(x)$ that is monotonic:
+Given a search range $[\text{lo}, \text{hi}]$ and a predicate $P(x)$ that is monotonic:
 
 - **Minimize**: $P(x) = $ \`check(x)\` is true. The predicate goes \`false ... false true ... true\`. Binary search for the first \`true\`.
 - **Maximize**: $P(x) = $ \`check(x)\` is true. The predicate goes \`true ... true false ... false\`. Binary search for the last \`true\`.
@@ -311,7 +311,7 @@ int binarySearchAnswer(int lo, int hi) {
 - **Minimize maximum**: "Split array into $k$ parts, minimize the largest sum."
 - **Maximize minimum**: "Place $k$ items, maximize the minimum distance."
 - **Feasibility search**: "Can we complete the task in $x$ time/operations?"
-- **K-th element in matrix/merged arrays**: Binary search on value, count $\\leq$ mid.
+- **K-th element in matrix/merged arrays**: Binary search on value, count $\leq$ mid.
 - **Capacity problems**: "What is the minimum capacity to ship all packages in $d$ days?"
 - **Painting/splitting problems**: Classic CP patterns from Codeforces, AtCoder.
 
@@ -355,7 +355,7 @@ while (lo < hi) {
 
 ## Complexity
 
-- **Time**: $O(\\log(\\text{range}) \\cdot C)$ where $C$ is the cost of the predicate \`check()\`.
+- **Time**: $O(\log(\text{range}) \cdot C)$ where $C$ is the cost of the predicate \`check()\`.
 - **Space**: $O(1)$ additional space (excluding predicate internals).`,
   }).returning();
   if (bsAnswer) {
@@ -397,7 +397,7 @@ int main() {
     description: "Find extremum of a unimodal function on a continuous range",
     categoryId: categoryId,
     tags: ["ternary-search", "unimodal", "convex-function", "optimization"],
-    complexity: "O(log n) evaluations",
+    complexity: "$O(log n)$ evaluations",
     notes: `# Ternary Search
 
 Ternary search finds the **maximum** (or minimum) of a **unimodal function** on a continuous interval $[l, r]$. A unimodal function increases then decreases (for maximum), or decreases then increases (for minimum). At each step, the interval is divided into three equal parts using two interior points $m_1$ and $m_2$, and one-third is eliminated.
@@ -406,12 +406,12 @@ Ternary search finds the **maximum** (or minimum) of a **unimodal function** on 
 
 Given a unimodal function $f$ on $[l, r]$:
 
-1. Compute $m_1 = l + \\frac{r - l}{3}$ and $m_2 = r - \\frac{r - l}{3}$.
+1. Compute $m_1 = l + \frac{r - l}{3}$ and $m_2 = r - \frac{r - l}{3}$.
 2. If $f(m_1) < f(m_2)$, the maximum lies in $[m_1, r]$, so set $l = m_1$.
 3. Otherwise, the maximum lies in $[l, m_2]$, so set $r = m_2$.
 4. Repeat for a fixed number of iterations (e.g., 200).
 
-After $k$ iterations, the remaining interval has length $\\frac{2}{3}^k (r - l)$. With 200 iterations, precision is approximately $10^{-35}$, far beyond double-precision limits.
+After $k$ iterations, the remaining interval has length $\frac{2}{3}^k (r - l)$. With 200 iterations, precision is approximately $10^{-35}$, far beyond double-precision limits.
 
 ## Finding Minimum
 
@@ -451,7 +451,7 @@ ld min_x = ternarySearchMin([](ld x) { return x*x - 5*x + 3; }, 0.0, 10.0);
 
 ## Complexity
 
-- **Time**: $O(k \\cdot C_f)$ where $k$ is the number of iterations and $C_f$ is the cost of evaluating $f$.
+- **Time**: $O(k \cdot C_f)$ where $k$ is the number of iterations and $C_f$ is the cost of evaluating $f$.
 - **Space**: $O(1)$ — only stores interval bounds.
 - Typical: 100–200 iterations for double precision; 60–80 for integer results.`,
   }).returning();

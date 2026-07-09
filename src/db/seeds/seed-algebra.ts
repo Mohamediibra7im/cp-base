@@ -12,28 +12,28 @@ export async function seedAlgebra(db: Db, catMap: CatMap) {
     description: "Fast exponentiation using binary representation in O(log n) multiplications",
     categoryId: categoryId,
     tags: ["exponentiation", "modular-arithmetic", "log-n"],
-    complexity: "O(log n)",
+    complexity: "$O(log n)$",
     notes: `# Binary Exponentiation
 
-Compute $a^n$ in $O(\\log n)$ multiplications by exploiting binary representation of $n$.
+Compute $a^n$ in $O(\log n)$ multiplications by exploiting binary representation of $n$.
 
 ## Algorithm
 
-Decompose $n = \\sum b_i \\cdot 2^i$. Then $a^n = \\prod_{b_i=1} a^{2^i}$. Repeatedly square the base; multiply into result when the current bit is set.
+Decompose $n = \sum b_i \cdot 2^i$. Then $a^n = \prod_{b_i=1} a^{2^i}$. Repeatedly square the base; multiply into result when the current bit is set.
 
-**Iterative**: Start with $\\text{result}=1$. While $n>0$: if $n\\ \\&\\ 1$, multiply result by base. Square base, right-shift $n$. For modular variant, reduce mod $m$ after each multiplication.
+**Iterative**: Start with $\text{result}=1$. While $n>0$: if $n\\ \\&\\ 1$, multiply result by base. Square base, right-shift $n$. For modular variant, reduce mod $m$ after each multiplication.
 
 ## When to Use
 
-- **Modular exponentiation**: $a^n \\bmod m$ for large $n$
+- **Modular exponentiation**: $a^n \bmod m$ for large $n$
 - **Matrix exponentiation**: $A^n$ for Fibonacci, linear recurrences
 - **Permutation exponentiation**: Apply a permutation $k$ times
 - **Graph problems**: Walks of length $k$ via adjacency matrix powers
 
 ## Complexity
 
-- **Time**: $O(\\log n)$ multiplications
-- **Space**: $O(1)$ iterative, $O(\\log n)$ recursive`,
+- **Time**: $O(\log n)$ multiplications
+- **Space**: $O(1)$ iterative, $O(\log n)$ recursive`,
   }).returning();
   if (binExp) {
     await db.insert(templateCodes).values([{
@@ -71,23 +71,23 @@ ll binaryExponentiation(ll a, ll b, ll m) {
     description: "Modular multiplicative inverse via Fermat's little theorem, extended Euclidean, and linear precomputation",
     categoryId: categoryId,
     tags: ["modular-arithmetic", "inverse", "extended-gcd"],
-    complexity: "O(log m) per query / O(n) precompute",
+    complexity: "$O(log m)$ per query / $O(n)$ precompute",
     notes: `# Modular Multiplicative Inverse
 
-Find $x$ such that $a \\cdot x \\equiv 1 \\pmod{m}$. Exists iff $\\gcd(a, m) = 1$.
+Find $x$ such that $a \cdot x \equiv 1 \pmod{m}$. Exists iff $\\gcd(a, m) = 1$.
 
 ## Methods
 
-1. **Fermat's Little Theorem** (prime $m$): $a^{-1} \\equiv a^{m-2} \\pmod{m}$ via binary exponentiation. $O(\\log m)$.
-2. **Extended Euclidean** (any $m$): Find $x$ in $ax + my = \\gcd(a,m)$. Normalize: $x = (x \\bmod m + m) \\bmod m$. $O(\\log m)$.
-3. **Recursive Euclidean** (prime $m$): $\\text{inv}(a) = m - \\lfloor m/a \\rfloor \\cdot \\text{inv}(m \\bmod a) \\bmod m$. $O(\\log m)$ amortized.
-4. **Linear Precomputation** (prime $m$): Compute $\\text{inv}[1..n]$ in $O(n)$ via $\\text{inv}[i] = m - \\lfloor m/i \\rfloor \\cdot \\text{inv}[m \\bmod i] \\bmod m$. Then $O(1)$ per query.
+1. **Fermat's Little Theorem** (prime $m$): $a^{-1} \equiv a^{m-2} \pmod{m}$ via binary exponentiation. $O(\log m)$.
+2. **Extended Euclidean** (any $m$): Find $x$ in $ax + my = \\gcd(a,m)$. Normalize: $x = (x \bmod m + m) \bmod m$. $O(\log m)$.
+3. **Recursive Euclidean** (prime $m$): $\text{inv}(a) = m - \lfloor m/a \rfloor \cdot \text{inv}(m \bmod a) \bmod m$. $O(\log m)$ amortized.
+4. **Linear Precomputation** (prime $m$): Compute $\text{inv}[1..n]$ in $O(n)$ via $\text{inv}[i] = m - \lfloor m/i \rfloor \cdot \text{inv}[m \bmod i] \bmod m$. Then $O(1)$ per query.
 
 ## When to Use
 
-- **Combinatorics mod prime**: $\\binom{n}{r} \\bmod p$ needs modular inverse for factorials
-- **Division under modulus**: Replace $a/b \\bmod m$ with $a \\cdot b^{-1} \\bmod m$
-- **Batch queries**: Linear precomputation for $\\text{inv}[1..n]$
+- **Combinatorics mod prime**: $\binom{n}{r} \bmod p$ needs modular inverse for factorials
+- **Division under modulus**: Replace $a/b \bmod m$ with $a \cdot b^{-1} \bmod m$
+- **Batch queries**: Linear precomputation for $\text{inv}[1..n]$
 
 **See also**: ModInt struct in Number Theory for operator-overloaded version.
 
@@ -95,9 +95,9 @@ Find $x$ such that $a \\cdot x \\equiv 1 \\pmod{m}$. Exists iff $\\gcd(a, m) = 1
 
 | Method | Precompute | Per Query |
 |--------|-----------|-----------|
-| Fermat's Little Theorem | $O(1)$ | $O(\\log m)$ |
-| Extended Euclidean | $O(1)$ | $O(\\log m)$ |
-| Recursive Euclidean | $O(1)$ | $O(\\log m)$ |
+| Fermat's Little Theorem | $O(1)$ | $O(\log m)$ |
+| Extended Euclidean | $O(1)$ | $O(\log m)$ |
+| Recursive Euclidean | $O(1)$ | $O(\log m)$ |
 | Linear Precomputation | $O(n)$ | $O(1)$ |`,
   }).returning();
   if (modInv) {
@@ -149,32 +149,32 @@ vector<ll> invPrecompute(ll n, ll mod) {
     description: "Find a primitive root (generator) modulo prime p",
     categoryId: categoryId,
     tags: ["primitive-root", "generator", "modular-arithmetic", "number-theory"],
-    complexity: "O(p^{1/2} \\log^2 p)",
+    complexity: "$O(p^{1/2} \log^2 p)$",
     notes: `# Primitive Root
 
-A **primitive root** modulo $n$ is $g$ generating the full multiplicative group $(\\mathbb{Z}/n\\mathbb{Z})^*$, i.e., $\\text{ord}_n(g) = \\phi(n)$.
+A **primitive root** modulo $n$ is $g$ generating the full multiplicative group $(\mathbb{Z}/n\mathbb{Z})^*$, i.e., $\text{ord}_n(g) = \phi(n)$.
 
 ## Existence
 
-Primitive root exists iff $n \\in \\{1, 2, 4, p^k, 2p^k\\}$ for odd prime $p$, $k \\geq 1$. **Every prime** $p$ has one.
+Primitive root exists iff $n \in \\{1, 2, 4, p^k, 2p^k\\}$ for odd prime $p$, $k \geq 1$. **Every prime** $p$ has one.
 
 ## Algorithm (prime $p$)
 
-1. Compute $\\phi(p) = p-1$ and factor into distinct primes $q_1, \\dots, q_s$.
-2. For each $g \\in [2, p-1]$: check $g^{\\phi(p)/q_i} \\not\\equiv 1 \\pmod{p}$ for all $q_i$.
+1. Compute $\phi(p) = p-1$ and factor into distinct primes $q_1, \dots, q_s$.
+2. For each $g \in [2, p-1]$: check $g^{\phi(p)/q_i} \\not\equiv 1 \pmod{p}$ for all $q_i$.
 3. First $g$ passing all checks is a primitive root.
 
 ## When to Use
 
 - **Discrete logarithm**: Baby-Step Giant-Step requires primitive roots
 - **NTT**: Need primitive $n$-th root of unity mod $p$
-- **Generating all residues**: $g^0, \\dots, g^{p-2}$ gives all of $(\\mathbb{Z}/p\\mathbb{Z})^*$
+- **Generating all residues**: $g^0, \dots, g^{p-2}$ gives all of $(\mathbb{Z}/p\mathbb{Z})^*$
 - **Cryptography**: Diffie-Hellman key exchange
 
 ## Complexity
 
-- **Time**: $O(\\sqrt{p})$ factoring $\\phi(p)$, $O(s \\log p)$ per candidate, $O(\\log \\log p)$ candidates expected
-- **Space**: $O(\\sqrt{p})$ for prime factors`,
+- **Time**: $O(\sqrt{p})$ factoring $\phi(p)$, $O(s \log p)$ per candidate, $O(\log \log p)$ candidates expected
+- **Space**: $O(\sqrt{p})$ for prime factors`,
   }).returning();
   if (primRoot) {
     await db.insert(templateCodes).values([{
@@ -222,7 +222,7 @@ ll primitiveRoot(ll p) {
     description: "Comprehensive math toolkit: GCD, LCM, prime factorization, divisors, totient, combinatorics, base conversion, and more",
     categoryId: categoryId,
     tags: ["math", "gcd", "lcm", "factorization", "divisors", "totient"],
-    complexity: "O(\\sqrt{n}) for factorization, O(\\log n) for gcd/pow",
+    complexity: "$O(\sqrt{n})$ for factorization, $O(\log n)$ for gcd/pow",
     notes: `# Math Utilities
 
 Catch-all struct with common CP math operations: GCD, LCM, prime factorization, nCr precomputation, Euler totient, Mobius function, collinearity checks.
@@ -231,19 +231,19 @@ Catch-all struct with common CP math operations: GCD, LCM, prime factorization, 
 
 - General-purpose math when you need multiple utilities in one struct
 - Quick factorization / divisor enumeration
-- nCr with precomputed factorials (O(1) after O(MAXN) setup)
+- nCr with precomputed factorials ($O(1)$ after $O(MAXN)$ setup)
 
 ## Complexity
 
-- Factorization: O(\u221an)
-- Precomputed values: O(1) lookup after O(MAXN) init
-- Divisor enumeration: O(\u221an)
+- Factorization: O(\sqrt{n})
+- Precomputed values: $O(1)$ lookup after $O(MAXN)$ init
+- Divisor enumeration: $O(\sqrt{n})$
 
 ## Contents
 
 - **Basic**: GCD, LCM
-- **Primality**: trial-division isPrime, primeFactorization, totient (\\$\\phi\\$)
-- **Divisors**: all divisors, count (\\$\\tau\\$), sum (\\$\\sigma\\$)
+- **Primality**: trial-division isPrime, primeFactorization, totient ($\phi$)
+- **Divisors**: all divisors, count ($\tau$), sum ($\sigma$)
 - **Combinatorics**: nCr, nPr (exact, no modulus)
 - **Modular**: binaryExponentiation, binaryMul (overflow-safe), addMod, mulMod, bigMod
 - **Number Theory**: factorialPrimePowers, extendedGcd, solveLinear
@@ -263,10 +263,10 @@ Catch-all struct with common CP math operations: GCD, LCM, prime factorization, 
 
 | Operation | Complexity |
 |-----------|------------|
-| Factorization / divisors / totient | $O(\\sqrt{n})$ |
-| GCD / modular pow | $O(\\log n)$ |
-| nCr / nPr | $O(\\min(r, n-r))$ |
-| Base conversion | $O(\\log_{\\text{base}} n)$ |
+| Factorization / divisors / totient | $O(\sqrt{n})$ |
+| GCD / modular pow | $O(\log n)$ |
+| nCr / nPr | $O(\min(r, n-r))$ |
+| Base conversion | $O(\log_{\text{base}} n)$ |
 | isCollinear / distance | $O(1)$ |`,
   }).returning();
   if (mathUtil) {

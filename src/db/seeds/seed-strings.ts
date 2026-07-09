@@ -13,7 +13,7 @@ export async function seedStrings(db: Db, catMap: CatMap) {
     description: "Knuth-Morris-Pratt pattern matching and prefix function in O(n+m)",
     categoryId: categoryId,
     tags: ["kmp", "pattern-matching", "string", "prefix-function"],
-    complexity: "O(n+m)",
+    complexity: "$O(n+m)$",
     notes: `# KMP Algorithm
 
 Linear-time pattern matching leveraging previously matched characters to avoid redundant comparisons.
@@ -81,7 +81,7 @@ vector<int> kmpSearch(const string& s, const string& p) {
     description: "Find all palindromic substrings in O(n) time using linear expansion",
     categoryId: categoryId,
     tags: ["manacher", "palindrome", "string", "substring", "center-expansion"],
-    complexity: "O(n)",
+    complexity: "$O(n)$",
     notes: `# Manacher's Algorithm
 
 Finds all palindromic substrings in $O(n)$ time by exploiting symmetry.
@@ -99,7 +99,7 @@ For each position $i$ in $t$, compute $p[i] =$ largest radius such that $t[i-k..
 Maintain the rightmost palindrome $[l, r]$ with center $c$. For position $i$:
 
 1. If $i > r$: expand naively ($k = 1$)
-2. If $i \\leq r$: reuse mirror — $k = \\min(p[2c - i],\\; r - i + 1)$
+2. If $i \leq r$: reuse mirror — $k = \min(p[2c - i],\\; r - i + 1)$
 3. Expand while $t[i-k] = t[i+k]$
 4. Update $[l, r]$ if palindrome extends past $r$
 
@@ -161,7 +161,7 @@ vector<int> manacher(const string& s) {
     description: "Polynomial rolling hash with double hashing for collision-resistant substring comparison",
     categoryId: categoryId,
     tags: ["hashing", "rolling-hash", "string", "substring", "double-hash"],
-    complexity: "O(n) build, O(1) per query",
+    complexity: "$O(n)$ build, $O(1)$ per query",
     notes: `# Rolling Hash (Polynomial Double Hash)
 
 Polynomial rolling hash for $O(1)$ substring comparison with double hashing for collision resistance.
@@ -172,19 +172,19 @@ Polynomial rolling hash for $O(1)$ substring comparison with double hashing for 
 
 For a string $s$ of length $n$, define the polynomial hash:
 
-$$H(s) = \\sum_{i=0}^{n-1} s[i] \\cdot p^{n-1-i} \\mod m$$
+$$H(s) = \sum_{i=0}^{n-1} s[i] \cdot p^{n-1-i} \\mod m$$
 
 Using prefix hashes $H[i] = H(s[0..i-1])$, the hash of substring $s[l..r]$ (1-indexed) is:
 
-$$\\text{hash}(l, r) = H[r] - H[l-1] \\cdot p^{r-l+1} \\mod m$$
+$$\text{hash}(l, r) = H[r] - H[l-1] \cdot p^{r-l+1} \\mod m$$
 
 This follows from:
 
-$$H[r] = H[l-1] \\cdot p^{r-l+1} + \\sum_{i=l}^{r} s[i] \\cdot p^{r-i} \\mod m$$
+$$H[r] = H[l-1] \cdot p^{r-l+1} + \sum_{i=l}^{r} s[i] \cdot p^{r-i} \\mod m$$
 
 ### Double Hashing
 
-Use two independent hash pairs $(p_1, m_1)$ and $(p_2, m_2)$ to reduce collision probability. Two substrings are equal iff both hash components match. The probability of collision is $O(1/m_1 m_2) \\approx 10^{-18}$.
+Use two independent hash pairs $(p_1, m_1)$ and $(p_2, m_2)$ to reduce collision probability. Two substrings are equal iff both hash components match. The probability of collision is $O(1/m_1 m_2) \approx 10^{-18}$.
 
 ### Anti-Hack (Randomized Parameters)
 
@@ -201,7 +201,7 @@ Randomization prevents adversarial hash collisions in contest settings. The \`on
 
 To concatenate hashes of two ranges $[l_1, r_1]$ and $[l_2, r_2]$:
 
-$$\\text{merge} = (\\text{hash}(l_1, r_1) \\cdot p^{r_2-l_2+1} + \\text{hash}(l_2, r_2)) \\mod m$$
+$$\text{merge} = (\text{hash}(l_1, r_1) \cdot p^{r_2-l_2+1} + \text{hash}(l_2, r_2)) \\mod m$$
 
 This allows comparing concatenations without constructing the actual string.
 
@@ -362,7 +362,7 @@ template <typename T, int Base> T RollingHash<T, Base>::m2 = 0;`),
     description: "Deque with O(1) rolling polynomial double hash for constant-time equality comparison",
     categoryId: categoryId,
     tags: ["hashing", "deque", "rolling-hash", "sliding-window", "double-hash"],
-    complexity: "O(1) per operation, O(n) init",
+    complexity: "$O(1)$ per operation, $O(n)$ init",
     notes: `# Hashed Deque
 
 Double-ended queue maintaining a rolling polynomial double hash for $O(1)$ equality comparison.
@@ -371,27 +371,27 @@ Double-ended queue maintaining a rolling polynomial double hash for $O(1)$ equal
 
 Hash of sequence $a_0, a_1, \\ldots, a_{n-1}$:
 
-$$H = \\sum_{i=0}^{n-1} a_i \\cdot b^{n-1-i} \\mod m$$
+$$H = \sum_{i=0}^{n-1} a_i \cdot b^{n-1-i} \\mod m$$
 
 ### Push Back
 
-$$H' = (H \\cdot b + x) \\mod m$$
+$$H' = (H \cdot b + x) \\mod m$$
 
 ### Push Front
 
-$$H' = (x \\cdot b^{\\text{len}} + H) \\mod m$$
+$$H' = (x \cdot b^{\text{len}} + H) \\mod m$$
 
 ### Pop Back
 
-$$H' = (H - a_{\\text{len}-1}) \\cdot b^{-1} \\mod m$$
+$$H' = (H - a_{\text{len}-1}) \cdot b^{-1} \\mod m$$
 
 where $b^{-1} = b^{m-2} \\mod m$ (Fermat's little theorem).
 
 ### Pop Front
 
-Remove $a_0$ (contribution $a_0 \\cdot b^{\\text{len}-1}$):
+Remove $a_0$ (contribution $a_0 \cdot b^{\text{len}-1}$):
 
-$$H' = H - a_0 \\cdot b^{\\text{len}-1} \\mod m$$
+$$H' = H - a_0 \cdot b^{\text{len}-1} \\mod m$$
 
 ## When to Use
 
@@ -536,7 +536,7 @@ template <typename T> vector<ll> HashedDeque<T>::mod;`),
     description: "Segment tree storing double hash values for range substring hashing with point updates",
     categoryId: categoryId,
     tags: ["hashing", "segment-tree", "substring-hash", "range-hash", "point-update"],
-    complexity: "O(log n) per query/update",
+    complexity: "$O(log n)$ per query/update",
     notes: `# Hash Segment Tree
 
 Segment tree storing polynomial double hash values, supporting $O(\log n)$ range hash queries and point updates.

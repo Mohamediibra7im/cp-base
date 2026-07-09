@@ -22,7 +22,7 @@ export async function seedUtilities(db: Db, catMap: CatMap) {
         "Modern competitive programming starter template with fast I/O, common aliases, and contest-ready boilerplate",
       categoryId,
       tags: ["template", "boilerplate", "fast-io", "contest"],
-      complexity: "O(1) setup",
+      complexity: "$O(1)$ setup",
       notes: `# CP Starter Template
 
 A battle-tested starter template used across Codeforces, AtCoder, and CSES. Paste it at the top of every solution to skip boilerplate and focus on the algorithm.
@@ -36,7 +36,7 @@ A battle-tested starter template used across Codeforces, AtCoder, and CSES. Past
 
 ## When to Use
 
-Use this template for **every** CP solution. The fast I/O setup alone saves measurable time on problems with large input (\\$\\mathcal{O}(n \\log n)\\$ with \\$n \\geq 10^5\\$).
+Use this template for **every** CP solution. The fast I/O setup alone saves measurable time on problems with large input ($\mathcal{O}(n \log n)$ with $n \geq 10^5$).
 
 Common CP problem patterns this prepares you for:
 - Interactive problems (remove \`cin.tie\`)
@@ -51,7 +51,7 @@ Common CP problem patterns this prepares you for:
 
 ## Complexity
 
-Template setup is \\$\\mathcal{O}(1)\\$. No runtime overhead.
+Template setup is $\mathcal{O}(1)$. No runtime overhead.
 
 ## Usage
 
@@ -119,7 +119,7 @@ int main() {
         "Read and print __int128 — a GCC extension for 128-bit signed integers not supported by standard cin/cout",
       categoryId,
       tags: ["int128", "big-integer", "io", "gcc-extension"],
-      complexity: "O(d) per read/print where d = number of digits",
+      complexity: "$O(d)$ per read/print where d = number of digits",
       notes: `# 128-bit Integer I/O
 
 Read and print __int128 values (GCC extension). Needed when products exceed 64-bit range (e.g., 1e18 * 1e18).
@@ -131,22 +131,22 @@ Read and print __int128 values (GCC extension). Needed when products exceed 64-b
 
 ## Complexity
 
-- Time: O(digits) per read/print
-- Not portable: GCC/Clang only\`long long\` caps at \\$\\approx 9.2 \\times 10^{18}\\$ (\\$2^{63}-1\\$). Some problems require intermediate products or results exceeding this — for example:
+- Time: $O(digits)$ per read/print
+- Not portable: GCC/Clang only\`long long\` caps at $\approx 9.2 \times 10^{18}$ ($2^{63}-1$). Some problems require intermediate products or results exceeding this — for example:
 
-- Multiplying two \\$10^9\\$ values gives \\$10^{18}\\$, which fits. But \\$10^{10} \\times 10^{10} = 10^{20}\\$ overflows.
-- Counting problems with \\$n \\leq 10^{18}\\$ where you need \\$\\binom{n}{2}\\$.
+- Multiplying two $10^9$ values gives $10^{18}$, which fits. But $10^{10} \times 10^{10} = 10^{20}$ overflows.
+- Counting problems with $n \leq 10^{18}$ where you need $\binom{n}{2}$.
 
-\`__int128\` gives you \\$\\approx \\pm 1.7 \\times 10^{38}\\$ (\\$2^{127}-1\\$), handling most overflow scenarios in CP.
+\`__int128\` gives you $\approx \\pm 1.7 \times 10^{38}$ ($2^{127}-1$), handling most overflow scenarios in CP.
 
 **Platform note**: \`__int128\` is a **GCC/Clang extension** — it works on Codeforces (GCC), AtCoder (GCC), and Linux judges. It is **not** available on MSVC or in standard C++.
 
 ## When to Use
 
-- Products of two \\$\\sim 10^{10}\\$ values where you only need comparison, not output.
+- Products of two $\sim 10^{10}$ values where you only need comparison, not output.
 - Intermediate values in modular arithmetic before reducing.
 - Checking overflow conditions in greedy/math problems.
-- Problem constraints mention numbers \\$> 10^{18}\\$.
+- Problem constraints mention numbers $> 10^{18}$.
 
 **Do NOT use when**: the final answer fits in \`long long\` and you can avoid the overhead. \`__int128\` I/O is slower than built-in types.
 
@@ -154,7 +154,7 @@ Read and print __int128 values (GCC extension). Needed when products exceed 64-b
 
 - **Leading whitespace / newlines**: \`read()\` skips all non-digit characters (including newlines, spaces, minus signs that aren't part of the number). This is intentional for CP-style input.
 - **No digits at all**: If stdin reaches EOF before any digit, the function returns 0. This is a safe default for CP where input is guaranteed.
-- **Overflow during input**: Numbers exceeding \\$2^{127}-1\\$ will silently overflow. Use BigInt for truly arbitrary precision.
+- **Overflow during input**: Numbers exceeding $2^{127}-1$ will silently overflow. Use BigInt for truly arbitrary precision.
 - **Negative zero**: \`print(0)\` outputs \`0\` (no leading minus).
 
 ## Complexity
@@ -226,16 +226,16 @@ void print(__int128 x) {
       categoryId,
       tags: ["bigint", "arbitrary-precision", "big-integer", "math"],
       complexity:
-        "O(n) add/sub, O(n*m) multiply, O(n) div/mod  (n, m = digit count in base 1e9)",
+        "$O(n)$ add/sub, $O(n*m)$ multiply, $O(n)$ div/mod  (n, m = digit count in base 1e9)",
       notes: `# Big Integer (Arbitrary Precision)
 
 Arbitrary precision integer using base-1e9 storage. Supports +, -, *, comparison. When to Use: when intermediate results exceed 64-bit (e.g., factorial of large n). Complexity: O(n) for add/sub, O(n²) for multiply.
 
 ## Why Big Integer in C++?
 
-Unlike Python and Java, C++ has **no built-in arbitrary-precision integer type**. In competitive programming you sometimes need to compute values exceeding \\$2^{63}-1\\$ where \`__int128\` (\\$\\approx 10^{38}\\$) isn't enough:
+Unlike Python and Java, C++ has **no built-in arbitrary-precision integer type**. In competitive programming you sometimes need to compute values exceeding $2^{63}-1$ where \`__int128\` ($\approx 10^{38}$) isn't enough:
 
-- Numbers with **hundreds or thousands of digits** (e.g., computing \\$1000!\\$ or \\$2^{1000}\\$).
+- Numbers with **hundreds or thousands of digits** (e.g., computing $1000!$ or $2^{1000}$).
 - **Exact modular products** where you multiply many large numbers before reducing.
 - **Digit DP** or **string-to-number** problems requiring arbitrary precision.
 - Problems where **Python/Java are disallowed** but the math demands it.
@@ -244,16 +244,16 @@ Unlike Python and Java, C++ has **no built-in arbitrary-precision integer type**
 
 ## How It Works
 
-The integer is stored as a \`vector<int>\` where each element holds **9 decimal digits** (base \\$B = 10^9\\$). The least-significant chunk is at index 0. This base was chosen because:
+The integer is stored as a \`vector<int>\` where each element holds **9 decimal digits** (base $B = 10^9$). The least-significant chunk is at index 0. This base was chosen because:
 
-- It fits in a 32-bit \`int\` (\\$10^9 < 2^{31}\\$).
-- Multiplying two chunks fits in a 64-bit \`long long\` (\\$10^9 \\times 10^9 < 2^{63}\\$).
+- It fits in a 32-bit \`int\` ($10^9 < 2^{31}$).
+- Multiplying two chunks fits in a 64-bit \`long long\` ($10^9 \times 10^9 < 2^{63}$).
 - Conversion to/from decimal strings is efficient — 9 digits at a time.
 
 ## When to Use
 
-- Problem requires computing \\$A \\times B \\pmod{M}\\$ where \\$A, B > 10^{18}\\$ and \\$M > 10^{18}\\$.
-- Output must be the **full decimal representation** of a huge number (e.g., \\$2^{1000}\\$).
+- Problem requires computing $A \times B \pmod{M}$ where $A, B > 10^{18}$ and $M > 10^{18}$.
+- Output must be the **full decimal representation** of a huge number (e.g., $2^{1000}$).
 - You need **exact arithmetic** — no floating-point rounding errors.
 - The problem is a **math simulation** requiring carry propagation.
 
@@ -269,12 +269,12 @@ The integer is stored as a \`vector<int>\` where each element holds **9 decimal 
 
 | Operation | Complexity |
 |-----------|-----------|
-| Addition | \\$\\mathcal{O}(n)\\$ where \\$n = \\max(\\text{digits of } a, \\text{digits of } b)\\$ |
-| Subtraction | \\$\\mathcal{O}(n)\\$ |
-| Multiplication | \\$\\mathcal{O}(n \\cdot m)\\$ schoolbook |
-| Division by \`ll\` | \\$\\mathcal{O}(n)\\$ |
-| Modulo by \`ll\` | \\$\\mathcal{O}(n)\\$ |
-| Comparison | \\$\\mathcal{O}(n)\\$ |
+| Addition | $\mathcal{O}(n)$ where $n = \max(\text{digits of } a, \text{digits of } b)$ |
+| Subtraction | $\mathcal{O}(n)$ |
+| Multiplication | $\mathcal{O}(n \cdot m)$ schoolbook |
+| Division by \`ll\` | $\mathcal{O}(n)$ |
+| Modulo by \`ll\` | $\mathcal{O}(n)$ |
+| Comparison | $\mathcal{O}(n)$ |
 
 ## Usage
 

@@ -12,10 +12,10 @@ export async function seedGraph(db: Db, catMap: CatMap) {
     description: "Linked-list (head array) adjacency — cache-friendly graph representation for contests",
     categoryId: categoryId,
     tags: ["graph", "adjacency-list", "linked-list", "representation"],
-    complexity: "O(n+m) build, O(degree(u)) per neighbor iteration",
+    complexity: "$O(n+m)$ build, $O(degree(u))$ per neighbor iteration",
     notes: `# Graph Representation
 
-Linked-list adjacency using a **head array** — fastest graph representation for CP. Nodes point to edge lists in a flat array: O(1) insertion, cache-friendly traversal, low overhead.
+Linked-list adjacency using a **head array** — fastest graph representation for CP. Nodes point to edge lists in a flat array: $O(1)$ insertion, cache-friendly traversal, low overhead.
 
 ## When to Use
 
@@ -29,7 +29,7 @@ Linked-list adjacency using a **head array** — fastest graph representation fo
 |-----------|------|
 | \`init(n, m)\` | \`O(n + m)\` |
 | \`addEdge\` | \`O(1)\` |
-| Iterate neighbors | \`O(degree(u))\` |`,
+| Iterate neighbors | \`$O(degree(u)$)\` |`,
   }).returning();
   if (graphRep) {
     await db.insert(templateCodes).values([{
@@ -72,7 +72,7 @@ void addBiEdge(int u, int v, int c = 0) {
     description: "Shortest path in non-negative weighted graphs using priority queue relaxation",
     categoryId: categoryId,
     tags: ["dijkstra", "shortest-path", "graph", "priority-queue"],
-    complexity: "O((V+E) log V) with binary heap",
+    complexity: "$O((V+E) log V)$ with binary heap",
     notes: `# Dijkstra's Algorithm
 
 Finds shortest paths from a single source in graphs with **non-negative** edge weights. Uses a min-priority queue to greedily extract the closest unvisited node and relax its neighbors. Fails with negative weights — use Bellman-Ford instead.
@@ -156,20 +156,20 @@ struct Dijkstra {
   const [floyd] = await db.insert(templates).values({
     title: "Floyd-Warshall",
     slug: "floyd-warshall",
-    description: "All-pairs shortest paths — O(V³) dynamic programming on graph",
+    description: "All-pairs shortest paths — $O(V³)$ dynamic programming on graph",
     categoryId: categoryId,
     tags: ["floyd-warshall", "all-pairs", "shortest-path", "dp", "graph"],
-    complexity: "O(V³)",
+    complexity: "$O(V³)$",
     notes: `# Floyd-Warshall
 
 All-pairs shortest path via DP. Works with negative weights (but not negative cycles). Recurrence: dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j]). When to Use: small graphs (n ≤ 500), need all-pairs distances. Complexity: O(V³).
 
-All-pairs shortest paths via O(V³) DP. Recurrence: \`dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])\` for each intermediate node k. Handles negative weights and detects negative cycles when \`dist[i][i] < 0\` after the algorithm completes.
+All-pairs shortest paths via $O(V³)$ DP. Recurrence: \`dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])\` for each intermediate node k. Handles negative weights and detects negative cycles when \`dist[i][i] < 0\` after the algorithm completes.
 
 ## When to Use
 
 - **All-pairs shortest paths**: need distances between every pair of nodes
-- **Small dense graphs**: V ≤ 500 where O(V³) is feasible
+- **Small dense graphs**: V ≤ 500 where $O(V³)$ is feasible
 - **Transitive closure**: replace min with OR and + with AND
 
 ## Complexity
@@ -230,10 +230,10 @@ struct Floyd {
     description: "Binary lifting for LCA, distance, and k-th ancestor queries on unweighted trees",
     categoryId: categoryId,
     tags: ["lca", "lowest-common-ancestor", "binary-lifting", "tree"],
-    complexity: "O(n log n) build, O(log n) per query",
+    complexity: "$O(n log n)$ build, $O(log n)$ per query",
     notes: `# Lowest Common Ancestor (Binary Lifting)
 
-Lowest Common Ancestor using binary lifting preprocessing. Answers LCA queries in O(log n) after O(n log n) preprocessing. When to Use: tree path queries, distance between nodes.
+Lowest Common Ancestor using binary lifting preprocessing. Answers LCA queries in $O(log n)$ after $O(n log n)$ preprocessing. When to Use: tree path queries, distance between nodes.
 
 Finds the lowest common ancestor of two nodes in a tree using **binary lifting**. Also supports distance and k-th ancestor queries.
 
@@ -244,7 +244,7 @@ Finds the lowest common ancestor of two nodes in a tree using **binary lifting**
 1. Run DFS from root to compute \`depth[u]\` and \`anc[u][0]\` (direct parent)
 2. For each \`j = 1, 2, ..., LOG\`:
 
-$$\\text{anc}[v][j] = \\text{anc}[\\text{anc}[v][j-1]][j-1]$$
+$$\text{anc}[v][j] = \text{anc}[\text{anc}[v][j-1]][j-1]$$
 
 This means: "the \`2^j\`-th ancestor of \`v\` is the \`2^{j-1}\`-th ancestor of the \`2^{j-1}\`-th ancestor of \`v\`."
 
@@ -278,7 +278,7 @@ Decompose \`k\` into binary: for each set bit \`bit\`, jump \`u = anc[u][bit]\`.
 
 | Phase | Time |
 |-------|------|
-| DFS preprocessing | \`O(n)\` |
+| DFS preprocessing | \`$O(n)$\` |
 | Binary lifting table | \`O(n log n)\` |
 | \`getLca\` query | \`O(log n)\` |
 | \`getDist\` query | \`O(log n)\` |
@@ -361,10 +361,10 @@ private:
   const [tarjan] = await db.insert(templates).values({
     title: "Tarjan's Algorithm",
     slug: "tarjan",
-    description: "SCC decomposition, bridges, and articulation points in a single O(V+E) DFS pass",
+    description: "SCC decomposition, bridges, and articulation points in a single $O(V+E)$ DFS pass",
     categoryId: categoryId,
     tags: ["tarjan", "scc", "bridges", "articulation-points", "graph", "strongly-connected"],
-    complexity: "O(V+E)",
+    complexity: "$O(V+E)$",
     notes: `# Tarjan's Algorithm (SCC, Bridges, Articulation Points)
 
 Finds bridges and articulation points using DFS low-link values. Also works for SCCs. When to Use: bridge detection, articulation point identification, SCC computation. Complexity: O(V + E).
@@ -386,11 +386,11 @@ For each neighbor \`v\` of \`u\`:
 
 1. **Tree edge** (\`v\` unvisited): recurse into \`v\`, then update:
 
-$$\\text{low}[u] = \\min(\\text{low}[u],\\; \\text{low}[v])$$
+$$\text{low}[u] = \min(\text{low}[u],\\; \text{low}[v])$$
 
 2. **Back edge** (\`v\` visited and in stack): update:
 
-$$\\text{low}[u] = \\min(\\text{low}[u],\\; \\text{disc}[v])$$
+$$\text{low}[u] = \min(\text{low}[u],\\; \text{disc}[v])$$
 
 ### SCC Detection
 
@@ -400,7 +400,7 @@ When \`low[u] == disc[u]\`, node \`u\` is the root of an SCC. Pop the stack unti
 
 Edge \`(u, v)\` is a bridge if:
 
-$$\\text{low}[v] > \\text{disc}[u]$$
+$$\text{low}[v] > \text{disc}[u]$$
 
 This means \`v\`'s subtree cannot reach \`u\` or above without edge \`(u, v)\`.
 
@@ -432,7 +432,7 @@ Node \`u\` is an articulation point if:
 | Operation | Time |
 |-----------|------|
 | SCC decomposition | \`O(V + E)\` |
-| Bridge detection | \`O(V + E)\` |
+| Bridge detection | \`$O(V + E)$\` |
 | Articulation points | \`O(V + E)\` |
 | **Total** | \`O(V + E)\` |
 
@@ -553,7 +553,7 @@ private:
     description: "Shortest path with negative edge weights + negative cycle detection in O(V·E)",
     categoryId: categoryId,
     tags: ["bellman-ford", "shortest-path", "negative-cycle", "graph"],
-    complexity: "O(V·E)",
+    complexity: "$O(V·E)$",
     notes: `# Bellman-Ford
 
 Single-source shortest path supporting **negative edge weights**. Relaxes all edges V-1 times — each round guarantees correctness for paths with one more edge. Run one extra pass to detect negative cycles (any distance still improving indicates a cycle).
@@ -634,7 +634,7 @@ struct BellmanFord {
     description: "DFS & BFS on adjacency list graphs with bipartite check, cycle detection, and topological sort",
     categoryId: categoryId,
     tags: ["graph", "dfs", "bfs", "traversal", "bipartite", "cycle-detection"],
-    complexity: "O(V+E)",
+    complexity: "$O(V+E)$",
     notes: `# Graph Traversal (DFS & BFS)
 
 BFS and DFS implementations with adjacency list. BFS for shortest paths in unweighted graphs, DFS for connectivity and cycle detection. When to Use: basic graph exploration. Complexity: O(V + E).
@@ -673,7 +673,7 @@ BFS(src):
 
 BFS/DFS coloring: assign alternating colors. If a neighbor has the same color, graph is **not** bipartite (contains odd cycle).
 
-$$\\text{color}[v] = -\\text{color}[u] \\quad \\text{for tree edges } (u,v)$$
+$$\text{color}[v] = -\text{color}[u] \\quad \text{for tree edges } (u,v)$$
 
 ### Cycle Detection (Undirected)
 
@@ -708,9 +708,9 @@ DFS with parent tracking: if you visit a node that's already visited and isn't t
 | Operation | Time |
 |-----------|------|
 | DFS / BFS | \`O(V + E)\` |
-| Bipartite check | \`O(V + E)\` |
+| Bipartite check | \`$O(V + E)$\` |
 | Cycle detection | \`O(V + E)\` |
-| Topological sort | \`O(V + E)\` |
+| Topological sort | \`$O(V + E)$\` |
 
 Space: \`O(V + E)\`
 
@@ -853,7 +853,7 @@ struct Graph {
     description: "Minimum spanning tree using priority queue — greedy cut-based approach",
     categoryId: categoryId,
     tags: ["prim", "mst", "minimum-spanning-tree", "graph", "priority-queue"],
-    complexity: "O((V+E) log V) with binary heap",
+    complexity: "$O((V+E) log V)$ with binary heap",
     notes: `# Prim's Algorithm — Minimum Spanning Tree
 
 Finds a **minimum spanning tree** (MST) for a weighted undirected graph using a priority queue.
@@ -875,7 +875,7 @@ Finds a **minimum spanning tree** (MST) for a weighted undirected graph using a 
 
 For any cut (partition of vertices into two sets), the minimum weight edge crossing the cut is in some MST. Prim's greedily picks the cheapest crossing edge at each step.
 
-$$\\text{cost}(T) = \\sum_{e \\in T} w(e) \\quad \\text{(minimum among all spanning trees)}$$
+$$\text{cost}(T) = \sum_{e \in T} w(e) \\quad \text{(minimum among all spanning trees)}$$
 
 ### Prim vs Kruskal
 
@@ -906,7 +906,7 @@ $$\\text{cost}(T) = \\sum_{e \\in T} w(e) \\quad \\text{(minimum among all spann
 
 | Phase | Time |
 |-------|------|
-| Build adjacency | \`O(E)\` |
+| Build adjacency | \`$O(E)$\` |
 | Main loop | \`O((V + E) log V)\` |
 | **Total** | \`O((V + E) log V)\` |
 
@@ -978,16 +978,16 @@ struct Prim {
     description: "Divide-and-conquer on trees via centroid selection — O(n log n) decomposition",
     categoryId: categoryId,
     tags: ["centroid", "decomposition", "tree", "divide-conquer"],
-    complexity: "O(n log n)",
+    complexity: "$O(n log n)$",
     notes: `# Centroid Decomposition
 
-Divide-and-conquer on trees by recursively splitting at the **centroid** — a node whose largest subtree ≤ n/2. Process all paths through the centroid, then recurse on remaining components. Height is O(log n).
+Divide-and-conquer on trees by recursively splitting at the **centroid** — a node whose largest subtree ≤ n/2. Process all paths through the centroid, then recurse on remaining components. Height is $O(log n)$.
 
 ## When to Use
 
-- **Path counting**: "paths with property P" — reduces O(n²) brute force to O(n log n)
+- **Path counting**: "paths with property P" — reduces $O(n²)$ brute force to $O(n log n)$
 - **Distance queries**: aggregate distances from centroid to subtree nodes
-- **Tree problems**: any O(n²) tree problem → O(n log n) via decomposition
+- **Tree problems**: any $O(n²)$ tree problem → $O(n log n)$ via decomposition
 
 ## Complexity
 
@@ -1046,14 +1046,14 @@ struct CentroidDecomposition {
     description: "LCA with path aggregate queries (sum/max/min) on weighted trees in O(log n)",
     categoryId: categoryId,
     tags: ["lca", "lowest-common-ancestor", "binary-lifting", "weighted-tree", "path-query"],
-    complexity: "O(n log n) build, O(log n) per query",
+    complexity: "$O(n log n)$ build, $O(log n)$ per query",
     notes: `# LCA on Weighted Trees
 
 Binary lifting for LCA with **path aggregates** (sum, max, min) on weighted trees. Each ancestor entry stores the 2^j-th ancestor and the aggregate of edge weights along that jump.
 
 ## When to Use
 
-- **Path sum/max/min**: aggregate edge weights on path u→v in O(log n)
+- **Path sum/max/min**: aggregate edge weights on path u→v in $O(log n)$
 - **Bottleneck edges**: max/min edge on path (MST verification)
 - **Custom aggregates**: any associative operation — GCD, XOR, etc.
 
@@ -1155,7 +1155,7 @@ private:
     description: "Maximum bipartite matching via augmenting paths in O(V·E)",
     categoryId: categoryId,
     tags: ["kuhn", "bipartite", "matching", "augmenting-path", "graph"],
-    complexity: "O(V·E) worst-case, fast in practice",
+    complexity: "$O(V·E)$ worst-case, fast in practice",
     notes: `# Kuhn's Algorithm — Maximum Bipartite Matching
 
 Finds maximum cardinality matching in a bipartite graph using **augmenting paths**.
@@ -1186,7 +1186,7 @@ An augmenting path increases matching size by 1. By Berge's lemma, a matching is
 
 ### Time Complexity
 
-Each DFS attempt is \`O(E)\` in the worst case. We run it for each left vertex, giving \`O(V · E)\`.
+Each DFS attempt is \`$O(E)$\` in the worst case. We run it for each left vertex, giving \`$O(V · E)$\`.
 
 ## When to Use
 
@@ -1269,10 +1269,10 @@ struct Kuhn {
   const [lct] = await db.insert(templates).values({
     title: "Link Cut Tree",
     slug: "link-cut-tree",
-    description: "Dynamic tree connectivity with path queries — link, cut, and aggregate in O(log n) amortized",
+    description: "Dynamic tree connectivity with path queries — link, cut, and aggregate in $O(log n)$ amortized",
     categoryId: categoryId,
     tags: ["lct", "link-cut", "dynamic-tree", "path-query", "splay"],
-    complexity: "O(log n) amortized per operation",
+    complexity: "$O(log n)$ amortized per operation",
     notes: `# Link-Cut Tree (LCT)
 
 Dynamic tree data structure supporting **link**, **cut**, and **path aggregate** queries in O(log n) amortized time.
@@ -1331,9 +1331,9 @@ Remove edge between \`x\` and \`y\`:
 
 ### Amortized Analysis
 
-Each operation involves \`O(log n)\) splay tree operations. By the potential method, splay operations are \`O(log n)\` amortized.
+Each operation involves \`$O(log n)$\) splay tree operations. By the potential method, splay operations are \`$O(log n)$\` amortized.
 
-$$\\hat{\\Phi} = \\sum_{x} \\log(\\text{size of splay subtree of } x)$$
+$$\hat{\\Phi} = \sum_{x} \log(\text{size of splay subtree of } x)$$
 
 ## When to Use
 

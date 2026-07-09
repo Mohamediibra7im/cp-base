@@ -13,10 +13,10 @@ export async function seedGeometry(db: Db, catMap: CatMap) {
     description: "Complete 2D computational geometry: points, lines, segments, polygons, circles",
     categoryId: categoryId,
     tags: ["geometry", "2d", "computational-geometry", "polygon", "circle"],
-    complexity: "O(1) per operation",
+    complexity: "$O(1)$ per operation",
     notes: `# 2D Geometry Toolkit
 
-Core 2D geometry primitives — dot product, cross product, orientation test (CCW/CW/collinear), point-in-polygon, line intersection. When to Use: any geometry problem needing basic operations. Complexity: O(1) per operation.
+Core 2D geometry primitives — dot product, cross product, orientation test (CCW/CW/collinear), point-in-polygon, line intersection. When to Use: any geometry problem needing basic operations. Complexity: $O(1)$ per operation.
 
 Comprehensive 2D computational geometry using \`complex<ld>\` as the underlying point representation. This provides free arithmetic, which we extend with geometric operations.
 
@@ -292,7 +292,7 @@ bool inPolygon(vector<pt> p, pt a, bool strict = true) {
     description: "Generic 2D point with full operator support: dot, cross, distance, rotation, unit, normal",
     categoryId: categoryId,
     tags: ["geometry", "point", "2d", "vector"],
-    complexity: "O(1) per operation",
+    complexity: "$O(1)$ per operation",
     notes: `# Geometry Points
 
 Point struct with operator overloads for vector arithmetic (add, subtract, scale), cross/dot product methods, rotation, polar angle. When to Use: when you need a reusable Point class for geometry problems.
@@ -459,7 +459,7 @@ struct Point {
     description: "Andrew's monotone chain algorithm for convex hull in O(n log n)",
     categoryId: categoryId,
     tags: ["geometry", "convex-hull", "andrew", "graham-scan"],
-    complexity: "O(n log n)",
+    complexity: "$O(n log n)$",
     notes: `# Convex Hull -- Andrew's Monotone Chain
 
 Andrew's monotone chain computes the **convex hull** of 2D points in $O(n \log n)$.
