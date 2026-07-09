@@ -56,6 +56,12 @@ export default function AdminDashboard() {
     }[];
   } | null>(null);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [importProgress, setImportProgress] = useState<{
+    total: number;
+    current: number;
+    currentName: string;
+    loading: boolean;
+  } | null>(null);
 
   // Categories State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -223,6 +229,10 @@ export default function AdminDashboard() {
 
     playClick();
 
+    const flatItems: {
+      file: File;
+      item: any;
+    }[] = [];
     const reportItems: {
       title: string;
       slug: string;
@@ -230,7 +240,7 @@ export default function AdminDashboard() {
       status: "success" | "error";
       reason?: string;
     }[] = [];
-    let totalItemsCount = 0;
+
     let successCount = 0;
     let failedCount = 0;
 
@@ -249,91 +259,8 @@ export default function AdminDashboard() {
           data = [data];
         }
 
-        totalItemsCount += data.length;
-
         for (const item of data) {
-          try {
-            if (!item.title || !item.slug) {
-              reportItems.push({
-                title: item.title || "Unknown Title",
-                slug: item.slug || "unknown-slug",
-                categoryName: "None",
-                status: "error",
-                reason: "Missing title or slug",
-              });
-              failedCount++;
-              continue;
-            }
-
-            let catId = item.categoryId;
-            let catName = "unassigned";
-            if (item.categorySlug) {
-              const matchedCat = categories.find(
-                (c) => c.slug.toLowerCase() === item.categorySlug.toLowerCase()
-              );
-              if (matchedCat) {
-                catId = matchedCat.id;
-                catName = matchedCat.name;
-              }
-            } else if (catId) {
-              const matchedCat = categories.find((c) => c.id === Number(catId));
-              if (matchedCat) {
-                catName = matchedCat.name;
-              }
-            }
-
-            const res = await fetch("/api/admin/templates", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: item.title,
-                slug: item.slug,
-                description: item.description || "",
-                categoryId: catId ? Number(catId) : undefined,
-                tags: Array.isArray(item.tags) ? item.tags : (item.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean),
-                notes: item.notes || "",
-                codes: Array.isArray(item.codes) ? item.codes : item.code ? [{ language: item.language || "cpp", code: item.code }] : [],
-                hidden: !!item.hidden,
-              }),
-            });
-
-            if (res.ok) {
-              if (item.notes) {
-                await fetch("/api/admin/notes", {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ slug: item.slug, content: item.notes }),
-                }).catch((err) => console.error("Error saving bulk notes:", err));
-              }
-
-              reportItems.push({
-                title: item.title,
-                slug: item.slug,
-                categoryName: catName,
-                status: "success",
-              });
-              successCount++;
-            } else {
-              const errData = await res.json().catch(() => ({}));
-              reportItems.push({
-                title: item.title,
-                slug: item.slug,
-                categoryName: catName,
-                status: "error",
-                reason: errData.error || "API creation failed",
-              });
-              failedCount++;
-            }
-          } catch (itemErr: any) {
-            reportItems.push({
-              title: item.title || "Unknown Title",
-              slug: item.slug || "unknown-slug",
-              categoryName: "None",
-              status: "error",
-              reason: itemErr.message || "Internal processing error",
-            });
-            failedCount++;
-          }
+          flatItems.push({ file, item });
         }
       } catch (err: any) {
         reportItems.push({
@@ -344,16 +271,133 @@ export default function AdminDashboard() {
           reason: `Failed to parse JSON file: ${err.message || "Unknown error"}`,
         });
         failedCount++;
-        totalItemsCount++;
       }
     }
 
+    const totalTemplates = flatItems.length;
+    if (totalTemplates === 0) {
+      playBeep(440, 0.15);
+      setImportSummary({
+        open: true,
+        total: failedCount,
+        successCount: 0,
+        failedCount,
+        items: reportItems,
+      });
+      e.target.value = "";
+      return;
+    }
+
+    setImportProgress({
+      total: totalTemplates,
+      current: 0,
+      currentName: "Initializing queue...",
+      loading: true,
+    });
+
+    for (let idx = 0; idx < flatItems.length; idx++) {
+      const { item } = flatItems[idx];
+      const currentName = item.title || item.slug || "unnamed";
+
+      setImportProgress({
+        total: totalTemplates,
+        current: idx,
+        currentName,
+        loading: true,
+      });
+
+      try {
+        if (!item.title || !item.slug) {
+          reportItems.push({
+            title: item.title || "Unknown Title",
+            slug: item.slug || "unknown-slug",
+            categoryName: "None",
+            status: "error",
+            reason: "Missing title or slug",
+          });
+          failedCount++;
+          continue;
+        }
+
+        let catId = item.categoryId;
+        let catName = "unassigned";
+        if (item.categorySlug) {
+          const matchedCat = categories.find(
+            (c) => c.slug.toLowerCase() === item.categorySlug.toLowerCase()
+          );
+          if (matchedCat) {
+            catId = matchedCat.id;
+            catName = matchedCat.name;
+          }
+        } else if (catId) {
+          const matchedCat = categories.find((c) => c.id === Number(catId));
+          if (matchedCat) {
+            catName = matchedCat.name;
+          }
+        }
+
+        const res = await fetch("/api/admin/templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: item.title,
+            slug: item.slug,
+            description: item.description || "",
+            categoryId: catId ? Number(catId) : undefined,
+            tags: Array.isArray(item.tags) ? item.tags : (item.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean),
+            notes: item.notes || "",
+            codes: Array.isArray(item.codes) ? item.codes : item.code ? [{ language: item.language || "cpp", code: item.code }] : [],
+            hidden: !!item.hidden,
+          }),
+        });
+
+        if (res.ok) {
+          if (item.notes) {
+            await fetch("/api/admin/notes", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ slug: item.slug, content: item.notes }),
+            }).catch((err) => console.error("Error saving bulk notes:", err));
+          }
+
+          reportItems.push({
+            title: item.title,
+            slug: item.slug,
+            categoryName: catName,
+            status: "success",
+          });
+          successCount++;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          reportItems.push({
+            title: item.title,
+            slug: item.slug,
+            categoryName: catName,
+            status: "error",
+            reason: errData.error || "API creation failed",
+          });
+          failedCount++;
+        }
+      } catch (itemErr: any) {
+        reportItems.push({
+          title: item.title || "Unknown Title",
+          slug: item.slug || "unknown-slug",
+          categoryName: "None",
+          status: "error",
+          reason: itemErr.message || "Internal processing error",
+        });
+        failedCount++;
+      }
+    }
+
+    setImportProgress(null);
     playSuccess();
+
     setImportSummary({
       open: true,
-      total: totalItemsCount,
+      total: totalTemplates + (reportItems.length - successCount - failedCount),
       successCount,
-      failedCount,
+      failedCount: reportItems.length - successCount,
       items: reportItems,
     });
 
@@ -1633,6 +1677,47 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      {/* Import Progress Overlay */}
+      {importProgress && importProgress.loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs select-none">
+          <div className="border border-primary bg-card max-w-sm w-full p-6 shadow-2xl space-y-4 font-mono text-xs">
+            <div className="flex items-center justify-between text-primary font-bold border-b border-primary/20 pb-2">
+              <div className="flex items-center gap-1.5 animate-pulse">
+                <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                <span>UPLOADING_INDEX_FILES...</span>
+              </div>
+              <span>{Math.round((importProgress.current / importProgress.total) * 100)}%</span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] text-muted-foreground/60">
+                <span className="truncate max-w-[180px]">Processing: {importProgress.currentName}</span>
+                <span>[{importProgress.current + 1}/{importProgress.total}]</span>
+              </div>
+
+              {/* Progress Bar Container */}
+              <div className="border border-border/80 p-0.5 bg-card/20 select-none flex">
+                {(() => {
+                  const pct = importProgress.total > 0 ? Math.round((importProgress.current / importProgress.total) * 100) : 0;
+                  const totalBlocks = 20;
+                  const activeBlocks = Math.round((pct / 100) * totalBlocks);
+                  const barStr = "█".repeat(activeBlocks) + "░".repeat(totalBlocks - activeBlocks);
+                  return (
+                    <span className="text-primary text-[11px] font-mono tracking-tighter w-full text-center">
+                      {barStr}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className="text-[9px] text-muted-foreground/30 text-center italic animate-pulse">
+              Please do not refresh or interrupt the mainframe terminal.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bulk Import Report Modal */}
       {importSummary && importSummary.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
