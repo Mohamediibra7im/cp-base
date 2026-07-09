@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 const description =
-  "A terminal-themed competitive programming template library. Organized, searchable, and ready to copy-paste into contests.";
+  "A terminal-themed competitive programming template library with a live contest calendar. Browse algorithms, track upcoming Codeforces, AtCoder, LeetCode & CodeChef contests, and copy-paste optimized templates into your next contest.";
 
 export const metadata: Metadata = {
   title: {
-    default: "CP-Base | Competitive Programming Templates",
+    default: "CP-Base | Competitive Programming Templates & Contest Calendar",
     template: "%s | CP-Base",
   },
   description,
@@ -16,9 +16,19 @@ export const metadata: Metadata = {
     "data structures",
     "code templates",
     "contest",
+    "contest calendar",
+    "upcoming contests",
     "cp",
     "icpc",
     "codeforces",
+    "codeforces contests",
+    "atcoder",
+    "atcoder contests",
+    "leetcode",
+    "leetcode contests",
+    "codechef",
+    "codechef contests",
+    "competitive programming calendar",
     "segment tree",
     "graph algorithms",
     "dynamic programming",
@@ -61,20 +71,20 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "CP-Base",
-    title: "CP-Base | Competitive Programming Templates",
+    title: "CP-Base | Competitive Programming Templates & Contest Calendar",
     description,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "CP-Base | Competitive Programming Templates",
+        alt: "CP-Base | Competitive Programming Templates & Contest Calendar",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CP-Base | Competitive Programming Templates",
+    title: "CP-Base | Competitive Programming Templates & Contest Calendar",
     description,
     images: ["/opengraph-image"],
   },

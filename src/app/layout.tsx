@@ -18,20 +18,21 @@ const structuredData = {
   "@type": "WebApplication",
   name: "CP-Base",
   description:
-    "A terminal-themed competitive programming template library. Organized, searchable, and ready to copy-paste into contests.",
+    "A terminal-themed competitive programming template library with a live contest calendar. Browse algorithms, track upcoming Codeforces, AtCoder, LeetCode & CodeChef contests, and copy-paste optimized templates into your next contest.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://cp-base.vercel.app",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web Browser",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   author: { "@type": "Person", name: "Mohamed Ibrahim" },
   keywords:
-    "competitive programming, cp templates, algorithms, data structures, code templates",
+    "competitive programming, cp templates, algorithms, data structures, code templates, contest calendar, codeforces contests, atcoder contests, leetcode contests, codechef contests",
   featureList: [
     "Curated CP template library",
     "Category-based template browsing",
     "One-click copy code snippets",
     "Fuzzy search across templates",
     "Competitive programming profiles",
+    "Live contest calendar for Codeforces, AtCoder, LeetCode, and CodeChef",
   ],
 };
 

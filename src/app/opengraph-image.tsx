@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "CP-Base | Competitive Programming Templates";
+export const alt = "CP-Base | Competitive Programming Templates & Contest Calendar";
 export const size = {
   width: 1200,
   height: 630,
@@ -470,7 +470,7 @@ export default async function OpengraphImage() {
                   textShadow: "0 0 6px rgba(6, 182, 212, 0.2)",
                 }}
               >
-                // OPTIMIZED CONTEST TEMPLATES
+                // TEMPLATES & LIVE CONTEST CALENDAR
               </div>
               <div
                 style={{
@@ -482,7 +482,7 @@ export default async function OpengraphImage() {
                   display: "flex",
                 }}
               >
-                Fast & Optimized Code Templates
+                Templates & Live Contest Calendar
               </div>
             </div>
 
@@ -549,7 +549,7 @@ export default async function OpengraphImage() {
 
             {/* Languages Pills */}
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {["C++", "Python", "Java", "Rust", "Go"].map((lang) => (
+              {["C++", "Python", "Java", "CF", "AtCoder", "LC"].map((lang) => (
                 <div
                   key={lang}
                   style={{
