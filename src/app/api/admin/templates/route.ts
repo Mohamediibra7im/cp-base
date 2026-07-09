@@ -9,12 +9,24 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const categoryId = searchParams.get("categoryId");
+  const id = searchParams.get("id");
+  const includeCodes = searchParams.get("includeCodes") === "true";
+
+  if (id) {
+    const [row] = await db.select().from(schema.templates).where(eq(schema.templates.id, Number(id)));
+    if (!row) return NextResponse.json({ error: "Template not found" }, { status: 404 });
+    const codes = await db.select().from(schema.templateCodes).where(eq(schema.templateCodes.templateId, Number(id)));
+    return NextResponse.json({ ...row, codes });
+  }
 
   const where = categoryId ? eq(schema.templates.categoryId, Number(categoryId)) : undefined;
 
   const rows = await db.query.templates.findMany({
     where,
-    with: { category: true, codes: true },
+    with: { 
+      category: true, 
+      codes: includeCodes ? true : undefined 
+    },
     orderBy: (t, { desc }) => [desc(t.createdAt)],
   });
 

@@ -363,28 +363,6 @@ export default function NewTemplate() {
                   </div>
                 </div>
 
-                {/* Complexity */}
-                <div
-                  className={`py-3 px-2 border border-transparent transition-all ${
-                    focusedField === "complexity" ? "bg-primary/[0.03] border-primary/10" : ""
-                  }`}
-                  onClick={() => { playClick(); setFocusedField("complexity"); }}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <Label htmlFor="comp" className="text-xs font-bold tracking-wider text-foreground flex items-center gap-1.5 cursor-pointer select-none">
-                      <span className={focusedField === "complexity" ? "text-primary animate-pulse" : "text-transparent"}>▶</span>
-                      <span>Complexity Badge</span>
-                    </Label>
-                    <Input
-                      id="comp"
-                      value={form.complexity}
-                      onChange={(e) => setForm((f) => ({ ...f, complexity: e.target.value }))}
-                      placeholder="O(log n)"
-                      className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none md:max-w-md w-full"
-                      onFocus={() => { playClick(); setFocusedField("complexity"); }}
-                    />
-                  </div>
-                </div>
 
                 {/* Tags */}
                 <div

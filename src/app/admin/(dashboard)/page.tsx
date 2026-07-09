@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ interface Template {
   slug: string;
   tags: string[];
   hidden: boolean;
+  categoryId: number;
   category?: { name: string; slug: string };
   createdAt: string;
 }
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
   const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Template | null>(null);
+  const [expandedCats, setExpandedCats] = useState<Record<string | number, boolean>>({});
 
   // Categories State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -269,6 +271,37 @@ export default function AdminDashboard() {
     t.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const templatesByCategory = useMemo(() => {
+    const groups: Record<number | string, Template[]> = {};
+    categories.forEach((cat) => {
+      groups[cat.id] = [];
+    });
+    groups["unassigned"] = [];
+
+    filteredTemplates.forEach((t) => {
+      const catId = t.categoryId;
+      if (catId && groups[catId] !== undefined) {
+        groups[catId].push(t);
+      } else {
+        groups["unassigned"].push(t);
+      }
+    });
+    return groups;
+  }, [categories, filteredTemplates]);
+
+  // Auto-expand folder directories when search is active
+  useEffect(() => {
+    if (search.trim()) {
+      const autoExpanded: Record<string | number, boolean> = {};
+      Object.entries(templatesByCategory).forEach(([catId, list]) => {
+        if (list.length > 0) {
+          autoExpanded[catId] = true;
+        }
+      });
+      setExpandedCats(autoExpanded);
+    }
+  }, [search, templatesByCategory]);
+
   return (
     <div className="space-y-6 font-mono">
       {/* Tab switch navigation */}
@@ -356,80 +389,205 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground/40">
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground/45 select-none">
+                <div className="flex items-center gap-1.5 font-mono">
                   <span className="text-primary font-bold">$</span>
-                  <span>ls -la --sort=time templates/</span>
+                  <span>tree -F templates/</span>
                   <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
                 </div>
-                <span>total {filteredTemplates.length} files</span>
+                <span className="font-mono">total {filteredTemplates.length} files in {categories.length} folders</span>
               </div>
 
-              <div className="border border-border bg-card/25 overflow-x-auto select-text scrollbar-thin">
-                <table className="w-full text-[11px] text-left border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase tracking-wider select-none text-[10px]">
-                      <th className="py-2.5 px-3">Permissions</th>
-                      <th className="py-2.5 px-3 text-right">Size</th>
-                      <th className="py-2.5 px-3">Category</th>
-                      <th className="py-2.5 px-3">Filename</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/30">
-                    {filteredTemplates.map((t) => {
-                      const size = Math.floor(124 + t.slug.length * 18);
-                      const categoryName = t.category?.name || "unassigned";
+              <div className="space-y-2 select-none">
+                {categories.map((cat) => {
+                  const list = templatesByCategory[cat.id] || [];
+                  const isExpanded = !!expandedCats[cat.id];
 
-                      return (
-                        <tr key={t.id} className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                          <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
-                          <td className="py-3 px-3 text-right font-mono text-muted-foreground/55">{size} B</td>
-                          <td className="py-3 px-3 select-none">
-                            <span className="text-info font-bold flex items-center gap-1">
-                              <FolderOpen className="h-3 w-3" />
-                              {categoryName}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 font-semibold">
-                            <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
-                              <FileCode className="h-3.5 w-3.5 text-primary/60 shrink-0" />
-                              <span>{t.slug}.cpp</span>
-                            </Link>
-                          </td>
-                          <td className="py-3 px-3 select-none">
-                            <button
-                              onClick={() => toggleTemplateVisibility(t)}
-                              className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
-                                t.hidden
-                                  ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
-                                  : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
-                              }`}
-                            >
-                              {t.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
-                            </button>
-                          </td>
-                          <td className="py-3 px-3 text-right">
-                            <div className="flex items-center justify-end gap-2.5 select-none">
-                              <Link href={`/admin/templates/${t.id}/edit`}>
-                                <button className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5">
-                                  [edit]
-                                </button>
-                              </Link>
-                              <button
-                                onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
-                                className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
-                              >
-                                [delete]
-                              </button>
+                  // When searching, hide empty folders that do not match search criteria
+                  if (search.trim() && list.length === 0) return null;
+
+                  return (
+                    <div key={cat.id} className="border border-border/80 bg-card/15 transition-all">
+                      {/* Folder Row Header */}
+                      <button
+                        onClick={() => {
+                          playClick();
+                          setExpandedCats((prev) => ({ ...prev, [cat.id]: !prev[cat.id] }));
+                        }}
+                        className="w-full flex items-center justify-between p-3 text-xs font-bold hover:bg-primary/[0.02] transition-colors select-none text-left cursor-pointer font-mono"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-primary/60 text-[10px] w-3">{isExpanded ? "▼" : "▶"}</span>
+                          <FolderOpen className={`h-4 w-4 shrink-0 transition-colors ${isExpanded ? "text-primary" : "text-muted-foreground/50"}`} />
+                          <span className="text-info font-bold">{cat.slug}/</span>
+                          <span className="text-muted-foreground/45 text-[10px]">({cat.name})</span>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground/40 font-normal">
+                          {list.length} {list.length === 1 ? "file" : "files"}
+                        </div>
+                      </button>
+
+                      {/* File Items Table inside the Expanded Folder */}
+                      {isExpanded && (
+                        <div className="border-t border-border/50 p-3 bg-black/10 overflow-x-auto scrollbar-thin">
+                          {list.length === 0 ? (
+                            <div className="py-6 text-center text-muted-foreground/40 text-[10px] italic font-mono">
+                              total 0 files
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          ) : (
+                            <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
+                              <thead>
+                                <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
+                                  <th className="py-2 px-3">Permissions</th>
+                                  <th className="py-2 px-3">Filename</th>
+                                  <th className="py-2 px-3">Tags</th>
+                                  <th className="py-2 px-3 select-none">Status</th>
+                                  <th className="py-2 px-3 text-right">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-border/20">
+                                {list.map((t) => (
+                                  <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
+                                    <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
+                                    <td className="py-2 px-3 font-semibold">
+                                      <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
+                                        <FileCode className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                                        <span>{t.slug}.cpp</span>
+                                      </Link>
+                                    </td>
+                                    <td className="py-2 px-3">
+                                      <div className="flex flex-wrap gap-1 max-w-[250px]">
+                                        {t.tags.map((tag) => (
+                                          <span key={tag} className="text-[8px] text-muted-foreground/40 border border-border/30 px-1 py-0 select-none">
+                                            #{tag}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </td>
+                                    <td className="py-2 px-3">
+                                      <button
+                                        onClick={() => toggleTemplateVisibility(t)}
+                                        className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
+                                          t.hidden
+                                            ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
+                                            : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
+                                        }`}
+                                      >
+                                        {t.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
+                                      </button>
+                                    </td>
+                                    <td className="py-2 px-3 text-right">
+                                      <div className="flex items-center justify-end gap-2.5 select-none">
+                                        <Link href={`/admin/templates/${t.id}/edit`}>
+                                          <button className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5">
+                                            [edit]
+                                          </button>
+                                        </Link>
+                                        <button
+                                          onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
+                                          className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
+                                        >
+                                          [delete]
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Unassigned Folder */}
+                {templatesByCategory["unassigned"]?.length > 0 && (
+                  <div className="border border-border bg-card/15 transition-all">
+                    <button
+                      onClick={() => {
+                        playClick();
+                        setExpandedCats((prev) => ({ ...prev, unassigned: !prev.unassigned }));
+                      }}
+                      className="w-full flex items-center justify-between p-3 text-xs font-bold hover:bg-primary/[0.02] transition-colors select-none text-left cursor-pointer font-mono"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary/60 text-[10px] w-3">{expandedCats["unassigned"] ? "▼" : "▶"}</span>
+                        <Folder className={`h-4 w-4 shrink-0 transition-colors ${expandedCats["unassigned"] ? "text-primary" : "text-muted-foreground/50"}`} />
+                        <span className="text-warning font-bold">unassigned/</span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground/40 font-normal">
+                        {templatesByCategory["unassigned"].length} files
+                      </div>
+                    </button>
+
+                    {expandedCats["unassigned"] && (
+                      <div className="border-t border-border/50 p-3 bg-black/10 overflow-x-auto scrollbar-thin">
+                        <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
+                          <thead>
+                            <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
+                              <th className="py-2 px-3">Permissions</th>
+                              <th className="py-2 px-3">Filename</th>
+                              <th className="py-2 px-3">Tags</th>
+                              <th className="py-2 px-3 select-none">Status</th>
+                              <th className="py-2 px-3 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/20">
+                            {templatesByCategory["unassigned"].map((t) => (
+                              <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
+                                <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
+                                <td className="py-2 px-3 font-semibold">
+                                  <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
+                                    <FileCode className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                                    <span>{t.slug}.cpp</span>
+                                  </Link>
+                                </td>
+                                <td className="py-2 px-3">
+                                  <div className="flex flex-wrap gap-1 max-w-[250px]">
+                                    {t.tags.map((tag) => (
+                                      <span key={tag} className="text-[8px] text-muted-foreground/40 border border-border/30 px-1 py-0 select-none">
+                                        #{tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="py-2 px-3">
+                                  <button
+                                    onClick={() => toggleTemplateVisibility(t)}
+                                    className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
+                                      t.hidden
+                                        ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
+                                        : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
+                                    }`}
+                                  >
+                                    {t.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
+                                  </button>
+                                </td>
+                                <td className="py-2 px-3 text-right">
+                                  <div className="flex items-center justify-end gap-2.5 select-none">
+                                    <Link href={`/admin/templates/${t.id}/edit`}>
+                                      <button className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5">
+                                        [edit]
+                                      </button>
+                                    </Link>
+                                    <button
+                                      onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
+                                      className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
+                                    >
+                                      [delete]
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
