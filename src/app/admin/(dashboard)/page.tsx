@@ -1703,7 +1703,7 @@ export default function AdminDashboard() {
                   const activeBlocks = Math.round((pct / 100) * totalBlocks);
                   const barStr = "█".repeat(activeBlocks) + "░".repeat(totalBlocks - activeBlocks);
                   return (
-                    <span className="text-primary text-[11px] font-mono tracking-tighter w-full text-center">
+                    <span className="text-primary text-[11px] font-mono tracking-tighter w-full text-left px-1.5 font-bold">
                       {barStr}
                     </span>
                   );
