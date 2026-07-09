@@ -7,8 +7,6 @@ import { LanguageTabs } from "@/components/language-tabs";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
 import { ArrowLeft, Clock, Calendar, FileText, UserPlus } from "lucide-react";
-import { readFile } from "fs/promises";
-import { join } from "path";
 
 export const dynamic = "force-dynamic";
 
@@ -96,15 +94,9 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
     if (!category || category.hidden) notFound();
 
     codes = await db.select().from(templateCodes).where(eq(templateCodes.templateId, template.id));
-    
-    // Load notes from .md file if exists, fallback to database
-    try {
-      const notesPath = join(process.cwd(), "templates_notes", `${slug}.md`);
-      notes = await readFile(notesPath, "utf-8");
-    } catch {
-      // Fallback to database notes
-      notes = template.notes;
-    }
+
+    // Notes are stored in the database
+    notes = template.notes;
   } catch {
     return (
       <div className="relative z-10 mx-auto max-w-4xl w-full px-4 py-8">

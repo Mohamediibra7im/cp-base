@@ -124,6 +124,7 @@ export default function AdminDashboard() {
   const [contribFilter, setContribFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [expandedContribution, setExpandedContribution] = useState<number | null>(null);
   const [rejectModal, setRejectModal] = useState<{ id: number; adminNote: string } | null>(null);
+  const [deleteContribTarget, setDeleteContribTarget] = useState<Contribution | null>(null);
 
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
 
@@ -611,6 +612,22 @@ export default function AdminDashboard() {
     } else {
       playBeep(440, 0.15);
       toast.error("Failed to reject contribution");
+    }
+  };
+
+  const confirmDeleteContribution = async () => {
+    if (!deleteContribTarget) return;
+    playClick();
+    const id = deleteContribTarget.id;
+    setDeleteContribTarget(null);
+    const res = await fetch(`/api/admin/contributions?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      playSuccess();
+      toast.success("Contribution record purged");
+      fetchContributions();
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to delete contribution");
     }
   };
 
@@ -1634,26 +1651,35 @@ export default function AdminDashboard() {
                               </span>
                             </td>
                             <td className="py-2.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
-                              {c.status === "pending" ? (
-                                <div className="flex items-center justify-end gap-2.5 select-none">
-                                  <button
-                                    onClick={() => approveContribution(c.id)}
-                                    className="text-[10px] px-3 py-1.5 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                                  >
-                                    [ approve ]
-                                  </button>
-                                  <button
-                                    onClick={() => { playBeep(330, 0.25); setRejectModal({ id: c.id, adminNote: "" }); }}
-                                    className="text-[10px] px-3 py-1.5 border border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                                  >
-                                    [ reject ]
-                                  </button>
-                                </div>
-                              ) : (
-                                <span className="text-[9px] text-muted-foreground/40 italic">
-                                  reviewed {c.reviewedAt ? new Date(c.reviewedAt).toLocaleDateString() : ""}
-                                </span>
-                              )}
+                              <div className="flex items-center justify-end gap-2.5 select-none">
+                                {c.status === "pending" ? (
+                                  <>
+                                    <button
+                                      onClick={() => approveContribution(c.id)}
+                                      className="text-[10px] px-3 py-1.5 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                    >
+                                      [ approve ]
+                                    </button>
+                                    <button
+                                      onClick={() => { playBeep(330, 0.25); setRejectModal({ id: c.id, adminNote: "" }); }}
+                                      className="text-[10px] px-3 py-1.5 border border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                    >
+                                      [ reject ]
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-[9px] text-muted-foreground/40 italic">
+                                    reviewed {c.reviewedAt ? new Date(c.reviewedAt).toLocaleDateString() : ""}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => { playBeep(330, 0.25); setDeleteContribTarget(c); }}
+                                  title="Delete record"
+                                  className="text-[10px] px-1.5 py-1.5 border border-transparent text-muted-foreground/45 hover:text-destructive hover:border-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                >
+                                  [ del ]
+                                </button>
+                              </div>
                             </td>
                           </tr>
                           {isExpanded && (
@@ -1962,6 +1988,53 @@ export default function AdminDashboard() {
               >
                 <span>[ ENTER ]</span>
                 <span>Reject Submission</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Contribution retro modal dialog overlay */}
+      {deleteContribTarget && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
+              </div>
+              <span>WARN_LEVEL_3</span>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
+                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
+                  <span className="text-destructive font-bold">$ rm -rf</span>
+                  <span>contributions/{deleteContribTarget.id}</span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
+                WARNING: You are about to permanently delete this {deleteContribTarget.type === "edit" ? "edit request" : "template submission"} from{" "}
+                <span className="text-foreground font-semibold">"{deleteContribTarget.contributorName}"</span>.
+                This removes the record only — it does not unpublish any already-approved template. No email is sent.
+              </div>
+            </div>
+            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
+              <button
+                type="button"
+                onClick={() => { playClick(); setDeleteContribTarget(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
+              >
+                <span>[ ESC ]</span>
+                <span>Abort Command</span>
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteContribution}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
+              >
+                <span>[ ENTER ]</span>
+                <span>Purge Record</span>
               </button>
             </div>
           </div>

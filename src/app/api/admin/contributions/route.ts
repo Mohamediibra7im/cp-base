@@ -16,6 +16,24 @@ export async function GET() {
   return NextResponse.json(rows);
 }
 
+export async function DELETE(request: Request) {
+  const db = getDb();
+  if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  const [row] = await db
+    .delete(schema.contributions)
+    .where(eq(schema.contributions.id, Number(id)))
+    .returning();
+
+  if (!row) return NextResponse.json({ error: "Contribution not found" }, { status: 404 });
+
+  return NextResponse.json({ message: "Contribution deleted" });
+}
+
 export async function PUT(request: Request) {
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
@@ -42,27 +60,48 @@ export async function PUT(request: Request) {
 
   if (action === "approve") {
     if (contribution.type === "new") {
-      const slug =
+      const baseSlug =
         contribution.slug ||
         (contribution.title || "untitled")
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "");
 
-      const [newTemplate] = await db
-        .insert(schema.templates)
-        .values({
-          title: contribution.title || "Untitled",
-          slug,
-          description: contribution.description || "",
-          categoryId: contribution.categoryId || 1,
-          tags: (contribution.tags as string[]) || [],
-          complexity: contribution.complexity || "",
-          notes: contribution.notes || null,
-          contributorName: contribution.contributorName,
-          contributorCfHandle: contribution.contributorCfHandle || null,
-        })
-        .returning();
+      // Ensure slug is unique — suffix -2, -3, ... on collision
+      let slug = baseSlug;
+      let suffix = 2;
+      while (true) {
+        const [clash] = await db
+          .select({ id: schema.templates.id })
+          .from(schema.templates)
+          .where(eq(schema.templates.slug, slug));
+        if (!clash) break;
+        slug = `${baseSlug}-${suffix++}`;
+      }
+
+      let newTemplate;
+      try {
+        [newTemplate] = await db
+          .insert(schema.templates)
+          .values({
+            title: contribution.title || "Untitled",
+            slug,
+            description: contribution.description || "",
+            categoryId: contribution.categoryId || 1,
+            tags: (contribution.tags as string[]) || [],
+            complexity: contribution.complexity || "",
+            notes: contribution.notes || null,
+            contributorName: contribution.contributorName,
+            contributorCfHandle: contribution.contributorCfHandle || null,
+          })
+          .returning();
+      } catch (e) {
+        console.error("Failed to insert approved template:", e);
+        return NextResponse.json(
+          { error: "Failed to publish template. Check the category exists and the slug is valid." },
+          { status: 500 }
+        );
+      }
 
       const codes = (contribution.codes as Array<{ language: string; code: string }>) || [];
       if (codes.length > 0) {
