@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Heart } from "lucide-react";
 import type { InferSelectModel } from "drizzle-orm";
 import type { templates as templatesTable, categories as categoriesTable } from "@/db/schema";
 import { useTerminalTheme } from "./theme-provider";
@@ -43,10 +43,16 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
           </div>
 
           {/* Category */}
-          <div className="flex items-center gap-2 mb-2 text-[10px]">
+          <div className="flex items-center justify-between mb-2 text-[10px]">
             {template.category && (
               <span className="text-info font-bold">
                 [{template.category.name}]
+              </span>
+            )}
+            {(template.likeCount ?? 0) > 0 && (
+              <span className="flex items-center gap-1 text-[9px] text-destructive font-mono select-none">
+                <Heart className="h-2.5 w-2.5 fill-destructive text-destructive" />
+                <span>{template.likeCount}</span>
               </span>
             )}
           </div>

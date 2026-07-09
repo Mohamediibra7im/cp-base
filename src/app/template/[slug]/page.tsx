@@ -5,6 +5,7 @@ import { templates, categories, templateCodes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { LanguageTabs } from "@/components/language-tabs";
 import { MathRenderer } from "@/components/math-renderer";
+import { LikeButton } from "@/components/like-button";
 import { ArrowLeft, Clock, Calendar, FileText } from "lucide-react";
 import { readFile } from "fs/promises";
 import { join } from "path";
@@ -236,6 +237,10 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
                 </a>
               </>
             )}
+            <span className="text-border/30">|</span>
+            <div className="inline-block align-middle">
+              <LikeButton templateId={template!.id} initialLikes={template!.likeCount || 0} />
+            </div>
           </div>
 
           {/* Tags */}

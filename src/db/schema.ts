@@ -25,6 +25,7 @@ export const templates = pgTable("templates", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   hidden: boolean("hidden").notNull().default(false),
   copyCount: integer("copy_count").notNull().default(0),
+  likeCount: integer("like_count").notNull().default(0),
 });
 
 export const siteSettings = pgTable("site_settings", {

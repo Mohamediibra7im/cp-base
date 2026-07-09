@@ -18,6 +18,7 @@ interface Template {
   category?: { name: string; slug: string };
   createdAt: string;
   copyCount: number;
+  likeCount: number;
 }
 
 interface Category {
@@ -1233,12 +1234,14 @@ export default function AdminDashboard() {
                     totalTemplates: templates.length,
                     totalCategories: categories.length,
                     totalCopies: templates.reduce((acc, t) => acc + (t.copyCount || 0), 0),
+                    totalLikes: templates.reduce((acc, t) => acc + (t.likeCount || 0), 0),
                   },
                   templates: templates.map((t) => ({
                     title: t.title,
                     slug: t.slug,
                     category: t.category?.name || "unassigned",
                     copies: t.copyCount || 0,
+                    likes: t.likeCount || 0,
                   })),
                 };
                 const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
@@ -1261,11 +1264,12 @@ export default function AdminDashboard() {
             const totalTemplates = templates.length;
             const totalCategories = categories.length;
             const totalCopies = templates.reduce((acc, t) => acc + (t.copyCount || 0), 0);
+            const totalLikes = templates.reduce((acc, t) => acc + (t.likeCount || 0), 0);
             const avgCopies = totalTemplates ? (totalCopies / totalTemplates).toFixed(1) : "0.0";
 
             return (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 select-none">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 select-none">
                   <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
                     <span className="text-[10px] text-muted-foreground/40 uppercase">Total Files</span>
                     <span className="text-xl font-bold text-foreground mt-2">{totalTemplates}</span>
@@ -1275,8 +1279,12 @@ export default function AdminDashboard() {
                     <span className="text-xl font-bold text-foreground mt-2">{totalCategories}</span>
                   </div>
                   <div className="border border-border bg-card/15 p-4 flex flex-col justify-between shadow-[0_0_15px_rgba(59,130,246,0.05)]">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Copy Actions (Total)</span>
+                    <span className="text-[10px] text-muted-foreground/40 uppercase">Copy Actions</span>
                     <span className="text-xl font-bold text-primary mt-2">{totalCopies}</span>
+                  </div>
+                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between shadow-[0_0_15px_rgba(239,68,68,0.05)]">
+                    <span className="text-[10px] text-muted-foreground/40 uppercase">Likes (Total)</span>
+                    <span className="text-xl font-bold text-destructive mt-2">{totalLikes}</span>
                   </div>
                   <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
                     <span className="text-[10px] text-muted-foreground/40 uppercase">Avg Copies / File</span>
@@ -1342,6 +1350,7 @@ export default function AdminDashboard() {
                           <th className="py-2 px-3">Filename</th>
                           <th className="py-2 px-3">Folder</th>
                           <th className="py-2.5 px-3 text-right">Copies</th>
+                          <th className="py-2.5 px-3 text-right">Likes</th>
                           <th className="py-2 px-3 text-right pr-6">Status</th>
                         </tr>
                       </thead>
@@ -1358,6 +1367,9 @@ export default function AdminDashboard() {
                               </td>
                               <td className="py-2 px-3 text-right font-bold text-foreground">
                                 {t.copyCount || 0}
+                              </td>
+                              <td className="py-2 px-3 text-right font-bold text-destructive">
+                                {t.likeCount || 0}
                               </td>
                               <td className="py-2 px-3 text-right pr-6 select-none">
                                 <span
