@@ -117,13 +117,27 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
       interface TemplateResult { id: number; title: string; slug: string; description: string; categoryId: number; complexity: string; notes: string | null; tags: string[]; hidden: boolean; codes?: { language: string; code: string }[]; }
       const template = tpl.find((t: TemplateResult) => t.id === Number(id));
       if (template) {
+        // Load notes from .md file if exists, fallback to database
+        let notesContent = template.notes || "";
+        try {
+          const notesRes = await fetch(`/api/admin/notes?slug=${template.slug}`);
+          if (notesRes.ok) {
+            const notesData = await notesRes.json();
+            if (notesData.content) {
+              notesContent = notesData.content;
+            }
+          }
+        } catch {
+          // Fallback to database notes
+        }
+        
         setForm({
           title: template.title,
           slug: template.slug,
           description: template.description,
           categoryId: String(template.categoryId),
           complexity: template.complexity,
-          notes: template.notes || "",
+          notes: notesContent,
           tags: (template.tags || []).join(", "),
           hidden: template.hidden ?? false,
         });
@@ -165,6 +179,19 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
     }
     playClick();
     setSaving(true);
+    
+    // Save notes to .md file
+    try {
+      await fetch("/api/admin/notes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: form.slug, content: form.notes }),
+      });
+    } catch (error) {
+      console.error("Error saving notes file:", error);
+    }
+    
+    // Save template to database
     const res = await fetch("/api/admin/templates", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

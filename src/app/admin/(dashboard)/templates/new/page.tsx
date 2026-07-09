@@ -155,6 +155,20 @@ export default function NewTemplate() {
         codes: codes.filter((c) => c.code.trim()),
       }),
     });
+    
+    // Save notes to .md file if template was created
+    if (res.ok) {
+      try {
+        await fetch("/api/admin/notes", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug: form.slug, content: form.notes }),
+        });
+      } catch (error) {
+        console.error("Error saving notes file:", error);
+      }
+    }
+    
     setSaving(false);
 
     if (res.ok) {

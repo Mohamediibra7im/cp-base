@@ -171,13 +171,18 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
 function BackNav({ href, label }: { href: string; label: string }) {
   return (
-    <Link
-      href={href}
-      className="inline-flex items-center gap-2 px-3 py-1.5 border border-border bg-card text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
-    >
-      <ArrowLeft className="h-3 w-3" />
-      <span className="text-primary/60">$</span>
-      cd {label}
-    </Link>
+    <div className="flex flex-wrap items-center gap-1 font-mono text-xs select-none">
+      <span className="text-primary font-bold">guest@cp-base:</span>
+      <span className="text-muted-foreground/40">~</span>
+      <span className="text-muted-foreground/40">/</span>
+      <Link
+        href={href}
+        className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4"
+      >
+        {label}
+      </Link>
+      <span className="text-primary/60 ml-1 font-bold">$</span>
+      <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
+    </div>
   );
 }

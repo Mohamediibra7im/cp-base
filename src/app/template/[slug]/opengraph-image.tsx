@@ -250,18 +250,7 @@ export default async function TemplateOpengraphImage({
                 {categoryName.toUpperCase()}
               </div>
             )}
-            {templateComplexity && (
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "#06b6d4",
-                  fontWeight: "bold",
-                  display: "flex",
-                }}
-              >
-                {templateComplexity}
-              </div>
-            )}
+
           </div>
         </div>
 
