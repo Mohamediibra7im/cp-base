@@ -217,31 +217,39 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleBulkImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     playClick();
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const text = event.target?.result;
-        if (typeof text !== "string") return;
 
-        let data = JSON.parse(text);
+    const reportItems: {
+      title: string;
+      slug: string;
+      categoryName: string;
+      status: "success" | "error";
+      reason?: string;
+    }[] = [];
+    let totalItemsCount = 0;
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const fileContent = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => resolve(event.target?.result as string);
+          reader.onerror = (err) => reject(err);
+          reader.readAsText(file);
+        });
+
+        let data = JSON.parse(fileContent);
         if (!Array.isArray(data)) {
           data = [data];
         }
 
-        const reportItems: {
-          title: string;
-          slug: string;
-          categoryName: string;
-          status: "success" | "error";
-          reason?: string;
-        }[] = [];
-        let successCount = 0;
-        let failedCount = 0;
+        totalItemsCount += data.length;
 
         for (const item of data) {
           try {
@@ -327,24 +335,29 @@ export default function AdminDashboard() {
             failedCount++;
           }
         }
-
-        playSuccess();
-        setImportSummary({
-          open: true,
-          total: data.length,
-          successCount,
-          failedCount,
-          items: reportItems,
+      } catch (err: any) {
+        reportItems.push({
+          title: file.name,
+          slug: file.name,
+          categoryName: "None",
+          status: "error",
+          reason: `Failed to parse JSON file: ${err.message || "Unknown error"}`,
         });
-
-        fetchTemplates();
-      } catch (err) {
-        playBeep(440, 0.15);
-        toast.error("Failed to process bulk import. Check JSON syntax.");
-        console.error(err);
+        failedCount++;
+        totalItemsCount++;
       }
-    };
-    reader.readAsText(file);
+    }
+
+    playSuccess();
+    setImportSummary({
+      open: true,
+      total: totalItemsCount,
+      successCount,
+      failedCount,
+      items: reportItems,
+    });
+
+    fetchTemplates();
     e.target.value = "";
   };
 
@@ -589,6 +602,7 @@ export default function AdminDashboard() {
                 id="bulk-import-input"
                 className="hidden"
                 onChange={handleBulkImport}
+                multiple
               />
               <label
                 htmlFor="bulk-import-input"
