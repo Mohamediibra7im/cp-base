@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { LanguageTabs } from "@/components/language-tabs";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
-import { ArrowLeft, Clock, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, FileText, UserPlus } from "lucide-react";
 import { readFile } from "fs/promises";
 import { join } from "path";
 
@@ -219,6 +219,29 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
                 })}
               </span>
             </div>
+            {template!.contributorName && (
+              <>
+                <span className="text-border/30">|</span>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span>
+                    contributed by{" "}
+                    {template!.contributorCfHandle ? (
+                      <a
+                        href={`https://codeforces.com/profile/${template!.contributorCfHandle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary font-bold hover:underline underline-offset-4 decoration-primary/40 transition-colors"
+                      >
+                        {template!.contributorName}
+                      </a>
+                    ) : (
+                      <span className="text-primary font-bold">{template!.contributorName}</span>
+                    )}
+                  </span>
+                </div>
+              </>
+            )}
             {notes && (
               <>
                 <span className="text-border/30">|</span>

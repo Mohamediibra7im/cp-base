@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, Fragment } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,8 +32,34 @@ interface Category {
   hidden: boolean;
 }
 
+interface Contribution {
+  id: number;
+  type: "new" | "edit";
+  status: "pending" | "approved" | "rejected";
+  contributorName: string;
+  contributorEmail: string;
+  contributorCfHandle: string | null;
+  title: string | null;
+  slug: string | null;
+  description: string | null;
+  categoryId: number | null;
+  tags: string[] | null;
+  complexity: string | null;
+  notes: string | null;
+  codes: { language: string; code: string }[] | null;
+  templateId: number | null;
+  editReason: string | null;
+  editCodes: { language: string; code: string }[] | null;
+  editNotes: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  category?: { name: string };
+  template?: { title: string; slug: string };
+}
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats">("templates");
+  const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats" | "contributions">("templates");
   
   // Templates State
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -92,6 +118,13 @@ export default function AdminDashboard() {
   });
   const [loadingSettings, setLoadingSettings] = useState(true);
 
+  // Contributions State
+  const [contributions, setContributions] = useState<Contribution[]>([]);
+  const [loadingContributions, setLoadingContributions] = useState(true);
+  const [contribFilter, setContribFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [expandedContribution, setExpandedContribution] = useState<number | null>(null);
+  const [rejectModal, setRejectModal] = useState<{ id: number; adminNote: string } | null>(null);
+
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
 
   // Fetch functions
@@ -121,10 +154,17 @@ export default function AdminDashboard() {
     setLoadingSettings(false);
   };
 
+  const fetchContributions = async () => {
+    const res = await fetch("/api/admin/contributions");
+    if (res.ok) setContributions(await res.json());
+    setLoadingContributions(false);
+  };
+
   useEffect(() => {
     fetchTemplates();
     fetchCategories();
     fetchSettings();
+    fetchContributions();
   }, []);
 
   // Templates action handlers
@@ -535,6 +575,45 @@ export default function AdminDashboard() {
     window.location.href = "/";
   };
 
+  // Contributions action handlers
+  const approveContribution = async (id: number) => {
+    playClick();
+    const res = await fetch("/api/admin/contributions", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "approve" }),
+    });
+    if (res.ok) {
+      playSuccess();
+      toast.success("Contribution approved and published");
+      fetchContributions();
+      fetchTemplates();
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to approve contribution");
+    }
+  };
+
+  const confirmRejectContribution = async () => {
+    if (!rejectModal) return;
+    playClick();
+    const { id, adminNote } = rejectModal;
+    setRejectModal(null);
+    const res = await fetch("/api/admin/contributions", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "reject", adminNote: adminNote.trim() || undefined }),
+    });
+    if (res.ok) {
+      playSuccess();
+      toast.success("Contribution rejected");
+      fetchContributions();
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to reject contribution");
+    }
+  };
+
   const filteredTemplates = useMemo(() => {
     return templates.filter((t) =>
       t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -576,6 +655,16 @@ export default function AdminDashboard() {
   const selectedCount = useMemo(() => {
     return Object.keys(selectedIds).filter((id) => selectedIds[Number(id)]).length;
   }, [selectedIds]);
+
+  const pendingContribCount = useMemo(
+    () => contributions.filter((c) => c.status === "pending").length,
+    [contributions]
+  );
+
+  const filteredContributions = useMemo(() => {
+    if (contribFilter === "all") return contributions;
+    return contributions.filter((c) => c.status === contribFilter);
+  }, [contributions, contribFilter]);
 
   return (
     <div className="space-y-6 font-mono">
@@ -620,6 +709,21 @@ export default function AdminDashboard() {
           }`}
         >
           $ sys-stats --view
+        </button>
+        <button
+          onClick={() => { playClick(); setActiveTab("contributions"); }}
+          className={`px-3 py-1.5 border text-[11px] font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer flex items-center gap-2 ${
+            activeTab === "contributions"
+              ? "border-primary bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]"
+              : "border-border text-muted-foreground/45 hover:text-foreground"
+          }`}
+        >
+          $ review contributions/
+          {pendingContribCount > 0 && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 border border-warning bg-warning/10 text-warning rounded-none normal-case tracking-normal">
+              {pendingContribCount} pending
+            </span>
+          )}
         </button>
       </div>
 
@@ -1419,6 +1523,262 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* VIEW: Contributions Review */}
+      {activeTab === "contributions" && (
+        <div className="space-y-4">
+          {/* Header Action Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-b border-primary/10 pb-4">
+            <div className="text-xs text-muted-foreground/45 flex items-center gap-2">
+              <span className="text-primary font-bold">$</span>
+              <span>review contributions --queue</span>
+              <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["all", "pending", "approved", "rejected"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => { playClick(); setContribFilter(f); }}
+                  className={`px-2.5 py-1 border text-[10px] font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer ${
+                    contribFilter === f
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground/45 hover:text-foreground"
+                  }`}
+                >
+                  [ {f} ]
+                  {f === "pending" && pendingContribCount > 0 && (
+                    <span className="ml-1 text-warning">{pendingContribCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loadingContributions ? (
+            <div className="text-center py-16 text-muted-foreground/45 font-mono text-xs animate-pulse">
+              $ read_queue --status
+              <br />
+              [LOAD] Loading contribution queue...
+            </div>
+          ) : filteredContributions.length === 0 ? (
+            <div className="border border-dashed border-border p-12 text-center text-muted-foreground/50 text-xs">
+              $ ls -la contributions/
+              <br />
+              {contribFilter === "all" ? "total 0 (no submissions found)." : `No ${contribFilter} contributions found.`}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-xs text-muted-foreground/45 select-none">
+                <div className="flex items-center gap-1.5 font-mono">
+                  <span className="text-primary font-bold">$</span>
+                  <span>cat contributions/{contribFilter === "all" ? "*" : contribFilter}.log</span>
+                </div>
+                <span className="font-mono">total {filteredContributions.length} submissions</span>
+              </div>
+
+              <div className="border border-border bg-card/25 overflow-x-auto select-text scrollbar-thin">
+                <table className="w-full text-[11px] text-left border-collapse min-w-[720px] font-mono">
+                  <thead>
+                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase tracking-wider select-none text-[9px]">
+                      <th className="py-2 px-3 w-6"></th>
+                      <th className="py-2 px-3">Contributor</th>
+                      <th className="py-2 px-3">CF Handle</th>
+                      <th className="py-2 px-3">Type</th>
+                      <th className="py-2 px-3">Title</th>
+                      <th className="py-2 px-3">Submitted</th>
+                      <th className="py-2 px-3">Status</th>
+                      <th className="py-2 px-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {filteredContributions.map((c) => {
+                      const isExpanded = expandedContribution === c.id;
+                      const displayTitle = c.type === "edit" ? (c.template?.title || "(unknown template)") : (c.title || "(untitled)");
+                      return (
+                        <Fragment key={c.id}>
+                          <tr
+                            onClick={() => {
+                              playClick();
+                              setExpandedContribution((prev) => (prev === c.id ? null : c.id));
+                            }}
+                            className="hover:bg-primary/[0.02] transition-colors leading-relaxed cursor-pointer select-none"
+                          >
+                            <td className="py-2.5 px-3 text-primary/60 text-[10px] w-6">{isExpanded ? "▼" : "▶"}</td>
+                            <td className="py-2.5 px-3 font-semibold text-foreground">{c.contributorName}</td>
+                            <td className="py-2.5 px-3 text-info">{c.contributorCfHandle || "—"}</td>
+                            <td className="py-2.5 px-3">
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
+                                  c.type === "new"
+                                    ? "border-primary/40 bg-primary/5 text-primary"
+                                    : "border-info/40 bg-info/5 text-info"
+                                }`}
+                              >
+                                {c.type === "new" ? "[ NEW ]" : "[ EDIT ]"}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-foreground/85">{displayTitle}</td>
+                            <td className="py-2.5 px-3 text-muted-foreground/50 text-[10px]">
+                              {new Date(c.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              <span
+                                className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
+                                  c.status === "pending"
+                                    ? "border-warning/40 bg-warning/5 text-warning"
+                                    : c.status === "approved"
+                                    ? "border-primary/40 bg-primary/5 text-primary"
+                                    : "border-destructive/40 bg-destructive/5 text-destructive"
+                                }`}
+                              >
+                                {c.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                              {c.status === "pending" ? (
+                                <div className="flex items-center justify-end gap-2.5 select-none">
+                                  <button
+                                    onClick={() => approveContribution(c.id)}
+                                    className="text-[10px] px-3 py-1.5 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                  >
+                                    [ approve ]
+                                  </button>
+                                  <button
+                                    onClick={() => { playBeep(330, 0.25); setRejectModal({ id: c.id, adminNote: "" }); }}
+                                    className="text-[10px] px-3 py-1.5 border border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
+                                  >
+                                    [ reject ]
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-[9px] text-muted-foreground/40 italic">
+                                  reviewed {c.reviewedAt ? new Date(c.reviewedAt).toLocaleDateString() : ""}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr key={`${c.id}-details`} className="bg-black/15">
+                              <td colSpan={8} className="p-0">
+                                <div className="border-t border-border/40 p-4 space-y-4 select-text">
+                                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-[10px] text-muted-foreground/60">
+                                    <span>
+                                      <span className="text-primary/60 font-bold">email:</span> {c.contributorEmail}
+                                    </span>
+                                    <span>
+                                      <span className="text-primary/60 font-bold">submitted:</span>{" "}
+                                      {new Date(c.createdAt).toLocaleString()}
+                                    </span>
+                                    {c.adminNote && (
+                                      <span>
+                                        <span className="text-destructive/70 font-bold">admin note:</span> {c.adminNote}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {c.type === "new" ? (
+                                    <div className="space-y-3">
+                                      {c.category?.name && (
+                                        <div className="text-[10px]">
+                                          <span className="text-primary/60 font-bold uppercase tracking-widest">Category: </span>
+                                          <span className="text-info font-bold">{c.category.name}</span>
+                                        </div>
+                                      )}
+                                      {c.description && (
+                                        <div className="space-y-1">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Description</div>
+                                          <div className="text-xs text-foreground/85 leading-relaxed">{c.description}</div>
+                                        </div>
+                                      )}
+                                      {c.complexity && (
+                                        <div className="text-[10px]">
+                                          <span className="text-primary/60 font-bold uppercase tracking-widest">Complexity: </span>
+                                          <span className="text-foreground/85 font-mono">{c.complexity}</span>
+                                        </div>
+                                      )}
+                                      {c.tags && c.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                          {c.tags.map((tag) => (
+                                            <span key={tag} className="text-[8px] text-muted-foreground/50 border border-border/40 px-1 py-0 select-none">
+                                              #{tag}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {c.notes && (
+                                        <div className="space-y-1">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Notes</div>
+                                          <div className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap border border-border/40 bg-card/20 p-3">{c.notes}</div>
+                                        </div>
+                                      )}
+                                      {c.codes && c.codes.length > 0 && (
+                                        <div className="space-y-2">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Code Blocks</div>
+                                          {c.codes.map((blk, idx) => (
+                                            <div key={idx} className="border border-border/50 bg-black/25 overflow-hidden">
+                                              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/40 bg-primary/5 text-[9px] uppercase tracking-wider">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
+                                                <span className="ml-1 text-primary/70 font-bold">{blk.language}</span>
+                                              </div>
+                                              <pre className="p-3 text-[10px] text-foreground/85 overflow-x-auto scrollbar-thin leading-relaxed whitespace-pre">{blk.code}</pre>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <div className="text-[10px]">
+                                        <span className="text-primary/60 font-bold uppercase tracking-widest">Target Template: </span>
+                                        <span className="text-info font-bold">{c.template?.title || "(unknown)"}</span>
+                                        {c.template?.slug && <span className="text-muted-foreground/45"> ({c.template.slug})</span>}
+                                      </div>
+                                      {c.editReason && (
+                                        <div className="space-y-1">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Edit Reason</div>
+                                          <div className="text-xs text-foreground/85 leading-relaxed">{c.editReason}</div>
+                                        </div>
+                                      )}
+                                      {c.editNotes && (
+                                        <div className="space-y-1">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Proposed Notes</div>
+                                          <div className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap border border-border/40 bg-card/20 p-3">{c.editNotes}</div>
+                                        </div>
+                                      )}
+                                      {c.editCodes && c.editCodes.length > 0 && (
+                                        <div className="space-y-2">
+                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Proposed Code Blocks</div>
+                                          {c.editCodes.map((blk, idx) => (
+                                            <div key={idx} className="border border-border/50 bg-black/25 overflow-hidden">
+                                              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/40 bg-primary/5 text-[9px] uppercase tracking-wider">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
+                                                <span className="ml-1 text-primary/70 font-bold">{blk.language}</span>
+                                              </div>
+                                              <pre className="p-3 text-[10px] text-foreground/85 overflow-x-auto scrollbar-thin leading-relaxed whitespace-pre">{blk.code}</pre>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Retro Delete warning modal overlay (Templates) */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
@@ -1552,6 +1912,56 @@ export default function AdminDashboard() {
               >
                 <span>[ ENTER ]</span>
                 <span>Force Purge Folder</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Contribution retro modal dialog overlay */}
+      {rejectModal && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider select-none">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+                <span>✖ [ REJECT_CONTRIBUTION.SH ]</span>
+              </div>
+              <span>REVIEW_SYS_V1</span>
+            </div>
+            <div className="p-6 space-y-4 text-xs select-text">
+              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
+                You are about to reject this contribution. The submitter will be notified via email. You may include an optional note explaining the decision.
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">
+                  Admin Note (optional)
+                </label>
+                <textarea
+                  value={rejectModal.adminNote}
+                  onChange={(e) => setRejectModal((prev) => (prev ? { ...prev, adminNote: e.target.value } : prev))}
+                  placeholder="Reason for rejection..."
+                  rows={4}
+                  className="w-full bg-background/40 border border-border focus:border-primary/50 focus:outline-none text-xs font-mono p-2 rounded-none resize-none placeholder:text-muted-foreground/25 text-foreground"
+                />
+              </div>
+            </div>
+            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px] select-none">
+              <button
+                type="button"
+                onClick={() => { playClick(); setRejectModal(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
+              >
+                <span>[ ESC ]</span>
+                <span>Cancel</span>
+              </button>
+              <button
+                type="button"
+                onClick={confirmRejectContribution}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
+              >
+                <span>[ ENTER ]</span>
+                <span>Reject Submission</span>
               </button>
             </div>
           </div>

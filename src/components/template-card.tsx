@@ -44,11 +44,18 @@ export function TemplateCard({ template }: { template: TemplateWithCategory }) {
 
           {/* Category */}
           <div className="flex items-center justify-between mb-2 text-[10px]">
-            {template.category && (
-              <span className="text-info font-bold">
-                [{template.category.name}]
-              </span>
-            )}
+            <div className="flex items-center gap-1.5 min-w-0">
+              {template.category && (
+                <span className="text-info font-bold">
+                  [{template.category.name}]
+                </span>
+              )}
+              {template.contributorName && (
+                <span className="text-[9px] text-muted-foreground/40 truncate select-none">
+                  by {template.contributorName}
+                </span>
+              )}
+            </div>
             {(template.likeCount ?? 0) > 0 && (
               <span className="flex items-center gap-1 text-[9px] text-destructive font-mono select-none">
                 <Heart className="h-2.5 w-2.5 fill-destructive text-destructive" />

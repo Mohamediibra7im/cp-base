@@ -1,0 +1,95 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Terminal, Plus, Edit } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Contribute",
+  description: "Submit new competitive programming templates or request edits to existing ones. Help grow the CP-Base library.",
+};
+
+export default function ContributePage() {
+  return (
+    <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
+      {/* Breadcrumb */}
+      <div className="flex flex-wrap items-center gap-1 mb-8 text-xs select-none">
+        <span className="text-primary font-bold">guest@cp-base:</span>
+        <span className="text-muted-foreground/40">~</span>
+        <span className="text-muted-foreground/40">/</span>
+        <Link href="/" className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4">
+          home
+        </Link>
+        <span className="text-muted-foreground/40">/</span>
+        <span className="text-foreground font-bold">contribute</span>
+        <span className="text-primary/60 ml-1 font-bold">$</span>
+        <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
+      </div>
+
+      {/* Header */}
+      <div className="border border-border/80 bg-card/45 backdrop-blur-md p-6 mb-8 relative overflow-hidden">
+        <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-2xl" />
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground/50 mb-3">
+          <span className="text-primary font-bold">$</span>
+          <span>contribute --help</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary glow-text-strong mb-3">
+          Contribute to CP-Base
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground/65 leading-relaxed max-w-xl">
+          Help grow the competitive programming template library. Submit new templates or suggest improvements to existing ones.
+          All contributions are reviewed before publishing.
+        </p>
+      </div>
+
+      {/* Options */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link href="/contribute/new" className="group block">
+          <div className="border border-border bg-card/25 hover:border-primary/50 hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 p-6 h-full">
+            <div className="flex items-center gap-1.5 mb-4">
+              <div className="flex gap-1 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
+              </div>
+              <span className="text-[9px] text-muted-foreground/30">new_template.sh</span>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Plus className="h-5 w-5 text-primary" />
+              <h2 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Submit New Template</h2>
+            </div>
+            <p className="text-[11px] text-muted-foreground/45 leading-relaxed mb-4">
+              Submit a new algorithm or data structure template with code implementations and notes.
+            </p>
+            <div className="text-[10px] text-muted-foreground/30 group-hover:text-primary transition-colors flex items-center gap-1">
+              <span className="text-primary/50">$</span> ./submit_new.sh
+              <span className="inline-block h-2.5 w-1 bg-primary animate-blink opacity-0 group-hover:opacity-100" />
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/contribute/edit" className="group block">
+          <div className="border border-border bg-card/25 hover:border-primary/50 hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 p-6 h-full">
+            <div className="flex items-center gap-1.5 mb-4">
+              <div className="flex gap-1 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
+                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
+              </div>
+              <span className="text-[9px] text-muted-foreground/30">edit_request.sh</span>
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <Edit className="h-5 w-5 text-info" />
+              <h2 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Request Edit</h2>
+            </div>
+            <p className="text-[11px] text-muted-foreground/45 leading-relaxed mb-4">
+              Suggest improvements, fixes, or optimizations to an existing template in the library.
+            </p>
+            <div className="text-[10px] text-muted-foreground/30 group-hover:text-primary transition-colors flex items-center gap-1">
+              <span className="text-primary/50">$</span> ./request_edit.sh
+              <span className="inline-block h-2.5 w-1 bg-primary animate-blink opacity-0 group-hover:opacity-100" />
+            </div>
+          </div>
+        </Link>
+      </div>
+    </div>
+  );
+}

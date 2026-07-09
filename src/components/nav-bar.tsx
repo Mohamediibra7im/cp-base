@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Terminal, Search, X, Braces, Library, Menu } from "lucide-react";
+import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
 import {
   Sheet,
@@ -210,6 +210,21 @@ export function NavBar() {
                     <span className="absolute bottom-0 left-3 right-3 h-px bg-primary" />
                   )}
                 </Link>
+                <Link
+                  href="/contribute"
+                  onClick={playClick}
+                  className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wide uppercase transition-colors ${
+                    isActive("/contribute")
+                      ? "text-primary"
+                      : "text-muted-foreground/40 hover:text-foreground"
+                  }`}
+                >
+                  <GitPullRequest className="h-3 w-3" />
+                  <span>contribute</span>
+                  {isActive("/contribute") && (
+                    <span className="absolute bottom-0 left-3 right-3 h-px bg-primary" />
+                  )}
+                </Link>
               </nav>
             </div>
 
@@ -301,6 +316,21 @@ export function NavBar() {
                       >
                         <Library className="h-3.5 w-3.5" />
                         <span>templates</span>
+                      </Link>
+                      <Link
+                        href="/contribute"
+                        onClick={() => {
+                          playClick();
+                          setOpen(false);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                          isActive("/contribute")
+                            ? "border-primary/20 bg-primary/5 text-primary"
+                            : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                        }`}
+                      >
+                        <GitPullRequest className="h-3.5 w-3.5" />
+                        <span>contribute</span>
                       </Link>
                     </nav>
 
