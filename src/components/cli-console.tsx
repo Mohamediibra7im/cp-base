@@ -263,6 +263,7 @@ export function CliConsole() {
     <>
       {/* Small floating toggle button for the terminal */}
       {!isOpen && (
+        <>
         <button
           onClick={() => {
             playClick();
@@ -282,6 +283,7 @@ export function CliConsole() {
         >
           <TerminalIcon className="h-4.5 w-4.5" />
         </button>
+        </>
       )}
 
       <AnimatePresence>
