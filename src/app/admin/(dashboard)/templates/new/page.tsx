@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Wand2, Upload } from "lucide-react";
 import Link from "next/link";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { CategoryCreator } from "@/components/category-creator";
@@ -103,6 +103,64 @@ export default function NewTemplate() {
   const fetchCategories = useCallback(() => {
     fetch("/api/admin/categories").then((r) => r.json()).then(setCategories);
   }, []);
+
+  const handleJsonImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    playClick();
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result;
+        if (typeof text !== "string") return;
+
+        const data = JSON.parse(text);
+
+        // Find category ID by categorySlug
+        let matchedCategoryId = "";
+        if (data.categorySlug) {
+          const match = categories.find(
+            (c) => c.slug.toLowerCase() === data.categorySlug.toLowerCase()
+          );
+          if (match) {
+            matchedCategoryId = String(match.id);
+          }
+        }
+
+        setForm({
+          title: data.title || "",
+          slug: data.slug || "",
+          description: data.description || "",
+          categoryId: matchedCategoryId || String(data.categoryId || ""),
+          complexity: "",
+          notes: data.notes || "",
+          tags: Array.isArray(data.tags) ? data.tags.join(", ") : (data.tags || ""),
+          hidden: !!data.hidden,
+        });
+
+        if (Array.isArray(data.codes)) {
+          setCodes(
+            data.codes.map((c: any) => ({
+              language: c.language || "cpp",
+              code: c.code || "",
+            }))
+          );
+        } else if (data.code) {
+          setCodes([{ language: data.language || "cpp", code: data.code }]);
+        }
+
+        playSuccess();
+        toast.success("JSON template imported successfully!");
+      } catch (err) {
+        playBeep(440, 0.15);
+        toast.error("Failed to parse JSON file.");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -228,34 +286,54 @@ export default function NewTemplate() {
       {/* Main BIOS border frame wrapper */}
       <div className="border border-primary/20 bg-card/40 shadow-sm overflow-hidden">
         {/* Tabs Bar */}
-        <div className="flex border-b border-primary/20 bg-primary/5 select-none text-[11px]">
-          <button
-            type="button"
-            onClick={() => { playClick(); setActiveTab("main"); setFocusedField("default"); }}
-            className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
-              activeTab === "main" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            [ Main Settings ]
-          </button>
-          <button
-            type="button"
-            onClick={() => { playClick(); setActiveTab("notes"); setFocusedField("notes"); }}
-            className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
-              activeTab === "notes" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            [ Notes / Docs ]
-          </button>
-          <button
-            type="button"
-            onClick={() => { playClick(); setActiveTab("code"); setFocusedField("code"); }}
-            className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
-              activeTab === "code" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
-            }`}
-          >
-            [ Source Code ]
-          </button>
+        <div className="flex flex-wrap items-center justify-between border-b border-primary/20 bg-primary/5 select-none text-[11px]">
+          <div className="flex">
+            <button
+              type="button"
+              onClick={() => { playClick(); setActiveTab("main"); setFocusedField("default"); }}
+              className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
+                activeTab === "main" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+              }`}
+            >
+              [ Main Settings ]
+            </button>
+            <button
+              type="button"
+              onClick={() => { playClick(); setActiveTab("notes"); setFocusedField("notes"); }}
+              className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
+                activeTab === "notes" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+              }`}
+            >
+              [ Notes / Docs ]
+            </button>
+            <button
+              type="button"
+              onClick={() => { playClick(); setActiveTab("code"); setFocusedField("code"); }}
+              className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold ${
+                activeTab === "code" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+              }`}
+            >
+              [ Source Code ]
+            </button>
+          </div>
+
+          {/* Import JSON button */}
+          <div className="px-4 py-1.5 shrink-0 flex items-center gap-2">
+            <input
+              type="file"
+              accept=".json"
+              id="json-import-input"
+              className="hidden"
+              onChange={handleJsonImport}
+            />
+            <Label
+              htmlFor="json-import-input"
+              className="inline-flex items-center gap-1.5 px-3 py-1 border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider cursor-pointer font-mono select-none"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              <span>Import JSON</span>
+            </Label>
+          </div>
         </div>
 
         {/* Dynamic Dual-Pane Settings Body */}
