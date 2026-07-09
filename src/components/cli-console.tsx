@@ -268,10 +268,19 @@ export function CliConsole() {
             playClick();
             setIsOpen(true);
           }}
-          className="fixed bottom-4 left-4 z-50 flex items-center gap-2 px-3 h-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer text-xs font-mono"
+          className="fixed bottom-4 left-4 sm:flex items-center gap-2 px-3 h-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer text-xs font-mono z-50 hidden"
         >
           <TerminalIcon className="h-4 w-4" />
           <span>CON: CLOSED</span>
+        </button>
+        <button
+          onClick={() => {
+            playClick();
+            setIsOpen(true);
+          }}
+          className="fixed bottom-16 right-4 flex sm:hidden items-center justify-center h-9 w-9 border border-primary bg-card/90 text-primary shadow-[0_0_10px_var(--primary-glow-weak)] hover:shadow-[0_0_15px_var(--primary-glow)] transition-all hover:bg-primary/10 rounded-none cursor-pointer z-50"
+        >
+          <TerminalIcon className="h-4.5 w-4.5" />
         </button>
       )}
 
