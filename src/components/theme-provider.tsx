@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type TerminalThemeType = "green" | "amber" | "cyan" | "red" | "purple";
+export type TerminalThemeType = "green" | "amber" | "cyan" | "red" | "purple" | "mono";
 
 interface TerminalThemeContextValue {
   theme: TerminalThemeType;
@@ -46,7 +46,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Load from local storage
   useEffect(() => {
     const storedTheme = localStorage.getItem("terminal-theme") as TerminalThemeType;
-    if (storedTheme && ["green", "amber", "cyan", "red", "purple"].includes(storedTheme)) {
+    if (storedTheme && ["green", "amber", "cyan", "red", "purple", "mono"].includes(storedTheme)) {
       setThemeState(storedTheme);
     }
 

@@ -31,7 +31,8 @@ export function RetroSettings() {
     { id: "amber", name: "AMBER", color: "#f59e0b" },
     { id: "cyan", name: "CYAN", color: "#06b6d4" },
     { id: "red", name: "V-BOY", color: "#ef4444" },
-    { id: "purple", name: "SYNTH", color: "#a855f7" }
+    { id: "purple", name: "SYNTH", color: "#a855f7" },
+    { id: "mono", name: "MONO", color: "#ffffff" }
   ];
 
   return (

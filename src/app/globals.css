@@ -254,6 +254,46 @@ html[data-terminal-theme="purple"] {
   --grid-line: rgba(168, 85, 247, 0.04);
 }
 
+html[data-terminal-theme="mono"] {
+  --background: #050505;
+  --foreground: #e5e5e5;
+  --card: #0f0f0f;
+  --card-foreground: #e5e5e5;
+  --popover: #0f0f0f;
+  --popover-foreground: #e5e5e5;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #1e1e1e;
+  --secondary-foreground: #f5f5f5;
+  --muted: #1e1e1e;
+  --muted-foreground: #a3a3a3;
+  --accent: #404040;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #2d2d2d;
+  --input: #2d2d2d;
+  --ring: #ffffff;
+  --chart-1: #ffffff;
+  --chart-2: #a3a3a3;
+  --chart-3: #737373;
+  --chart-4: #525252;
+  --chart-5: #262626;
+  --radius: 0;
+  --sidebar: #050505;
+  --sidebar-foreground: #e5e5e5;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1e1e1e;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2d2d2d;
+  --sidebar-ring: #ffffff;
+
+  --primary-glow: rgba(255, 255, 255, 0.4);
+  --primary-glow-weak: rgba(255, 255, 255, 0.18);
+  --primary-glow-ultra-weak: rgba(255, 255, 255, 0.07);
+  --grid-line: rgba(255, 255, 255, 0.03);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
