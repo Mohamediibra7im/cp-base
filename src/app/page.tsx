@@ -5,6 +5,7 @@ import { HeroSection } from "@/components/hero-section";
 import { Braces, Terminal } from "lucide-react";
 import Link from "next/link";
 import { CPProfiles } from "@/components/cp-profiles";
+import { ContestCalendar } from "@/components/contest-calendar";
 import { AnimateOnMount } from "@/components/animate-on-mount";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export default async function Home() {
   let totalTemplates = 0;
   let showHero = true;
   let showProfiles = true;
+  let showContests = true;
   let showCategories = true;
 
   try {
@@ -42,6 +44,7 @@ export default async function Home() {
     const settings = Object.fromEntries(settingsRows.map((r) => [r.key, r.value === "true"]));
     showHero = settings["show_hero_section"] !== false;
     showProfiles = settings["show_profiles_section"] !== false;
+    showContests = settings["show_contests_section"] !== false;
     showCategories = settings["show_categories_section"] !== false;
 
     cats = await db.query.categories.findMany({
@@ -102,6 +105,31 @@ export default async function Home() {
               </div>
 
               <CPProfiles />
+            </div>
+          </section>
+        </AnimateOnMount>
+      )}
+
+      {/* Contests Section */}
+      {showContests && (
+        <AnimateOnMount delay={500}>
+          <section id="contests" className="relative border-b border-border bg-muted/5">
+            <div className="relative mx-auto max-w-7xl px-4 py-16 sm:py-20">
+              {/* Section header */}
+              <div className="mb-10">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 font-mono">
+                  <span className="text-primary font-bold">$</span>
+                  <span className="text-foreground font-bold">ls contests/ --active</span>
+                  <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink ml-1" />
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
+                  <span className="flex items-center gap-1.5 text-muted-foreground/50">
+                    Live and upcoming competitive programming schedules monitor.
+                  </span>
+                </div>
+              </div>
+
+              <ContestCalendar />
             </div>
           </section>
         </AnimateOnMount>

@@ -87,6 +87,7 @@ export default function AdminDashboard() {
   const [sections, setSections] = useState({
     show_hero_section: true,
     show_profiles_section: true,
+    show_contests_section: true,
     show_categories_section: true,
   });
   const [loadingSettings, setLoadingSettings] = useState(true);
@@ -113,6 +114,7 @@ export default function AdminDashboard() {
       setSections({
         show_hero_section: data.show_hero_section !== "false",
         show_profiles_section: data.show_profiles_section !== "false",
+        show_contests_section: data.show_contests_section !== "false",
         show_categories_section: data.show_categories_section !== "false",
       });
     }
@@ -1178,6 +1180,29 @@ export default function AdminDashboard() {
                       <td className="py-3 px-3 text-right select-none">
                         <button
                           onClick={() => toggleSection("show_profiles_section")}
+                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
+                        >
+                          [toggle_visibility]
+                        </button>
+                      </td>
+                    </tr>
+
+                    {/* Contests Section */}
+                    <tr className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
+                      <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
+                      <td className="py-3 px-3 text-muted-foreground/45 font-mono select-none">/ (home)</td>
+                      <td className="py-3 px-3 font-semibold text-foreground">contests_section</td>
+                      <td className="py-3 px-3 text-muted-foreground/60">Live and upcoming competitive programming schedules widget</td>
+                      <td className="py-3 px-3 select-none">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
+                          sections.show_contests_section ? "border-primary bg-primary/5 text-primary" : "border-destructive bg-destructive/5 text-destructive"
+                        }`}>
+                          {sections.show_contests_section ? "ACTIVE" : "HIDDEN"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right select-none">
+                        <button
+                          onClick={() => toggleSection("show_contests_section")}
                           className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
                         >
                           [toggle_visibility]

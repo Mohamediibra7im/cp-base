@@ -43,10 +43,11 @@ export function CodeBlock({ code: originalCode, language, templateId }: { code: 
     const lang = langMap[language] || "cpp";
     getHighlighter().then((hl) => {
       const isDark = document.documentElement.classList.contains("dark");
-      const themed = hl.codeToHtml(code, {
+      let themed = hl.codeToHtml(code, {
         lang,
         theme: isDark ? "github-dark" : "github-light",
       });
+      themed = themed.replace(/(<span class="line"><\/span>\s*)+(<\/code>)/, "$2");
       setHtml(themed);
     });
   }, [code, language]);
