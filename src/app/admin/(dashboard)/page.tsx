@@ -1,12 +1,18 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, Fragment } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, LogOut, Terminal, FileCode, FolderOpen, Folder, Upload } from "lucide-react";
+import { Plus, Search, LogOut, Terminal, FolderOpen, Folder, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useTerminalTheme } from "@/components/theme-provider";
+import { RetroConfirmModal, RetroModal } from "@/components/terminal";
+import { TemplateFileTable } from "./_components/template-file-table";
+import { CategoriesTab } from "./_components/categories-tab";
+import { SectionsTab } from "./_components/sections-tab";
+import { StatsTab } from "./_components/stats-tab";
+import { ContributionsTab } from "./_components/contributions-tab";
 
 interface Template {
   id: number;
@@ -893,96 +899,21 @@ export default function AdminDashboard() {
                               total 0 files
                             </div>
                           ) : (
-                            <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
-                              <thead>
-                                <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
-                                  <th className="py-2 px-3 w-8">
-                                    <input
-                                      type="checkbox"
-                                      checked={list.length > 0 && list.every((t) => selectedIds[t.id])}
-                                      onChange={(e) => {
-                                        playClick();
-                                        const checked = e.target.checked;
-                                        setSelectedIds((prev) => {
-                                          const next = { ...prev };
-                                          list.forEach((t) => {
-                                            next[t.id] = checked;
-                                          });
-                                          return next;
-                                        });
-                                      }}
-                                      className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
-                                    />
-                                  </th>
-                                  <th className="py-2 px-3">Permissions</th>
-                                  <th className="py-2 px-3">Filename</th>
-                                  <th className="py-2 px-3">Tags</th>
-                                  <th className="py-2 px-3 select-none">Status</th>
-                                  <th className="py-2 px-3 text-right">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-border/20">
-                                {list.map((t) => (
-                                  <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
-                                    <td className="py-2 px-3 w-8 select-none">
-                                      <input
-                                        type="checkbox"
-                                        checked={!!selectedIds[t.id]}
-                                        onChange={(e) => {
-                                          playClick();
-                                          setSelectedIds((prev) => ({ ...prev, [t.id]: e.target.checked }));
-                                        }}
-                                        className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
-                                      />
-                                    </td>
-                                    <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
-                                    <td className="py-2 px-3 font-semibold">
-                                      <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
-                                        <FileCode className="h-3.5 w-3.5 text-primary/60 shrink-0" />
-                                        <span>{t.slug}.cpp</span>
-                                      </Link>
-                                    </td>
-                                    <td className="py-2 px-3">
-                                      <div className="flex flex-wrap gap-1 max-w-[250px]">
-                                        {t.tags.map((tag) => (
-                                          <span key={tag} className="text-[8px] text-muted-foreground/40 border border-border/30 px-1 py-0 select-none">
-                                            #{tag}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </td>
-                                    <td className="py-2 px-3">
-                                      <button
-                                        onClick={() => toggleTemplateVisibility(t)}
-                                        className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
-                                          t.hidden
-                                            ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
-                                            : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
-                                        }`}
-                                      >
-                                        {t.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
-                                      </button>
-                                    </td>
-                                    <td className="py-2 px-3 text-right">
-                                      <div className="flex items-center justify-end gap-2.5 select-none font-mono">
-                                        <Link
-                                          href={`/admin/templates/${t.id}/edit`}
-                                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5 inline-block font-mono"
-                                        >
-                                          [edit]
-                                        </Link>
-                                        <button
-                                          onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
-                                          className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
-                                        >
-                                          [delete]
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                            <TemplateFileTable
+                              list={list}
+                              selectedIds={selectedIds}
+                              onRowClickSound={playClick}
+                              onToggleSelectAll={(checked) =>
+                                setSelectedIds((prev) => {
+                                  const next = { ...prev };
+                                  list.forEach((t) => { next[t.id] = checked; });
+                                  return next;
+                                })
+                              }
+                              onToggleSelect={(id, checked) => setSelectedIds((prev) => ({ ...prev, [id]: checked }))}
+                              onToggleVisibility={toggleTemplateVisibility}
+                              onDelete={(t) => { playBeep(330, 0.25); setDeleteTarget(t); }}
+                            />
                           )}
                         </div>
                       )}
@@ -1012,96 +943,21 @@ export default function AdminDashboard() {
 
                     {expandedCats["unassigned"] && (
                       <div className="border-t border-border/50 p-3 bg-black/10 overflow-x-auto scrollbar-thin">
-                        <table className="w-full text-[11px] text-left border-collapse min-w-[650px] font-mono">
-                          <thead>
-                            <tr className="border-b border-primary/20 text-primary/50 font-bold uppercase tracking-wider text-[9px] select-none">
-                              <th className="py-2 px-3 w-8">
-                                <input
-                                  type="checkbox"
-                                  checked={templatesByCategory["unassigned"].every((t) => selectedIds[t.id])}
-                                  onChange={(e) => {
-                                    playClick();
-                                    const checked = e.target.checked;
-                                    setSelectedIds((prev) => {
-                                      const next = { ...prev };
-                                      templatesByCategory["unassigned"].forEach((t) => {
-                                        next[t.id] = checked;
-                                      });
-                                      return next;
-                                    });
-                                  }}
-                                  className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
-                                />
-                              </th>
-                              <th className="py-2 px-3">Permissions</th>
-                              <th className="py-2 px-3">Filename</th>
-                              <th className="py-2 px-3">Tags</th>
-                              <th className="py-2 px-3 select-none">Status</th>
-                              <th className="py-2 px-3 text-right">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border/20">
-                            {templatesByCategory["unassigned"].map((t) => (
-                              <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
-                                <td className="py-2 px-3 w-8 select-none">
-                                  <input
-                                    type="checkbox"
-                                    checked={!!selectedIds[t.id]}
-                                    onChange={(e) => {
-                                      playClick();
-                                      setSelectedIds((prev) => ({ ...prev, [t.id]: e.target.checked }));
-                                    }}
-                                    className="cursor-pointer accent-primary h-3 w-3 bg-background border border-border/80 rounded-none focus:ring-0"
-                                  />
-                                </td>
-                                <td className="py-2 px-3 text-muted-foreground/35 select-none">-rwxr-xr-x</td>
-                                <td className="py-2 px-3 font-semibold">
-                                  <Link href={`/admin/templates/${t.id}/edit`} className="text-foreground hover:text-primary transition-colors flex items-center gap-1.5">
-                                    <FileCode className="h-3.5 w-3.5 text-primary/60 shrink-0" />
-                                    <span>{t.slug}.cpp</span>
-                                  </Link>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <div className="flex flex-wrap gap-1 max-w-[250px]">
-                                    {t.tags.map((tag) => (
-                                      <span key={tag} className="text-[8px] text-muted-foreground/40 border border-border/30 px-1 py-0 select-none">
-                                        #{tag}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </td>
-                                <td className="py-2 px-3">
-                                  <button
-                                    onClick={() => toggleTemplateVisibility(t)}
-                                    className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
-                                      t.hidden
-                                        ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
-                                        : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
-                                    }`}
-                                  >
-                                    {t.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
-                                  </button>
-                                </td>
-                                <td className="py-2 px-3 text-right">
-                                  <div className="flex items-center justify-end gap-2.5 select-none">
-                                    <Link
-                                      href={`/admin/templates/${t.id}/edit`}
-                                      className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5 inline-block font-mono"
-                                    >
-                                      [edit]
-                                    </Link>
-                                    <button
-                                      onClick={() => { playBeep(330, 0.25); setDeleteTarget(t); }}
-                                      className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
-                                    >
-                                      [delete]
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                        <TemplateFileTable
+                          list={templatesByCategory["unassigned"]}
+                          selectedIds={selectedIds}
+                          onRowClickSound={playClick}
+                          onToggleSelectAll={(checked) =>
+                            setSelectedIds((prev) => {
+                              const next = { ...prev };
+                              templatesByCategory["unassigned"].forEach((t) => { next[t.id] = checked; });
+                              return next;
+                            })
+                          }
+                          onToggleSelect={(id, checked) => setSelectedIds((prev) => ({ ...prev, [id]: checked }))}
+                          onToggleVisibility={toggleTemplateVisibility}
+                          onDelete={(t) => { playBeep(330, 0.25); setDeleteTarget(t); }}
+                        />
                       </div>
                     )}
                   </div>
@@ -1113,936 +969,113 @@ export default function AdminDashboard() {
       )}
 
       {/* VIEW: Categories */}
-      {activeTab === "categories" && (
-        <div className="space-y-4">
-          {/* Header Action Bar */}
-          <div className="flex justify-between items-center border-b border-primary/10 pb-4">
-            <div className="text-xs text-muted-foreground/45 flex items-center gap-2">
-              <span className="text-primary font-bold">$</span>
-              <span>categories --configure</span>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={newCategory}
-                className="font-mono text-xs h-9 px-4 rounded-none tracking-wider uppercase border border-primary bg-primary/10 text-primary hover:bg-primary/20"
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                <span>[ new_category.sh ]</span>
-              </Button>
-            </div>
-          </div>
-
-          {loadingCategories ? (
-            <div className="text-center py-16 text-muted-foreground/45 font-mono text-xs animate-pulse">
-              $ read_categories --status
-              <br />
-              [LOAD] Loading category directories...
-            </div>
-          ) : categories.length === 0 ? (
-            <div className="border border-dashed border-border p-12 text-center text-muted-foreground/50 text-xs">
-              total 0 (no categories found).
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground/40">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-primary font-bold">$</span>
-                  <span>ls -la categories/</span>
-                  <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
-                </div>
-                <span>total {categories.length} folders</span>
-              </div>
-
-              <div className="border border-border bg-card/25 overflow-x-auto select-text scrollbar-thin">
-                <table className="w-full text-[11px] text-left border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase tracking-wider select-none text-[10px]">
-                      <th className="py-2.5 px-3">Permissions</th>
-                      <th className="py-2.5 px-3 text-right">Order</th>
-                      <th className="py-2.5 px-3">Color</th>
-                      <th className="py-2.5 px-3">Icon</th>
-                      <th className="py-2.5 px-3">Slug</th>
-                      <th className="py-2.5 px-3">Folder Name</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/30">
-                    {categories.map((c) => {
-                      return (
-                        <tr key={c.id} className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                          <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">drwxr-xr-x</td>
-                          <td className="py-3 px-3 text-right font-mono text-muted-foreground/55">{c.order}</td>
-                          <td className="py-3 px-3 select-none">
-                            <span className="flex items-center gap-1">
-                              <span className="h-2 w-2 border border-border" style={{ backgroundColor: c.color }} />
-                              <span className="text-[10px] text-muted-foreground/45">{c.color}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-muted-foreground/75 font-mono">{c.icon}</td>
-                          <td className="py-3 px-3 text-muted-foreground/50">{c.slug}/</td>
-                          <td className="py-3 px-3 font-semibold text-foreground">
-                            <span className="flex items-center gap-1.5">
-                              <Folder className="h-3.5 w-3.5 text-info shrink-0" />
-                              {c.name}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 select-none">
-                            <button
-                              onClick={() => toggleCategoryVisibility(c)}
-                              className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none cursor-pointer transition-all ${
-                                c.hidden
-                                  ? "border-destructive/40 bg-destructive/5 text-destructive/80 hover:bg-destructive/15"
-                                  : "border-primary/40 bg-primary/5 text-primary/80 hover:bg-primary/15"
-                              }`}
-                            >
-                              {c.hidden ? "[ HIDDEN ]" : "[ VISIBLE ]"}
-                            </button>
-                          </td>
-                          <td className="py-3 px-3 text-right">
-                            <div className="flex items-center justify-end gap-2.5 select-none">
-                              <button
-                                onClick={() => editCategory(c)}
-                                className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
-                              >
-                                [edit]
-                              </button>
-                              <button
-                                onClick={() => { playBeep(330, 0.25); setDeleteCategoryTarget(c); }}
-                                className="text-[10px] text-muted-foreground/45 hover:text-destructive transition-colors cursor-pointer border border-transparent hover:border-destructive/20 px-1.5 py-0.5"
-                              >
-                                [delete]
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === "categories" && <CategoriesTab categories={categories} loadingCategories={loadingCategories} onNew={newCategory} onEdit={editCategory} onToggleVisibility={toggleCategoryVisibility} onDelete={(c) => { playBeep(330, 0.25); setDeleteCategoryTarget(c); }} />}
 
       {/* VIEW: Homepage Sections */}
-      {activeTab === "sections" && (
-        <div className="space-y-4">
-          <div className="text-xs text-muted-foreground/45 border-b border-primary/10 pb-4">
-            <span className="text-primary font-bold">$</span>
-            <span>homepage --configure --sections</span>
-          </div>
-
-          {loadingSettings ? (
-            <div className="text-center py-16 text-muted-foreground/45 font-mono text-xs animate-pulse">
-              $ get_settings --status
-              <br />
-              [LOAD] Loading site settings...
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground/40">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-primary font-bold">$</span>
-                  <span>ls -la /site-sections/</span>
-                  <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
-                </div>
-              </div>
-
-              <div className="border border-border bg-card/25 overflow-x-auto select-text scrollbar-thin">
-                <table className="w-full text-[11px] text-left border-collapse min-w-[650px]">
-                  <thead>
-                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase tracking-wider select-none text-[10px]">
-                      <th className="py-2.5 px-3">Permissions</th>
-                      <th className="py-2.5 px-3">Page</th>
-                      <th className="py-2.5 px-3">Section ID</th>
-                      <th className="py-2.5 px-3">Description</th>
-                      <th className="py-2.5 px-3">Status</th>
-                      <th className="py-2.5 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/30">
-                    {/* Hero Section */}
-                    <tr className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                      <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
-                      <td className="py-3 px-3 text-muted-foreground/45 font-mono select-none">/ (home)</td>
-                      <td className="py-3 px-3 font-semibold text-foreground">hero_section</td>
-                      <td className="py-3 px-3 text-muted-foreground/60">Top title, search prompt and template counter</td>
-                      <td className="py-3 px-3 select-none">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
-                          sections.show_hero_section ? "border-primary bg-primary/5 text-primary" : "border-destructive bg-destructive/5 text-destructive"
-                        }`}>
-                          {sections.show_hero_section ? "ACTIVE" : "HIDDEN"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right select-none">
-                        <button
-                          onClick={() => toggleSection("show_hero_section")}
-                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
-                        >
-                          [toggle_visibility]
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Profiles Section */}
-                    <tr className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                      <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
-                      <td className="py-3 px-3 text-muted-foreground/45 font-mono select-none">/ (home)</td>
-                      <td className="py-3 px-3 font-semibold text-foreground">profiles_section</td>
-                      <td className="py-3 px-3 text-muted-foreground/60">Competitive programming profiles and ratings widget</td>
-                      <td className="py-3 px-3 select-none">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
-                          sections.show_profiles_section ? "border-primary bg-primary/5 text-primary" : "border-destructive bg-destructive/5 text-destructive"
-                        }`}>
-                          {sections.show_profiles_section ? "ACTIVE" : "HIDDEN"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right select-none">
-                        <button
-                          onClick={() => toggleSection("show_profiles_section")}
-                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
-                        >
-                          [toggle_visibility]
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Contests Section */}
-                    <tr className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                      <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
-                      <td className="py-3 px-3 text-muted-foreground/45 font-mono select-none">/ (home)</td>
-                      <td className="py-3 px-3 font-semibold text-foreground">contests_section</td>
-                      <td className="py-3 px-3 text-muted-foreground/60">Live and upcoming competitive programming schedules widget</td>
-                      <td className="py-3 px-3 select-none">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
-                          sections.show_contests_section ? "border-primary bg-primary/5 text-primary" : "border-destructive bg-destructive/5 text-destructive"
-                        }`}>
-                          {sections.show_contests_section ? "ACTIVE" : "HIDDEN"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right select-none">
-                        <button
-                          onClick={() => toggleSection("show_contests_section")}
-                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
-                        >
-                          [toggle_visibility]
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Categories Section */}
-                    <tr className="hover:bg-primary/[0.02] transition-colors leading-relaxed">
-                      <td className="py-3 px-3 text-muted-foreground/35 font-mono select-none">-rwxr-xr-x</td>
-                      <td className="py-3 px-3 text-muted-foreground/45 font-mono select-none">/ (home)</td>
-                      <td className="py-3 px-3 font-semibold text-foreground">categories_section</td>
-                      <td className="py-3 px-3 text-muted-foreground/60">Category grid display linking to subfolders</td>
-                      <td className="py-3 px-3 select-none">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
-                          sections.show_categories_section ? "border-primary bg-primary/5 text-primary" : "border-destructive bg-destructive/5 text-destructive"
-                        }`}>
-                          {sections.show_categories_section ? "ACTIVE" : "HIDDEN"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right select-none">
-                        <button
-                          onClick={() => toggleSection("show_categories_section")}
-                          className="text-[10px] text-muted-foreground/50 hover:text-primary transition-colors cursor-pointer border border-transparent hover:border-primary/20 px-1.5 py-0.5"
-                        >
-                          [toggle_visibility]
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === "sections" && <SectionsTab sections={sections} loadingSettings={loadingSettings} onToggle={toggleSection} />}
 
       {/* VIEW: Sys Stats */}
-      {activeTab === "stats" && (
-        <div className="space-y-6 font-mono text-xs animate-in fade-in duration-100">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-b border-primary/10 pb-4">
-            <div className="text-xs text-muted-foreground/45 flex items-center gap-2">
-              <span className="text-primary font-bold">$</span>
-              <span>sys-stats --verbose</span>
-              <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
-            </div>
-            <button
-              onClick={() => {
-                playClick();
-                const report = {
-                  generatedAt: new Date().toISOString(),
-                  summary: {
-                    totalTemplates: templates.length,
-                    totalCategories: categories.length,
-                    totalCopies: templates.reduce((acc, t) => acc + (t.copyCount || 0), 0),
-                    totalLikes: templates.reduce((acc, t) => acc + (t.likeCount || 0), 0),
-                  },
-                  templates: templates.map((t) => ({
-                    title: t.title,
-                    slug: t.slug,
-                    category: t.category?.name || "unassigned",
-                    copies: t.copyCount || 0,
-                    likes: t.likeCount || 0,
-                  })),
-                };
-                const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "cp_park_system_metrics.json";
-                a.click();
-                playSuccess();
-                toast.success("Metrics report downloaded!");
-              }}
-              className="font-mono text-[10px] h-7 px-3 border border-primary bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
-            >
-              [ export_metrics.json ]
-            </button>
-          </div>
-
-          {/* Cards Grid */}
-          {(() => {
-            const totalTemplates = templates.length;
-            const totalCategories = categories.length;
-            const totalCopies = templates.reduce((acc, t) => acc + (t.copyCount || 0), 0);
-            const totalLikes = templates.reduce((acc, t) => acc + (t.likeCount || 0), 0);
-            const avgCopies = totalTemplates ? (totalCopies / totalTemplates).toFixed(1) : "0.0";
-
-            return (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 select-none">
-                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Total Files</span>
-                    <span className="text-xl font-bold text-foreground mt-2">{totalTemplates}</span>
-                  </div>
-                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Total Folders</span>
-                    <span className="text-xl font-bold text-foreground mt-2">{totalCategories}</span>
-                  </div>
-                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between shadow-[0_0_15px_rgba(59,130,246,0.05)]">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Copy Actions</span>
-                    <span className="text-xl font-bold text-primary mt-2">{totalCopies}</span>
-                  </div>
-                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between shadow-[0_0_15px_rgba(239,68,68,0.05)]">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Likes (Total)</span>
-                    <span className="text-xl font-bold text-destructive mt-2">{totalLikes}</span>
-                  </div>
-                  <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
-                    <span className="text-[10px] text-muted-foreground/40 uppercase">Avg Copies / File</span>
-                    <span className="text-xl font-bold text-info mt-2">{avgCopies}</span>
-                  </div>
-                </div>
-
-                {/* Popular Templates Chart */}
-                <div className="border border-border bg-card/15 p-5 space-y-4">
-                  <div className="text-[10px] text-primary/60 font-bold uppercase select-none flex items-center gap-2">
-                    <Terminal className="h-3.5 w-3.5" />
-                    <span>$ chart --sort=popularity --limit=5</span>
-                  </div>
-                  <div className="space-y-3.5">
-                    {(() => {
-                      const sorted = [...templates]
-                        .sort((a, b) => (b.copyCount || 0) - (a.copyCount || 0))
-                        .slice(0, 5);
-
-                      const maxCopies = sorted[0]?.copyCount || 1;
-
-                      if (totalCopies === 0) {
-                        return (
-                          <div className="text-center py-6 text-muted-foreground/40 italic">
-                            No copy logs recorded yet. Visit templates page and copy snippets to trigger metrics.
-                          </div>
-                        );
-                      }
-
-                      return sorted.map((t) => {
-                        const copies = t.copyCount || 0;
-                        const percentage = maxCopies > 0 ? Math.floor((copies / maxCopies) * 100) : 0;
-                        const barWidth = Math.max(1, Math.floor(percentage / 4)); // max 25 chars
-                        const bar = "█".repeat(barWidth);
-
-                        return (
-                          <div key={t.id} className="space-y-1">
-                            <div className="flex justify-between font-mono text-[11px]">
-                              <span className="font-semibold text-foreground">{t.slug}.cpp</span>
-                              <span className="text-muted-foreground/50">{copies} copies</span>
-                            </div>
-                            <div className="flex items-center gap-2 font-mono text-primary select-none">
-                              <span className="text-primary/75 tracking-tighter">{bar || "▏"}</span>
-                              <span className="text-[9px] text-muted-foreground/30">{percentage}%</span>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-
-                {/* Detailed Breakdown List */}
-                <div className="space-y-2 select-text">
-                  <div className="text-[10px] text-muted-foreground/40 font-bold uppercase select-none flex items-center gap-1.5 font-mono">
-                    <span className="text-primary">$</span>
-                    <span>cat metrics_breakdown.log</span>
-                  </div>
-                  <div className="border border-border bg-card/25 overflow-x-auto scrollbar-thin select-text">
-                    <table className="w-full text-[11px] text-left border-collapse min-w-[600px] font-mono">
-                      <thead>
-                        <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase select-none text-[9px]">
-                          <th className="py-2 px-3">Filename</th>
-                          <th className="py-2 px-3">Folder</th>
-                          <th className="py-2.5 px-3 text-right">Copies</th>
-                          <th className="py-2.5 px-3 text-right">Likes</th>
-                          <th className="py-2 px-3 text-right pr-6">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border/20">
-                        {[...templates]
-                          .sort((a, b) => (b.copyCount || 0) - (a.copyCount || 0))
-                          .map((t) => (
-                            <tr key={t.id} className="hover:bg-primary/[0.01] transition-colors leading-relaxed select-text">
-                              <td className="py-2 px-3 font-semibold text-foreground">
-                                {t.slug}.cpp
-                              </td>
-                              <td className="py-2 px-3 text-info font-bold">
-                                {t.category?.name || "unassigned"}
-                              </td>
-                              <td className="py-2 px-3 text-right font-bold text-foreground">
-                                {t.copyCount || 0}
-                              </td>
-                              <td className="py-2 px-3 text-right font-bold text-destructive">
-                                {t.likeCount || 0}
-                              </td>
-                              <td className="py-2 px-3 text-right pr-6 select-none">
-                                <span
-                                  className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
-                                    t.hidden
-                                      ? "border-destructive/40 bg-destructive/5 text-destructive"
-                                      : "border-primary/40 bg-primary/5 text-primary"
-                                  }`}
-                                >
-                                  {t.hidden ? "HIDDEN" : "VISIBLE"}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+      {activeTab === "stats" && <StatsTab templates={templates} categories={categories} playClick={playClick} playSuccess={playSuccess} />}
 
       {/* VIEW: Contributions Review */}
-      {activeTab === "contributions" && (
-        <div className="space-y-4">
-          {/* Header Action Bar */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-b border-primary/10 pb-4">
-            <div className="text-xs text-muted-foreground/45 flex items-center gap-2">
-              <span className="text-primary font-bold">$</span>
-              <span>review contributions --queue</span>
-              <span className="inline-block h-3 w-1.5 bg-primary/40 animate-blink" />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(["all", "pending", "approved", "rejected"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => { playClick(); setContribFilter(f); }}
-                  className={`px-2.5 py-1 border text-[10px] font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer ${
-                    contribFilter === f
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground/45 hover:text-foreground"
-                  }`}
-                >
-                  [ {f} ]
-                  {f === "pending" && pendingContribCount > 0 && (
-                    <span className="ml-1 text-warning">{pendingContribCount}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {loadingContributions ? (
-            <div className="text-center py-16 text-muted-foreground/45 font-mono text-xs animate-pulse">
-              $ read_queue --status
-              <br />
-              [LOAD] Loading contribution queue...
-            </div>
-          ) : filteredContributions.length === 0 ? (
-            <div className="border border-dashed border-border p-12 text-center text-muted-foreground/50 text-xs">
-              $ ls -la contributions/
-              <br />
-              {contribFilter === "all" ? "total 0 (no submissions found)." : `No ${contribFilter} contributions found.`}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground/45 select-none">
-                <div className="flex items-center gap-1.5 font-mono">
-                  <span className="text-primary font-bold">$</span>
-                  <span>cat contributions/{contribFilter === "all" ? "*" : contribFilter}.log</span>
-                </div>
-                <span className="font-mono">total {filteredContributions.length} submissions</span>
-              </div>
-
-              <div className="border border-border bg-card/25 overflow-x-auto select-text scrollbar-thin">
-                <table className="w-full text-[11px] text-left border-collapse min-w-[720px] font-mono">
-                  <thead>
-                    <tr className="border-b border-primary/20 bg-primary/5 text-primary/60 font-bold uppercase tracking-wider select-none text-[9px]">
-                      <th className="py-2 px-3 w-6"></th>
-                      <th className="py-2 px-3">Contributor</th>
-                      <th className="py-2 px-3">CF Handle</th>
-                      <th className="py-2 px-3">Type</th>
-                      <th className="py-2 px-3">Title</th>
-                      <th className="py-2 px-3">Submitted</th>
-                      <th className="py-2 px-3">Status</th>
-                      <th className="py-2 px-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/20">
-                    {filteredContributions.map((c) => {
-                      const isExpanded = expandedContribution === c.id;
-                      const displayTitle = c.type === "edit" ? (c.template?.title || "(unknown template)") : (c.title || "(untitled)");
-                      return (
-                        <Fragment key={c.id}>
-                          <tr
-                            onClick={() => {
-                              playClick();
-                              setExpandedContribution((prev) => (prev === c.id ? null : c.id));
-                            }}
-                            className="hover:bg-primary/[0.02] transition-colors leading-relaxed cursor-pointer select-none"
-                          >
-                            <td className="py-2.5 px-3 text-primary/60 text-[10px] w-6">{isExpanded ? "▼" : "▶"}</td>
-                            <td className="py-2.5 px-3 font-semibold text-foreground">{c.contributorName}</td>
-                            <td className="py-2.5 px-3 text-info">{c.contributorCfHandle || "—"}</td>
-                            <td className="py-2.5 px-3">
-                              <span
-                                className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
-                                  c.type === "new"
-                                    ? "border-primary/40 bg-primary/5 text-primary"
-                                    : "border-info/40 bg-info/5 text-info"
-                                }`}
-                              >
-                                {c.type === "new" ? "[ NEW ]" : "[ EDIT ]"}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-3 text-foreground/85">{displayTitle}</td>
-                            <td className="py-2.5 px-3 text-muted-foreground/50 text-[10px]">
-                              {new Date(c.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="py-2.5 px-3">
-                              <span
-                                className={`text-[9px] font-bold px-1.5 py-0.5 border rounded-none ${
-                                  c.status === "pending"
-                                    ? "border-warning/40 bg-warning/5 text-warning"
-                                    : c.status === "approved"
-                                    ? "border-primary/40 bg-primary/5 text-primary"
-                                    : "border-destructive/40 bg-destructive/5 text-destructive"
-                                }`}
-                              >
-                                {c.status.toUpperCase()}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-3 text-right" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex items-center justify-end gap-2.5 select-none">
-                                {c.status === "pending" ? (
-                                  <>
-                                    <button
-                                      onClick={() => approveContribution(c.id)}
-                                      className="text-[10px] px-3 py-1.5 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                                    >
-                                      [ approve ]
-                                    </button>
-                                    <button
-                                      onClick={() => { playBeep(330, 0.25); setRejectModal({ id: c.id, adminNote: "" }); }}
-                                      className="text-[10px] px-3 py-1.5 border border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                                    >
-                                      [ reject ]
-                                    </button>
-                                  </>
-                                ) : (
-                                  <span className="text-[9px] text-muted-foreground/40 italic">
-                                    reviewed {c.reviewedAt ? new Date(c.reviewedAt).toLocaleDateString() : ""}
-                                  </span>
-                                )}
-                                <button
-                                  onClick={() => { playBeep(330, 0.25); setDeleteContribTarget(c); }}
-                                  title="Delete record"
-                                  className="text-[10px] px-1.5 py-1.5 border border-transparent text-muted-foreground/45 hover:text-destructive hover:border-destructive/20 transition-colors uppercase font-bold tracking-wider cursor-pointer"
-                                >
-                                  [ del ]
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                          {isExpanded && (
-                            <tr key={`${c.id}-details`} className="bg-black/15">
-                              <td colSpan={8} className="p-0">
-                                <div className="border-t border-border/40 p-4 space-y-4 select-text">
-                                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-[10px] text-muted-foreground/60">
-                                    <span>
-                                      <span className="text-primary/60 font-bold">email:</span> {c.contributorEmail}
-                                    </span>
-                                    <span>
-                                      <span className="text-primary/60 font-bold">submitted:</span>{" "}
-                                      {new Date(c.createdAt).toLocaleString()}
-                                    </span>
-                                    {c.adminNote && (
-                                      <span>
-                                        <span className="text-destructive/70 font-bold">admin note:</span> {c.adminNote}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {c.type === "new" ? (
-                                    <div className="space-y-3">
-                                      {c.category?.name && (
-                                        <div className="text-[10px]">
-                                          <span className="text-primary/60 font-bold uppercase tracking-widest">Category: </span>
-                                          <span className="text-info font-bold">{c.category.name}</span>
-                                        </div>
-                                      )}
-                                      {c.description && (
-                                        <div className="space-y-1">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Description</div>
-                                          <div className="text-xs text-foreground/85 leading-relaxed">{c.description}</div>
-                                        </div>
-                                      )}
-                                      {c.complexity && (
-                                        <div className="text-[10px]">
-                                          <span className="text-primary/60 font-bold uppercase tracking-widest">Complexity: </span>
-                                          <span className="text-foreground/85 font-mono">{c.complexity}</span>
-                                        </div>
-                                      )}
-                                      {c.tags && c.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1">
-                                          {c.tags.map((tag) => (
-                                            <span key={tag} className="text-[8px] text-muted-foreground/50 border border-border/40 px-1 py-0 select-none">
-                                              #{tag}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
-                                      {c.notes && (
-                                        <div className="space-y-1">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Notes</div>
-                                          <div className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap border border-border/40 bg-card/20 p-3">{c.notes}</div>
-                                        </div>
-                                      )}
-                                      {c.codes && c.codes.length > 0 && (
-                                        <div className="space-y-2">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Code Blocks</div>
-                                          {c.codes.map((blk, idx) => (
-                                            <div key={idx} className="border border-border/50 bg-black/25 overflow-hidden">
-                                              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/40 bg-primary/5 text-[9px] uppercase tracking-wider">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
-                                                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
-                                                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
-                                                <span className="ml-1 text-primary/70 font-bold">{blk.language}</span>
-                                              </div>
-                                              <pre className="p-3 text-[10px] text-foreground/85 overflow-x-auto scrollbar-thin leading-relaxed whitespace-pre">{blk.code}</pre>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-3">
-                                      <div className="text-[10px]">
-                                        <span className="text-primary/60 font-bold uppercase tracking-widest">Target Template: </span>
-                                        <span className="text-info font-bold">{c.template?.title || "(unknown)"}</span>
-                                        {c.template?.slug && <span className="text-muted-foreground/45"> ({c.template.slug})</span>}
-                                      </div>
-                                      {c.editReason && (
-                                        <div className="space-y-1">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Edit Reason</div>
-                                          <div className="text-xs text-foreground/85 leading-relaxed">{c.editReason}</div>
-                                        </div>
-                                      )}
-                                      {c.editNotes && (
-                                        <div className="space-y-1">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Proposed Notes</div>
-                                          <div className="text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap border border-border/40 bg-card/20 p-3">{c.editNotes}</div>
-                                        </div>
-                                      )}
-                                      {c.editCodes && c.editCodes.length > 0 && (
-                                        <div className="space-y-2">
-                                          <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest font-bold">Proposed Code Blocks</div>
-                                          {c.editCodes.map((blk, idx) => (
-                                            <div key={idx} className="border border-border/50 bg-black/25 overflow-hidden">
-                                              <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/40 bg-primary/5 text-[9px] uppercase tracking-wider">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
-                                                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
-                                                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
-                                                <span className="ml-1 text-primary/70 font-bold">{blk.language}</span>
-                                              </div>
-                                              <pre className="p-3 text-[10px] text-foreground/85 overflow-x-auto scrollbar-thin leading-relaxed whitespace-pre">{blk.code}</pre>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {activeTab === "contributions" && <ContributionsTab contributions={contributions} loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
 
       {/* Retro Delete warning modal overlay (Templates) */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
-          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
-              </div>
-              <span>WARN_LEVEL_3</span>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
-                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
-                  <span className="text-destructive font-bold">$ rm -rf</span>
-                  <span>templates/{deleteTarget.slug}.cpp</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
-                WARNING: You are about to permanently delete the template file <span className="text-foreground font-semibold">"{deleteTarget.title}"</span>. 
-                This action is irreversible and will purge the file record from the repository index.
-              </div>
-            </div>
-            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
-              <button
-                type="button"
-                onClick={() => { playClick(); setDeleteTarget(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
-              >
-                <span>[ ESC ]</span>
-                <span>Abort Command</span>
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
-              >
-                <span>[ ENTER ]</span>
-                <span>Force Purge File</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <RetroConfirmModal
+          commandTarget={{ cmd: "$ rm -rf", path: `templates/${deleteTarget.slug}.cpp` }}
+          confirmLabel="Force Purge File"
+          onCancel={() => { playClick(); setDeleteTarget(null); }}
+          onConfirm={confirmDelete}
+        >
+          WARNING: You are about to permanently delete the template file <span className="text-foreground font-semibold">"{deleteTarget.title}"</span>.
+          This action is irreversible and will purge the file record from the repository index.
+        </RetroConfirmModal>
       )}
 
       {/* Retro Delete warning modal overlay (Bulk Templates) */}
       {showBulkDeleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
-          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
-              </div>
-              <span>WARN_LEVEL_3</span>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
-                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
-                  <span className="text-destructive font-bold">$ rm -rf</span>
-                  <span>templates/ [ {selectedCount} files ]</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
-                WARNING: You are about to permanently delete <span className="text-foreground font-semibold">{selectedCount}</span> template files.
-                This action is irreversible and will purge these files and their note documentation permanently from the mainframe index.
-              </div>
-            </div>
-            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
-              <button
-                type="button"
-                onClick={() => { playClick(); setShowBulkDeleteConfirm(false); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
-              >
-                <span>[ ESC ]</span>
-                <span>Abort Command</span>
-              </button>
-              <button
-                type="button"
-                onClick={confirmBulkDelete}
-                disabled={bulkLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer disabled:opacity-50"
-              >
-                <span>[ ENTER ]</span>
-                <span>Force Purge Files</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <RetroConfirmModal
+          commandTarget={{ cmd: "$ rm -rf", path: `templates/ [ ${selectedCount} files ]` }}
+          confirmLabel="Force Purge Files"
+          onCancel={() => { playClick(); setShowBulkDeleteConfirm(false); }}
+          onConfirm={confirmBulkDelete}
+          confirmDisabled={bulkLoading}
+        >
+          WARNING: You are about to permanently delete <span className="text-foreground font-semibold">{selectedCount}</span> template files.
+          This action is irreversible and will purge these files and their note documentation permanently from the mainframe index.
+        </RetroConfirmModal>
       )}
 
       {/* Retro Delete warning modal overlay (Categories) */}
       {deleteCategoryTarget && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
-          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
-              </div>
-              <span>WARN_LEVEL_3</span>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
-                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
-                  <span className="text-destructive font-bold">$ rm -rf</span>
-                  <span>categories/{deleteCategoryTarget.slug}/</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
-                WARNING: You are about to permanently delete the category folder <span className="text-foreground font-semibold">"{deleteCategoryTarget.name}"</span>. 
-                This action is irreversible and will purge all templates directly linked to this category!
-              </div>
-            </div>
-            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
-              <button
-                type="button"
-                onClick={() => { playClick(); setDeleteCategoryTarget(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
-              >
-                <span>[ ESC ]</span>
-                <span>Abort Command</span>
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteCategory}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
-              >
-                <span>[ ENTER ]</span>
-                <span>Force Purge Folder</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <RetroConfirmModal
+          commandTarget={{ cmd: "$ rm -rf", path: `categories/${deleteCategoryTarget.slug}/` }}
+          confirmLabel="Force Purge Folder"
+          onCancel={() => { playClick(); setDeleteCategoryTarget(null); }}
+          onConfirm={confirmDeleteCategory}
+        >
+          WARNING: You are about to permanently delete the category folder <span className="text-foreground font-semibold">"{deleteCategoryTarget.name}"</span>.
+          This action is irreversible and will purge all templates directly linked to this category!
+        </RetroConfirmModal>
       )}
 
       {/* Reject Contribution retro modal dialog overlay */}
       {rejectModal && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider select-none">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>✖ [ REJECT_CONTRIBUTION.SH ]</span>
-              </div>
-              <span>REVIEW_SYS_V1</span>
+        <RetroModal tone="destructive" title="✖ [ REJECT_CONTRIBUTION.SH ]" tag="REVIEW_SYS_V1" selectNone={false}>
+          <div className="p-6 space-y-4 text-xs select-text">
+            <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
+              You are about to reject this contribution. The submitter will be notified via email. You may include an optional note explaining the decision.
             </div>
-            <div className="p-6 space-y-4 text-xs select-text">
-              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
-                You are about to reject this contribution. The submitter will be notified via email. You may include an optional note explaining the decision.
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">
-                  Admin Note (optional)
-                </label>
-                <textarea
-                  value={rejectModal.adminNote}
-                  onChange={(e) => setRejectModal((prev) => (prev ? { ...prev, adminNote: e.target.value } : prev))}
-                  placeholder="Reason for rejection..."
-                  rows={4}
-                  className="w-full bg-background/40 border border-border focus:border-primary/50 focus:outline-none text-xs font-mono p-2 rounded-none resize-none placeholder:text-muted-foreground/25 text-foreground"
-                />
-              </div>
-            </div>
-            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px] select-none">
-              <button
-                type="button"
-                onClick={() => { playClick(); setRejectModal(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
-              >
-                <span>[ ESC ]</span>
-                <span>Cancel</span>
-              </button>
-              <button
-                type="button"
-                onClick={confirmRejectContribution}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
-              >
-                <span>[ ENTER ]</span>
-                <span>Reject Submission</span>
-              </button>
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">
+                Admin Note (optional)
+              </label>
+              <textarea
+                value={rejectModal.adminNote}
+                onChange={(e) => setRejectModal((prev) => (prev ? { ...prev, adminNote: e.target.value } : prev))}
+                placeholder="Reason for rejection..."
+                rows={4}
+                className="w-full bg-background/40 border border-border focus:border-primary/50 focus:outline-none text-xs font-mono p-2 rounded-none resize-none placeholder:text-muted-foreground/25 text-foreground"
+              />
             </div>
           </div>
-        </div>
+          <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px] select-none">
+            <button
+              type="button"
+              onClick={() => { playClick(); setRejectModal(null); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
+            >
+              <span>[ ESC ]</span>
+              <span>Cancel</span>
+            </button>
+            <button
+              type="button"
+              onClick={confirmRejectContribution}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
+            >
+              <span>[ ENTER ]</span>
+              <span>Reject Submission</span>
+            </button>
+          </div>
+        </RetroModal>
       )}
 
       {/* Delete Contribution retro modal dialog overlay */}
       {deleteContribTarget && (
-        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
-          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>⚠️ [ CAUTION: DESTRUCTIVE ACTION ]</span>
-              </div>
-              <span>WARN_LEVEL_3</span>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="space-y-1">
-                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
-                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
-                  <span className="text-destructive font-bold">$ rm -rf</span>
-                  <span>contributions/{deleteContribTarget.id}</span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
-                WARNING: You are about to permanently delete this {deleteContribTarget.type === "edit" ? "edit request" : "template submission"} from{" "}
-                <span className="text-foreground font-semibold">"{deleteContribTarget.contributorName}"</span>.
-                {deleteContribTarget.type === "edit" && deleteContribTarget.status === "approved"
-                  ? " If approved, their applied changes will be rolled back (template restored to the version before their edit) and their history snapshot purged."
-                  : " If approved, the contributor credit will be removed from the template (the template itself stays published)."}{" "}
-                No email is sent.
-              </div>
-            </div>
-            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
-              <button
-                type="button"
-                onClick={() => { playClick(); setDeleteContribTarget(null); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase font-mono cursor-pointer"
-              >
-                <span>[ ESC ]</span>
-                <span>Abort Command</span>
-              </button>
-              <button
-                type="button"
-                onClick={confirmDeleteContribution}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-mono font-bold cursor-pointer"
-              >
-                <span>[ ENTER ]</span>
-                <span>Purge Record</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <RetroConfirmModal
+          commandTarget={{ cmd: "$ rm -rf", path: `contributions/${deleteContribTarget.id}` }}
+          confirmLabel="Purge Record"
+          onCancel={() => { playClick(); setDeleteContribTarget(null); }}
+          onConfirm={confirmDeleteContribution}
+        >
+          WARNING: You are about to permanently delete this {deleteContribTarget.type === "edit" ? "edit request" : "template submission"} from{" "}
+          <span className="text-foreground font-semibold">"{deleteContribTarget.contributorName}"</span>.
+          {deleteContribTarget.type === "edit" && deleteContribTarget.status === "approved"
+            ? " If approved, their applied changes will be rolled back (template restored to the version before their edit) and their history snapshot purged."
+            : " If approved, the contributor credit will be removed from the template (the template itself stays published)."}{" "}
+          No email is sent.
+        </RetroConfirmModal>
       )}
 
       {/* Category Create/Edit retro modal dialog overlay */}

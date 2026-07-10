@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Terminal, Plus, Edit } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
+import { TerminalBreadcrumb, TrafficLights } from "@/components/terminal";
 
 export const metadata: Metadata = {
   title: "Contribute",
@@ -10,19 +11,7 @@ export const metadata: Metadata = {
 export default function ContributePage() {
   return (
     <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center gap-1 mb-8 text-xs select-none">
-        <span className="text-primary font-bold">guest@cp-base:</span>
-        <span className="text-muted-foreground/40">~</span>
-        <span className="text-muted-foreground/40">/</span>
-        <Link href="/" className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4">
-          home
-        </Link>
-        <span className="text-muted-foreground/40">/</span>
-        <span className="text-foreground font-bold">contribute</span>
-        <span className="text-primary/60 ml-1 font-bold">$</span>
-        <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
-      </div>
+      <TerminalBreadcrumb className="mb-8" items={[{ label: "home", href: "/" }, { label: "contribute" }]} />
 
       {/* Header */}
       <div className="border border-border/80 bg-card/45 backdrop-blur-md p-6 mb-8 relative overflow-hidden">
@@ -45,11 +34,7 @@ export default function ContributePage() {
         <Link href="/contribute/new" className="group block">
           <div className="border border-border bg-card/25 hover:border-primary/50 hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 p-6 h-full">
             <div className="flex items-center gap-1.5 mb-4">
-              <div className="flex gap-1 shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
-                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
-                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
-              </div>
+              <TrafficLights />
               <span className="text-[9px] text-muted-foreground/30">new_template.sh</span>
             </div>
             <div className="flex items-center gap-2 mb-3">
@@ -69,11 +54,7 @@ export default function ContributePage() {
         <Link href="/contribute/edit" className="group block">
           <div className="border border-border bg-card/25 hover:border-primary/50 hover:shadow-[0_0_20px_var(--primary-glow-ultra-weak)] transition-all duration-300 p-6 h-full">
             <div className="flex items-center gap-1.5 mb-4">
-              <div className="flex gap-1 shrink-0">
-                <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
-                <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
-                <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
-              </div>
+              <TrafficLights />
               <span className="text-[9px] text-muted-foreground/30">edit_request.sh</span>
             </div>
             <div className="flex items-center gap-2 mb-3">

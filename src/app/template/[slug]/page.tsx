@@ -7,6 +7,7 @@ import { LanguageTabs } from "@/components/language-tabs";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
 import { ArrowLeft, Clock, Calendar, FileText, UserPlus, ArrowUpRight } from "lucide-react";
+import { TerminalBreadcrumb } from "@/components/terminal";
 
 export const dynamic = "force-dynamic";
 
@@ -177,19 +178,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   } catch {
     return (
       <div className="relative z-10 mx-auto max-w-4xl w-full px-4 py-8">
-        <div className="flex flex-wrap items-center gap-1 mb-6 font-mono text-xs select-none">
-          <span className="text-primary font-bold">guest@cp-base:</span>
-          <span className="text-muted-foreground/40">~</span>
-          <span className="text-muted-foreground/40">/</span>
-          <Link
-            href="/"
-            className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4"
-          >
-            home
-          </Link>
-          <span className="text-primary/60 ml-1 font-bold">$</span>
-          <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
-        </div>
+        <TerminalBreadcrumb className="mb-6" items={[{ label: "home", href: "/" }]} />
         <div className="text-center py-20 border border-border bg-card">
           <div className="text-xs text-error mb-2 animate-blink">[ERR] Something went wrong</div>
           <p className="text-xs text-muted-foreground">Try refreshing or try again later.</p>
@@ -201,30 +190,13 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   return (
     <div className="relative z-10 mx-auto max-w-4xl w-full px-4 py-8">
       {/* Back nav */}
-      <div className="flex flex-wrap items-center gap-1 mb-8 font-mono text-xs select-none">
-        <span className="text-primary font-bold">guest@cp-base:</span>
-        <span className="text-muted-foreground/40">~</span>
-        <span className="text-muted-foreground/40">/</span>
-        <Link
-          href="/"
-          className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4"
-        >
-          home
-        </Link>
-        {category && (
-          <>
-            <span className="text-muted-foreground/40">/</span>
-            <Link
-              href={`/category/${category.slug}`}
-              className="text-info hover:text-primary hover:underline transition-colors underline-offset-4 font-bold"
-            >
-              {category.slug}
-            </Link>
-          </>
-        )}
-        <span className="text-primary/60 ml-1 font-bold">$</span>
-        <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
-      </div>
+      <TerminalBreadcrumb
+        className="mb-8"
+        items={[
+          { label: "home", href: "/" },
+          ...(category ? [{ label: category.slug, href: `/category/${category.slug}`, className: "text-info font-bold" }] : []),
+        ]}
+      />
 
       {/* Template Header Card */}
       <div className="border border-border/80 bg-card/45 backdrop-blur-md p-6 mb-8 relative shadow-xl overflow-hidden font-mono">

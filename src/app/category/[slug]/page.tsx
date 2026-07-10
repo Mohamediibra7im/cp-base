@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { getDb } from "@/db";
 import { categories, templates } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { TemplateCard } from "@/components/template-card";
 import * as LucideIcons from "lucide-react";
-import { ArrowLeft, Home } from "lucide-react";
 import { SearchInput } from "@/components/search-input";
+import { TerminalBreadcrumb } from "@/components/terminal";
 
 export const dynamic = "force-dynamic";
 
@@ -87,7 +86,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   } catch {
     return (
       <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
-        <BackNav href="/" label="home" />
+        <TerminalBreadcrumb items={[{ label: "home", href: "/" }]} />
         <div className="text-center py-20 border border-border bg-card">
           <div className="text-xs text-error mb-2 animate-blink">[ERR] Something went wrong</div>
           <p className="text-xs text-muted-foreground">Try refreshing or try again later.</p>
@@ -103,7 +102,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
     <div className="relative z-10 mx-auto max-w-7xl w-full px-4 py-8">
       {/* Back nav */}
       <div className="mb-8">
-        <BackNav href="/" label="home" />
+        <TerminalBreadcrumb items={[{ label: "home", href: "/" }]} />
       </div>
 
       {/* Category header */}
@@ -169,20 +168,3 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   );
 }
 
-function BackNav({ href, label }: { href: string; label: string }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1 font-mono text-xs select-none">
-      <span className="text-primary font-bold">guest@cp-base:</span>
-      <span className="text-muted-foreground/40">~</span>
-      <span className="text-muted-foreground/40">/</span>
-      <Link
-        href={href}
-        className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4"
-      >
-        {label}
-      </Link>
-      <span className="text-primary/60 ml-1 font-bold">$</span>
-      <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
-    </div>
-  );
-}

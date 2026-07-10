@@ -2,29 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Terminal, Plus, X, ChevronDown } from "lucide-react";
+import { Terminal, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useTerminalTheme } from "@/components/theme-provider";
-
-interface CodeBlock {
-  language: string;
-  code: string;
-}
-
-const LANGUAGES = ["cpp", "python", "java", "rust", "go", "javascript", "kotlin"];
+import { TerminalBreadcrumb } from "@/components/terminal";
+import {
+  RetroFieldset,
+  ContributorFields,
+  CodeBlocksEditor,
+  ContributeResult,
+  type ContributorInfo,
+  type CodeBlock,
+  TERMINAL_INPUT_CLS,
+  TERMINAL_TEXTAREA_CLS,
+  TERMINAL_LABEL_CLS,
+} from "@/components/forms";
 
 export default function ContributeNewPage() {
-  const router = useRouter();
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
 
   const [categories, setCategories] = useState<{ id: number; name: string; slug: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const [contributorName, setContributorName] = useState("");
-  const [contributorEmail, setContributorEmail] = useState("");
-  const [contributorCfHandle, setContributorCfHandle] = useState("");
+  const [contributor, setContributor] = useState<ContributorInfo>({ name: "", email: "", cfHandle: "" });
 
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<number | "">("");
@@ -59,7 +60,7 @@ export default function ContributeNewPage() {
     e.preventDefault();
     playClick();
 
-    if (!contributorName.trim() || !contributorEmail.trim()) {
+    if (!contributor.name.trim() || !contributor.email.trim()) {
       playBeep(440, 0.15);
       toast.error("Name and email are required");
       return;
@@ -83,9 +84,9 @@ export default function ContributeNewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "new",
-          contributorName: contributorName.trim(),
-          contributorEmail: contributorEmail.trim(),
-          contributorCfHandle: contributorCfHandle.trim() || undefined,
+          contributorName: contributor.name.trim(),
+          contributorEmail: contributor.email.trim(),
+          contributorCfHandle: contributor.cfHandle.trim() || undefined,
           title: title.trim(),
           categoryId: categoryId || undefined,
           description: description.trim(),
@@ -117,46 +118,19 @@ export default function ContributeNewPage() {
 
   if (submitted) {
     return (
-      <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
-        <div className="border border-primary bg-card/45 backdrop-blur-md p-8 text-center">
-          <div className="text-primary text-lg font-bold mb-3 glow-text-strong">Submission Received</div>
-          <p className="text-xs text-muted-foreground/65 mb-6 leading-relaxed">
-            Your template has been queued for review. You will receive an email notification when it is approved.
-          </p>
-          <div className="flex justify-center gap-3">
-            <Link
-              href="/contribute"
-              className="text-[10px] px-4 py-2 border border-primary bg-primary/10 text-primary hover:bg-primary/20 transition-colors uppercase font-bold tracking-wider"
-            >
-              [ submit another ]
-            </Link>
-            <Link
-              href="/"
-              className="text-[10px] px-4 py-2 border border-border text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors uppercase tracking-wider"
-            >
-              [ return home ]
-            </Link>
-          </div>
-        </div>
-      </div>
+      <ContributeResult
+        title="Submission Received"
+        message="Your template has been queued for review. You will receive an email notification when it is approved."
+      />
     );
   }
 
   return (
     <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center gap-1 mb-8 text-xs select-none">
-        <span className="text-primary font-bold">guest@cp-base:</span>
-        <span className="text-muted-foreground/40">~</span>
-        <span className="text-muted-foreground/40">/</span>
-        <Link href="/" className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4">home</Link>
-        <span className="text-muted-foreground/40">/</span>
-        <Link href="/contribute" className="text-muted-foreground hover:text-primary hover:underline transition-colors underline-offset-4">contribute</Link>
-        <span className="text-muted-foreground/40">/</span>
-        <span className="text-foreground font-bold">new</span>
-        <span className="text-primary/60 ml-1 font-bold">$</span>
-        <span className="inline-block h-3.5 w-1.5 bg-primary/70 animate-blink ml-1 align-middle" />
-      </div>
+      <TerminalBreadcrumb
+        className="mb-8"
+        items={[{ label: "home", href: "/" }, { label: "contribute", href: "/contribute" }, { label: "new" }]}
+      />
 
       {/* Header */}
       <div className="border border-border/80 bg-card/45 backdrop-blur-md p-6 mb-8 relative overflow-hidden">
@@ -170,71 +144,30 @@ export default function ContributeNewPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Contributor Info */}
-        <fieldset className="border border-border/80 bg-card/25 p-5 space-y-4">
-          <legend className="text-[10px] text-primary/60 uppercase tracking-widest font-bold px-2">Contributor Info</legend>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Name *</label>
-              <input
-                type="text"
-                value={contributorName}
-                onChange={(e) => setContributorName(e.target.value)}
-                placeholder="Your name"
-                className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Email *</label>
-              <input
-                type="email"
-                value={contributorEmail}
-                onChange={(e) => setContributorEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Codeforces Handle (optional)</label>
-            <input
-              type="text"
-              value={contributorCfHandle}
-              onChange={(e) => setContributorCfHandle(e.target.value)}
-              placeholder="tourist"
-              className="w-full sm:w-1/2 bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
-            />
-          </div>
-        </fieldset>
+        <ContributorFields value={contributor} onChange={(patch) => setContributor((c) => ({ ...c, ...patch }))} />
 
         {/* Template Details */}
-        <fieldset className="border border-border/80 bg-card/25 p-5 space-y-4">
-          <legend className="text-[10px] text-primary/60 uppercase tracking-widest font-bold px-2">Template Details</legend>
-
+        <RetroFieldset legend="Template Details">
           <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Title *</label>
+            <label className={TERMINAL_LABEL_CLS}>Title *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Segment Tree with Lazy Propagation"
-              className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
+              className={TERMINAL_INPUT_CLS}
               required
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Category</label>
+              <label className={TERMINAL_LABEL_CLS}>Category</label>
               <div className="relative">
                 <select
                   value={categoryId}
                   onChange={(e) => { playClick(); setCategoryId(e.target.value ? Number(e.target.value) : ""); }}
-                  className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors appearance-none cursor-pointer"
+                  className={`${TERMINAL_INPUT_CLS} appearance-none cursor-pointer`}
                 >
                   <option value="">Select category...</option>
                   {categories.map((c) => (
@@ -245,101 +178,62 @@ export default function ContributeNewPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Complexity</label>
+              <label className={TERMINAL_LABEL_CLS}>Complexity</label>
               <input
                 type="text"
                 value={complexity}
                 onChange={(e) => setComplexity(e.target.value)}
                 placeholder="O(n log n)"
-                className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
+                className={TERMINAL_INPUT_CLS}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Description</label>
+            <label className={TERMINAL_LABEL_CLS}>Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what this template does..."
               rows={3}
-              className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono px-2.5 py-2 outline-none transition-colors resize-y"
+              className={TERMINAL_TEXTAREA_CLS}
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Tags (comma-separated)</label>
+            <label className={TERMINAL_LABEL_CLS}>Tags (comma-separated)</label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="segment tree, lazy propagation, range query"
-              className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono h-8 px-2.5 outline-none transition-colors"
+              className={TERMINAL_INPUT_CLS}
             />
           </div>
-        </fieldset>
+        </RetroFieldset>
 
         {/* Code Blocks */}
-        <fieldset className="border border-border/80 bg-card/25 p-5 space-y-4">
-          <legend className="text-[10px] text-primary/60 uppercase tracking-widest font-bold px-2">Code Implementations</legend>
-
-          {codes.map((block, index) => (
-            <div key={index} className="border border-border/60 bg-background/30 p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1 shrink-0">
-                    <span className="h-1.5 w-1.5 rounded-full bg-destructive/40" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-warning/40" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-success/40" />
-                  </div>
-                  <select
-                    value={block.language}
-                    onChange={(e) => { playClick(); updateCode(index, "language", e.target.value); }}
-                    className="bg-background/40 border border-border text-xs font-mono h-7 px-2 outline-none cursor-pointer appearance-none"
-                  >
-                    {LANGUAGES.map((l) => (
-                      <option key={l} value={l}>{l}</option>
-                    ))}
-                  </select>
-                </div>
-                {codes.length > 1 && (
-                  <button type="button" onClick={() => removeCodeBlock(index)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-              <textarea
-                value={block.code}
-                onChange={(e) => updateCode(index, "code", e.target.value)}
-                placeholder="Paste your code here..."
-                rows={12}
-                className="w-full bg-black/30 border border-border/40 text-xs font-mono px-3 py-2.5 outline-none transition-colors resize-y text-foreground/90 leading-relaxed"
-                spellCheck={false}
-              />
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addCodeBlock}
-            className="text-[10px] px-3 py-1.5 border border-border hover:border-primary/40 text-muted-foreground hover:text-primary transition-colors uppercase font-bold tracking-wider cursor-pointer flex items-center gap-1.5"
-          >
-            <Plus className="h-3 w-3" />
-            add language
-          </button>
-        </fieldset>
+        <RetroFieldset legend="Code Implementations">
+          <CodeBlocksEditor
+            blocks={codes}
+            onCodeChange={(i, code) => updateCode(i, "code", code)}
+            onLanguageChange={(i, language) => updateCode(i, "language", language)}
+            onAdd={addCodeBlock}
+            onRemove={removeCodeBlock}
+            onInteract={playClick}
+          />
+        </RetroFieldset>
 
         {/* Notes */}
-        <fieldset className="border border-border/80 bg-card/25 p-5 space-y-3">
-          <legend className="text-[10px] text-primary/60 uppercase tracking-widest font-bold px-2">Notes (optional, markdown)</legend>
+        <RetroFieldset legend="Notes (optional, markdown)" className="space-y-3">
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Explanation, complexity analysis, usage examples... (Markdown + KaTeX supported)"
             rows={6}
-            className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono px-2.5 py-2 outline-none transition-colors resize-y"
+            className={TERMINAL_TEXTAREA_CLS}
           />
-        </fieldset>
+        </RetroFieldset>
 
         {/* Submit */}
         <div className="flex justify-end gap-3">
