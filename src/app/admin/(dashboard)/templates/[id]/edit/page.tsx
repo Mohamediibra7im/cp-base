@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Wand2, History, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { CategoryCreator } from "@/components/category-creator";
@@ -33,6 +33,18 @@ interface Category {
   id: number;
   name: string;
   slug: string;
+}
+
+interface HistoryEntry {
+  id: number;
+  title: string;
+  slug: string;
+  reason: string | null;
+  createdAt: string;
+  contributorName: string | null;
+  codes: { language: string; code: string }[] | null;
+  tags: string[];
+  complexity: string;
 }
 
 const HELP_TEXTS: Record<string, { title: string; description: string }> = {
@@ -84,8 +96,17 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [templateId, setTemplateId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"main" | "notes" | "code">("main");
+  const [activeTab, setActiveTab] = useState<"main" | "notes" | "code" | "history">("main");
   const [focusedField, setFocusedField] = useState<string>("default");
+
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [revertTarget, setRevertTarget] = useState<HistoryEntry | null>(null);
+  const [reverting, setReverting] = useState(false);
+  const [expandedHistory, setExpandedHistory] = useState<number | null>(null);
+  const [selectedHistory, setSelectedHistory] = useState<Record<number, boolean>>({});
+  const [deleteHistoryTarget, setDeleteHistoryTarget] = useState<{ ids: number[]; label: string } | null>(null);
+  const [deletingHistory, setDeletingHistory] = useState(false);
 
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
 
@@ -167,6 +188,93 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
     const formatted = await formatCode(code, language);
     setFormattingIdx(null);
     updateCode(index, "code", formatted);
+  };
+
+  const fetchHistory = useCallback(async (id: number) => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/admin/templates/history?templateId=${id}`, { cache: "no-store" });
+      if (res.ok) setHistory(await res.json());
+    } catch {
+      // ignore — history is non-critical
+    }
+    setLoadingHistory(false);
+  }, []);
+
+  const reloadTemplate = useCallback(async (id: number) => {
+    try {
+      const template = await fetch(`/api/admin/templates?id=${id}`, { cache: "no-store" }).then((r) => r.json());
+      if (template && !template.error) {
+        setForm({
+          title: template.title,
+          slug: template.slug,
+          description: template.description,
+          categoryId: String(template.categoryId),
+          complexity: template.complexity,
+          notes: template.notes || "",
+          tags: (template.tags || []).join(", "),
+          hidden: template.hidden ?? false,
+        });
+        setCodes(
+          template.codes?.map((c: { language: string; code: string }) => ({ language: c.language, code: c.code })) || []
+        );
+      }
+    } catch {
+      // non-critical
+    }
+  }, []);
+
+  const doRevert = async () => {
+    if (!revertTarget || !templateId) return;
+    playClick();
+    setReverting(true);
+    const res = await fetch("/api/admin/templates/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ historyId: revertTarget.id }),
+    });
+    setReverting(false);
+    setRevertTarget(null);
+    if (res.ok) {
+      playSuccess();
+      toast.success("Template reverted — reloaded below");
+      // Refresh in place so the form + history reflect the new state and the
+      // next revert operates on a fresh, correctly-ordered list.
+      await Promise.all([reloadTemplate(templateId), fetchHistory(templateId)]);
+      setExpandedHistory(null);
+      router.refresh();
+    } else {
+      const data = await res.json().catch(() => ({}));
+      playBeep(440, 0.15);
+      toast.error(data.error || "Failed to revert template");
+    }
+  };
+
+  const doDeleteHistory = async () => {
+    if (!deleteHistoryTarget || !templateId) return;
+    playClick();
+    const ids = deleteHistoryTarget.ids;
+    setDeletingHistory(true);
+    const res = await fetch("/api/admin/templates/history", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+    setDeletingHistory(false);
+    setDeleteHistoryTarget(null);
+    if (res.ok) {
+      playSuccess();
+      toast.success(ids.length > 1 ? `Deleted ${ids.length} snapshots` : "Snapshot deleted");
+      setSelectedHistory((prev) => {
+        const next = { ...prev };
+        ids.forEach((id) => delete next[id]);
+        return next;
+      });
+      fetchHistory(templateId);
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to delete history");
+    }
   };
 
   const save = async () => {
@@ -297,6 +405,16 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
             }`}
           >
             [ Source Code ]
+          </button>
+          <button
+            type="button"
+            onClick={() => { playClick(); setActiveTab("history"); setFocusedField("default"); if (templateId) fetchHistory(templateId); }}
+            className={`px-4 py-2.5 border-r border-primary/20 uppercase tracking-widest font-bold flex items-center gap-1.5 ${
+              activeTab === "history" ? "bg-background text-primary border-b-2 border-b-primary" : "text-muted-foreground/60 hover:text-primary hover:bg-primary/5"
+            }`}
+          >
+            <History className="h-3 w-3" />
+            [ History ]
           </button>
         </div>
 
@@ -557,6 +675,155 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
                 </div>
               </div>
             )}
+
+            {activeTab === "history" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-primary/10 pb-2">
+                  <Label className="text-xs font-bold tracking-wider text-foreground flex items-center gap-1.5">
+                    <span className="text-primary animate-pulse">▶</span>
+                    <span>Version History — Restore or Prune Snapshots</span>
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground/40 font-mono flex items-center gap-2">
+                    {history.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playClick();
+                          const allSelected = history.every((h) => selectedHistory[h.id]);
+                          if (allSelected) {
+                            setSelectedHistory({});
+                          } else {
+                            const next: Record<number, boolean> = {};
+                            history.forEach((h) => { next[h.id] = true; });
+                            setSelectedHistory(next);
+                          }
+                        }}
+                        className="uppercase tracking-wider hover:text-primary transition-colors cursor-pointer"
+                      >
+                        [ {history.every((h) => selectedHistory[h.id]) ? "deselect_all" : "select_all"} ]
+                      </button>
+                    )}
+                    <span>{history.length} snapshots</span>
+                  </span>
+                </div>
+
+                {(() => {
+                  const selectedIds = history.filter((h) => selectedHistory[h.id]).map((h) => h.id);
+                  if (selectedIds.length === 0) return null;
+                  return (
+                    <div className="flex items-center justify-between gap-3 p-2.5 border border-warning/30 bg-warning/5 text-warning text-[11px] font-mono select-none">
+                      <span>{selectedIds.length} selected</span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => { playBeep(330, 0.25); setDeleteHistoryTarget({ ids: selectedIds, label: `${selectedIds.length} snapshots` }); }}
+                          className="px-2.5 py-1 border border-destructive bg-destructive/10 text-destructive hover:bg-destructive/20 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
+                        >
+                          [ delete_selected ]
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { playClick(); setSelectedHistory({}); }}
+                          className="px-2.5 py-1 border border-border/50 hover:bg-primary/5 text-[10px] uppercase font-bold tracking-wider cursor-pointer text-muted-foreground"
+                        >
+                          [ clear ]
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {loadingHistory ? (
+                  <div className="text-center py-12 text-muted-foreground/45 font-mono text-xs animate-pulse">
+                    $ git log --oneline
+                    <br />
+                    [LOAD] Reading version history...
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="border border-dashed border-border p-10 text-center text-muted-foreground/50 text-xs font-mono">
+                    No history yet. A snapshot is saved automatically each time this template is edited or reverted.
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin">
+                    {history.map((h, idx) => {
+                      const isOpen = expandedHistory === h.id;
+                      return (
+                        <div key={h.id} className="border border-primary/15 bg-primary/[0.01]">
+                          <div className="flex items-center justify-between p-3 gap-3">
+                            <input
+                              type="checkbox"
+                              checked={!!selectedHistory[h.id]}
+                              onChange={(e) => {
+                                playClick();
+                                const checked = e.target.checked;
+                                setSelectedHistory((prev) => ({ ...prev, [h.id]: checked }));
+                              }}
+                              className="cursor-pointer accent-primary h-3.5 w-3.5 bg-background border border-border/80 rounded-none focus:ring-0 shrink-0"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => { playClick(); setExpandedHistory(isOpen ? null : h.id); }}
+                              className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer"
+                            >
+                              <span className="text-primary/60 text-[10px] w-3 shrink-0">{isOpen ? "▼" : "▶"}</span>
+                              <span className="text-[10px] text-muted-foreground/40 font-mono shrink-0">
+                                v{history.length - idx}
+                              </span>
+                              <div className="min-w-0">
+                                <div className="text-[11px] text-foreground font-bold truncate">
+                                  {h.reason || "Edit"}
+                                </div>
+                                <div className="text-[9px] text-muted-foreground/45 font-mono">
+                                  {new Date(h.createdAt).toLocaleString()}
+                                  {h.contributorName ? ` · by ${h.contributorName}` : ""}
+                                </div>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { playBeep(330, 0.2); setRevertTarget(h); }}
+                              className="shrink-0 flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 border border-warning/40 bg-warning/5 text-warning hover:bg-warning/15 transition-colors uppercase font-bold tracking-wider cursor-pointer rounded-none"
+                            >
+                              <RotateCcw className="h-3 w-3" />
+                              revert
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { playBeep(330, 0.2); setDeleteHistoryTarget({ ids: [h.id], label: `v${history.length - idx} (${h.reason || "Edit"})` }); }}
+                              title="Delete this snapshot"
+                              className="shrink-0 flex items-center justify-center text-[10px] p-1.5 border border-transparent text-muted-foreground/45 hover:text-destructive hover:border-destructive/20 transition-colors cursor-pointer rounded-none"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+
+                          {isOpen && (
+                            <div className="border-t border-border/40 p-3 space-y-2 bg-black/10">
+                              <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-muted-foreground/60">
+                                <span><span className="text-primary/60 font-bold">title:</span> {h.title}</span>
+                                <span><span className="text-primary/60 font-bold">slug:</span> {h.slug}</span>
+                                {h.complexity && <span><span className="text-primary/60 font-bold">complexity:</span> {h.complexity}</span>}
+                                {h.tags?.length > 0 && <span><span className="text-primary/60 font-bold">tags:</span> {h.tags.join(", ")}</span>}
+                              </div>
+                              {h.codes && h.codes.length > 0 && (
+                                <div className="space-y-1.5 pt-1">
+                                  {h.codes.map((blk, i) => (
+                                    <div key={i} className="border border-border/40 bg-black/25">
+                                      <div className="px-2 py-1 border-b border-border/40 bg-primary/5 text-[9px] text-primary/70 font-bold uppercase">{blk.language}</div>
+                                      <pre className="p-2 text-[9px] text-foreground/80 overflow-x-auto scrollbar-thin whitespace-pre max-h-40">{blk.code}</pre>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Help Pane (Visible only on large screens) */}
@@ -617,6 +884,103 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
           </button>
         )}
       </div>
+
+      {/* Revert confirmation modal */}
+      {revertTarget && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+          <div className="w-full max-w-md border border-warning bg-card/95 shadow-[0_0_40px_rgba(234,179,8,0.2)] overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-warning/30 bg-warning/10 text-warning text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-warning animate-ping" />
+                <span>↺ [ REVERT_VERSION.SH ]</span>
+              </div>
+              <span>RESTORE_SYS_V1</span>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">restore target</div>
+                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border">
+                  {revertTarget.reason || "Edit"}
+                  <span className="block text-[9px] text-muted-foreground/45 font-normal mt-0.5">
+                    {new Date(revertTarget.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground/85 leading-relaxed">
+                This restores the template (fields + code) to this saved version. The current state is snapshotted first, so you can undo the revert from history.
+              </div>
+            </div>
+            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
+              <button
+                type="button"
+                onClick={() => { playClick(); setRevertTarget(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase cursor-pointer"
+              >
+                <span>[ ESC ]</span>
+                <span>Cancel</span>
+              </button>
+              <button
+                type="button"
+                onClick={doRevert}
+                disabled={reverting}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-warning bg-warning/15 hover:bg-warning/35 text-warning transition-colors uppercase font-bold cursor-pointer disabled:opacity-50"
+              >
+                <span>[ ENTER ]</span>
+                <span>{reverting ? "Restoring..." : "Restore Version"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete history confirmation modal */}
+      {deleteHistoryTarget && (
+        <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4 select-none">
+          <div className="w-full max-w-md border border-destructive bg-card/95 shadow-[0_0_40px_rgba(239,68,68,0.25)] overflow-hidden font-mono">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
+                <span>⚠️ [ DELETE_HISTORY.SH ]</span>
+              </div>
+              <span>WARN_LEVEL_2</span>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <div className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">command target</div>
+                <div className="text-xs font-bold text-foreground bg-muted/20 p-2 border border-border flex items-center gap-2">
+                  <span className="text-destructive font-bold">$ rm</span>
+                  <span>history/{deleteHistoryTarget.label}</span>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground/85 leading-relaxed">
+                {deleteHistoryTarget.ids.length > 1
+                  ? `Permanently delete these ${deleteHistoryTarget.ids.length} snapshots.`
+                  : "Permanently delete this snapshot."}{" "}
+                This only removes saved history — the current template is unaffected. You will not be able to revert to {deleteHistoryTarget.ids.length > 1 ? "these versions" : "this version"} afterward.
+              </div>
+            </div>
+            <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
+              <button
+                type="button"
+                onClick={() => { playClick(); setDeleteHistoryTarget(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border hover:border-primary/40 hover:text-primary transition-colors uppercase cursor-pointer"
+              >
+                <span>[ ESC ]</span>
+                <span>Cancel</span>
+              </button>
+              <button
+                type="button"
+                onClick={doDeleteHistory}
+                disabled={deletingHistory}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-destructive bg-destructive/15 hover:bg-destructive/35 text-destructive transition-colors uppercase font-bold cursor-pointer disabled:opacity-50"
+              >
+                <span>[ ENTER ]</span>
+                <span>{deletingHistory ? "Deleting..." : "Delete"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

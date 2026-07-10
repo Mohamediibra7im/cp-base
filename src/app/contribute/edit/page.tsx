@@ -10,6 +10,7 @@ interface TemplateOption {
   id: number;
   title: string;
   slug: string;
+  notes?: string | null;
   codes?: { language: string; code: string }[];
 }
 
@@ -61,6 +62,9 @@ export default function ContributeEditPage() {
     } else {
       setEditCodes([{ language: "cpp", code: "" }]);
     }
+    // Pre-fill the current notes so the contributor edits them instead of
+    // starting blank (a blank submission would wipe the existing notes).
+    setEditNotes(t.notes || "");
   };
 
   const updateCode = (index: number, field: keyof CodeBlock, value: string) => {
@@ -229,7 +233,7 @@ export default function ContributeEditPage() {
               </div>
               <button
                 type="button"
-                onClick={() => { playClick(); setSelectedTemplate(null); setEditCodes([]); }}
+                onClick={() => { playClick(); setSelectedTemplate(null); setEditCodes([]); setEditNotes(""); }}
                 className="text-muted-foreground/40 hover:text-destructive transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
@@ -310,14 +314,15 @@ export default function ContributeEditPage() {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Updated Notes (optional, markdown)</label>
+            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-widest font-bold block">Notes (markdown) — current content pre-loaded, edit as needed</label>
             <textarea
               value={editNotes}
               onChange={(e) => setEditNotes(e.target.value)}
-              placeholder="Updated explanation or notes..."
-              rows={4}
+              placeholder="The template's existing notes appear here — modify them instead of starting from scratch."
+              rows={8}
               className="w-full bg-background/40 border border-border focus:border-primary/50 text-xs font-mono px-2.5 py-2 outline-none transition-colors resize-y"
             />
+            <p className="text-[9px] text-muted-foreground/40">Leave unchanged to keep the notes as they are.</p>
           </div>
         </fieldset>
 

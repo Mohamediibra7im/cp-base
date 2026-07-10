@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/db";
-import { templates, categories, templateCodes } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { templates, categories, templateCodes, contributions } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { LanguageTabs } from "@/components/language-tabs";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
-import { ArrowLeft, Clock, Calendar, FileText, UserPlus } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, FileText, UserPlus, ArrowUpRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +85,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   let category;
   let codes;
   let notes: string | null = null;
+  let contributors: { name: string; cfHandle: string | null; role: "creator" | "editor"; avatar: string }[] = [];
 
   try {
     [template] = await db.select().from(templates).where(eq(templates.slug, slug));
@@ -97,6 +98,82 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
 
     // Notes are stored in the database
     notes = template.notes;
+
+    // Build the full contributor list from approved contributions on this template
+    // (oldest first: the "new" submission is the creator, "edit" approvals are editors)
+    try {
+      const rows = await db
+        .select({
+          name: contributions.contributorName,
+          cfHandle: contributions.contributorCfHandle,
+          type: contributions.type,
+          createdAt: contributions.createdAt,
+        })
+        .from(contributions)
+        .where(and(eq(contributions.templateId, template.id), eq(contributions.status, "approved")))
+        .orderBy(contributions.createdAt);
+
+      const seen = new Set<string>();
+      const collected: { name: string; cfHandle: string | null; role: "creator" | "editor" }[] = [];
+      for (const r of rows) {
+        const key = `${r.name.toLowerCase()}::${(r.cfHandle || "").toLowerCase()}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        collected.push({
+          name: r.name,
+          cfHandle: r.cfHandle,
+          role: r.type === "new" ? "creator" : "editor",
+        });
+      }
+
+      // Fallback: legacy templates that only stored a single credit column
+      if (collected.length === 0 && template.contributorName) {
+        collected.push({
+          name: template.contributorName,
+          cfHandle: template.contributorCfHandle,
+          role: "creator",
+        });
+      }
+
+      // Resolve avatars: real Codeforces photo for handles (one batched call),
+      // deterministic generated avatar otherwise.
+      const cfAvatars = new Map<string, string>();
+      const handles = collected.map((c) => c.cfHandle).filter(Boolean) as string[];
+      if (handles.length > 0) {
+        try {
+          const res = await fetch(
+            `https://codeforces.com/api/user.info?handles=${handles.map(encodeURIComponent).join(";")}`,
+            { next: { revalidate: 86400 } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === "OK" && Array.isArray(data.result)) {
+              for (const u of data.result) {
+                let img: string | undefined = u.titlePhoto || u.avatar;
+                if (img?.startsWith("//")) img = `https:${img}`;
+                if (img && !/no-title\.jpg|no-avatar/i.test(img)) {
+                  cfAvatars.set(u.handle.toLowerCase(), img);
+                }
+              }
+            }
+          }
+        } catch {
+          // CF unreachable — fall through to generated avatars
+        }
+      }
+
+      contributors = collected.map((c) => {
+        const cf = c.cfHandle ? cfAvatars.get(c.cfHandle.toLowerCase()) : undefined;
+        const avatar =
+          cf ||
+          `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(
+            c.cfHandle || c.name
+          )}&backgroundType=gradientLinear`;
+        return { ...c, avatar };
+      });
+    } catch {
+      // contributor list is non-critical; ignore failures
+    }
   } catch {
     return (
       <div className="relative z-10 mx-auto max-w-4xl w-full px-4 py-8">
@@ -211,27 +288,15 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
                 })}
               </span>
             </div>
-            {template!.contributorName && (
+            {contributors.length > 0 && (
               <>
                 <span className="text-border/30">|</span>
-                <div className="flex items-center gap-1.5 text-muted-foreground">
+                <a href="#contributors" className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
                   <UserPlus className="h-3.5 w-3.5" />
                   <span>
-                    contributed by{" "}
-                    {template!.contributorCfHandle ? (
-                      <a
-                        href={`https://codeforces.com/profile/${template!.contributorCfHandle}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary font-bold hover:underline underline-offset-4 decoration-primary/40 transition-colors"
-                      >
-                        {template!.contributorName}
-                      </a>
-                    ) : (
-                      <span className="text-primary font-bold">{template!.contributorName}</span>
-                    )}
+                    {contributors.length} {contributors.length === 1 ? "contributor" : "contributors"}
                   </span>
-                </div>
+                </a>
               </>
             )}
             {notes && (
@@ -271,6 +336,66 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           </div>
         </div>
       </div>
+
+      {/* Contributors — GitHub-style credits */}
+      {contributors.length > 0 && (
+        <div id="contributors" className="scroll-mt-16 mb-8 font-mono text-xs">
+          <div className="flex items-center gap-2 mb-4 font-bold">
+            <span className="text-primary">$</span>
+            <span className="text-foreground">git shortlog -sn</span>
+            <span className="text-muted-foreground/40">// {contributors.length} {contributors.length === 1 ? "contributor" : "contributors"}</span>
+          </div>
+
+          <div className="border border-border/80 bg-card/45 backdrop-blur-md p-5 relative overflow-hidden">
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-2xl" />
+            <div className="flex items-center justify-between pb-3 border-b border-border/30 mb-4 text-muted-foreground/45 text-[9px] uppercase tracking-wider select-none">
+              <span>contributors --list</span>
+              <span>credits</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2.5">
+              {contributors.map((c, i) => {
+                const inner = (
+                  <>
+                    <img
+                      src={c.avatar}
+                      alt={c.name}
+                      loading="lazy"
+                      className="h-5 w-5 rounded-full border border-primary/25 bg-primary/10 object-cover shrink-0"
+                    />
+                    <span className="font-bold">{c.name}</span>
+                    {c.role === "creator" && (
+                      <span className="text-[8px] uppercase tracking-wider text-primary/70 border border-primary/25 bg-primary/5 px-1 py-0.5 select-none">
+                        creator
+                      </span>
+                    )}
+                    {c.cfHandle && <ArrowUpRight className="h-3 w-3 opacity-60 shrink-0" />}
+                  </>
+                );
+                return c.cfHandle ? (
+                  <a
+                    key={i}
+                    href={`https://codeforces.com/profile/${c.cfHandle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`@${c.cfHandle} on Codeforces`}
+                    className="flex items-center gap-1.5 border border-border/60 bg-card/30 px-2.5 py-1.5 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1.5 border border-border/60 bg-card/30 px-2.5 py-1.5 text-muted-foreground"
+                  >
+                    {inner}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Code */}
       <div className="mb-10 font-mono text-xs">

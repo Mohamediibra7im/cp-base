@@ -87,3 +87,26 @@ export const contributionsRelations = relations(contributions, ({ one }) => ({
   category: one(categories, { fields: [contributions.categoryId], references: [categories.id] }),
   template: one(templates, { fields: [contributions.templateId], references: [templates.id] }),
 }));
+
+export const templateHistory = pgTable("template_history", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  contributionId: integer("contribution_id"),
+  title: text("title").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description").notNull().default(""),
+  categoryId: integer("category_id"),
+  tags: text("tags").array().notNull().default([]),
+  complexity: text("complexity").notNull().default(""),
+  notes: text("notes"),
+  hidden: boolean("hidden").notNull().default(false),
+  contributorName: text("contributor_name"),
+  contributorCfHandle: text("contributor_cf_handle"),
+  codes: jsonb("codes"),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const templateHistoryRelations = relations(templateHistory, ({ one }) => ({
+  template: one(templates, { fields: [templateHistory.templateId], references: [templates.id] }),
+}));

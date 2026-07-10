@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { snapshotTemplate } from "@/lib/template-history";
 
 export async function GET(request: Request) {
   const db = getDb();
@@ -72,6 +73,9 @@ export async function PUT(request: Request) {
   if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
 
   const body = await request.json();
+
+  // Snapshot the existing version before overwriting, so it can be reverted.
+  await snapshotTemplate(db, Number(body.id), body.historyReason || "Admin edit");
 
   const updateFields: any = {
     updatedAt: new Date(),

@@ -625,6 +625,7 @@ export default function AdminDashboard() {
       playSuccess();
       toast.success("Contribution record purged");
       fetchContributions();
+      fetchTemplates();
     } else {
       playBeep(440, 0.15);
       toast.error("Failed to delete contribution");
@@ -2016,7 +2017,10 @@ export default function AdminDashboard() {
               <div className="text-xs text-muted-foreground/85 leading-relaxed font-mono">
                 WARNING: You are about to permanently delete this {deleteContribTarget.type === "edit" ? "edit request" : "template submission"} from{" "}
                 <span className="text-foreground font-semibold">"{deleteContribTarget.contributorName}"</span>.
-                This removes the record only — it does not unpublish any already-approved template. No email is sent.
+                {deleteContribTarget.type === "edit" && deleteContribTarget.status === "approved"
+                  ? " If approved, their applied changes will be rolled back (template restored to the version before their edit) and their history snapshot purged."
+                  : " If approved, the contributor credit will be removed from the template (the template itself stays published)."}{" "}
+                No email is sent.
               </div>
             </div>
             <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px]">
