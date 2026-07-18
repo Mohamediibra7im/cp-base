@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean, jsonb, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const categories = pgTable("categories", {
@@ -49,6 +49,7 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 export const templatesRelations = relations(templates, ({ one, many }) => ({
   category: one(categories, { fields: [templates.categoryId], references: [categories.id] }),
   codes: many(templateCodes),
+  likes: many(templateLikes),
 }));
 
 export const templateCodesRelations = relations(templateCodes, ({ one }) => ({
@@ -59,6 +60,10 @@ export const contributions = pgTable("contributions", {
   id: serial("id").primaryKey(),
   type: text("type").notNull(),
   status: text("status").notNull().default("pending"),
+
+  // The submitting account. Nullable so pre-account contributions remain valid,
+  // and set-null on delete so approved contribution credit survives account removal.
+  userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
 
   contributorName: text("contributor_name").notNull(),
   contributorEmail: text("contributor_email").notNull(),
@@ -86,6 +91,7 @@ export const contributions = pgTable("contributions", {
 export const contributionsRelations = relations(contributions, ({ one }) => ({
   category: one(categories, { fields: [contributions.categoryId], references: [categories.id] }),
   template: one(templates, { fields: [contributions.templateId], references: [templates.id] }),
+  user: one(users, { fields: [contributions.userId], references: [users.id] }),
 }));
 
 export const templateHistory = pgTable("template_history", {
@@ -170,6 +176,15 @@ export const userProgress = pgTable("user_progress", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// One row per (user, template) like. The aggregate templates.likeCount is kept
+// in sync so anonymous likes (no row here) and account likes share one counter.
+export const templateLikes = pgTable("template_likes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [unique().on(t.userId, t.templateId)]);
+
 // ─── User Relations ──────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -177,6 +192,13 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   customTemplates: many(userTemplates),
   collections: many(userCollections),
   progress: many(userProgress),
+  likes: many(templateLikes),
+  contributions: many(contributions),
+}));
+
+export const templateLikesRelations = relations(templateLikes, ({ one }) => ({
+  user: one(users, { fields: [templateLikes.userId], references: [users.id] }),
+  template: one(templates, { fields: [templateLikes.templateId], references: [templates.id] }),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({

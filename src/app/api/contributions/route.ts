@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
 import { getDb, schema } from "@/db";
+import { getSessionFromCookie } from "@/lib/auth";
 
 export async function POST(request: Request) {
   const db = getDb();
   if (!db) return NextResponse.json({ error: "Database not configured" }, { status: 500 });
 
+  // Contributions are tied to an account: identity comes from the session, not
+  // from client-supplied name/email, so credit can't be spoofed.
+  const session = await getSessionFromCookie();
+  if (!session) {
+    return NextResponse.json({ error: "Sign in to contribute" }, { status: 401 });
+  }
+
   const body = await request.json();
 
-  const { type, contributorName, contributorEmail, contributorCfHandle } = body;
+  const { type, contributorCfHandle } = body;
+  const contributorName = session.username;
+  const contributorEmail = session.email;
 
   if (!type || !["new", "edit"].includes(type)) {
     return NextResponse.json({ error: "Invalid contribution type" }, { status: 400 });
-  }
-  if (!contributorName?.trim() || !contributorEmail?.trim()) {
-    return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(contributorEmail.trim())) {
-    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
   }
 
   if (type === "new") {
@@ -35,8 +37,9 @@ export async function POST(request: Request) {
       .insert(schema.contributions)
       .values({
         type: "new",
-        contributorName: contributorName.trim(),
-        contributorEmail: contributorEmail.trim(),
+        userId: session.userId,
+        contributorName,
+        contributorEmail,
         contributorCfHandle: contributorCfHandle?.trim() || null,
         title: body.title.trim(),
         slug,
@@ -64,8 +67,9 @@ export async function POST(request: Request) {
       .insert(schema.contributions)
       .values({
         type: "edit",
-        contributorName: contributorName.trim(),
-        contributorEmail: contributorEmail.trim(),
+        userId: session.userId,
+        contributorName,
+        contributorEmail,
         contributorCfHandle: contributorCfHandle?.trim() || null,
         templateId: Number(body.templateId),
         editReason: body.editReason.trim(),

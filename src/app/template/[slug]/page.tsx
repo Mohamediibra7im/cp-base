@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDb } from "@/db";
-import { templates, categories, templateCodes, contributions } from "@/db/schema";
+import { templates, categories, templateCodes, contributions, templateLikes } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { getSessionFromCookie } from "@/lib/auth";
 import { TemplateCodeSection } from "@/components/template-code-section";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
@@ -86,7 +87,10 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   let category;
   let codes;
   let notes: string | null = null;
+  let initiallyLiked = false;
   let contributors: { name: string; cfHandle: string | null; role: "creator" | "editor"; avatar: string }[] = [];
+
+  const session = await getSessionFromCookie();
 
   try {
     [template] = await db.select().from(templates).where(eq(templates.slug, slug));
@@ -96,6 +100,16 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
     if (!category || category.hidden) notFound();
 
     codes = await db.select().from(templateCodes).where(eq(templateCodes.templateId, template.id));
+
+    // Prime the like button for signed-in users from their persisted like row.
+    if (session) {
+      const [likeRow] = await db
+        .select({ id: templateLikes.id })
+        .from(templateLikes)
+        .where(and(eq(templateLikes.userId, session.userId), eq(templateLikes.templateId, template.id)))
+        .limit(1);
+      initiallyLiked = !!likeRow;
+    }
 
     // Notes are stored in the database
     notes = template.notes;
@@ -291,7 +305,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
             )}
             <span className="text-border/30">|</span>
             <div className="inline-block align-middle">
-              <LikeButton templateId={template!.id} initialLikes={template!.likeCount || 0} />
+              <LikeButton templateId={template!.id} initialLikes={template!.likeCount || 0} initiallyLiked={initiallyLiked} />
             </div>
           </div>
 

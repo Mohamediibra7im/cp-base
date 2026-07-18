@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Terminal, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useTerminalTheme } from "@/components/theme-provider";
+import { useAuth } from "@/components/auth-provider";
 import { TerminalBreadcrumb } from "@/components/terminal";
 import {
   RetroFieldset,
@@ -28,6 +29,7 @@ interface TemplateOption {
 
 export default function ContributeEditPage() {
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
+  const { user } = useAuth();
 
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +37,9 @@ export default function ContributeEditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const [contributor, setContributor] = useState<ContributorInfo>({ name: "", email: "", cfHandle: "" });
+  // Name and email are derived from the account; only the CF handle is editable.
+  const [cfHandle, setCfHandle] = useState("");
+  const contributor: ContributorInfo = { name: user?.username ?? "", email: user?.email ?? "", cfHandle };
 
   const [editReason, setEditReason] = useState("");
   const [editNotes, setEditNotes] = useState("");
@@ -78,11 +82,6 @@ export default function ContributeEditPage() {
     e.preventDefault();
     playClick();
 
-    if (!contributor.name.trim() || !contributor.email.trim()) {
-      playBeep(440, 0.15);
-      toast.error("Name and email are required");
-      return;
-    }
     if (!selectedTemplate) {
       playBeep(440, 0.15);
       toast.error("Select a template to edit");
@@ -102,8 +101,6 @@ export default function ContributeEditPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "edit",
-          contributorName: contributor.name.trim(),
-          contributorEmail: contributor.email.trim(),
           contributorCfHandle: contributor.cfHandle.trim() || undefined,
           templateId: selectedTemplate.id,
           editReason: editReason.trim(),
@@ -156,7 +153,7 @@ export default function ContributeEditPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <ContributorFields value={contributor} onChange={(patch) => setContributor((c) => ({ ...c, ...patch }))} />
+        <ContributorFields value={contributor} onChange={(patch) => { if (patch.cfHandle !== undefined) setCfHandle(patch.cfHandle); }} />
 
         {/* Template Selection */}
         <RetroFieldset legend="Select Template">

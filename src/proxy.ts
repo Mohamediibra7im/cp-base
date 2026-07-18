@@ -38,8 +38,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Dashboard protection
-  if (pathname.startsWith("/dashboard")) {
+  // Account-required areas: dashboard and contributing both need a valid session.
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/contribute")) {
     const token = request.cookies.get("cp_session")?.value;
     if (!token) {
       const loginUrl = new URL("/login", request.url);
@@ -61,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/contribute/:path*"],
 };

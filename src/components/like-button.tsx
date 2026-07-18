@@ -3,21 +3,32 @@
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
+import { useAuth } from "./auth-provider";
 
 export function LikeButton({
   templateId,
   initialLikes,
+  initiallyLiked = false,
 }: {
   templateId: number;
   initialLikes: number;
+  initiallyLiked?: boolean;
 }) {
   const { playClick, playSuccess, playBeep } = useTerminalTheme();
+  const { user } = useAuth();
   const [likes, setLikes] = useState(initialLikes);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(initiallyLiked);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check localStorage on mount to see if this template is already liked by the user
+    // Logged-in users get their liked state from the server (initiallyLiked prop);
+    // it may resolve after mount once the session loads. Guests fall back to the
+    // localStorage guard. Syncing to that async state here is intentional.
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLiked(initiallyLiked);
+      return;
+    }
     try {
       const likedTemplates = JSON.parse(localStorage.getItem("liked-templates") || "[]");
       if (Array.isArray(likedTemplates) && likedTemplates.includes(templateId)) {
@@ -26,7 +37,7 @@ export function LikeButton({
     } catch (e) {
       console.error("Failed to read liked status from localStorage:", e);
     }
-  }, [templateId]);
+  }, [templateId, user, initiallyLiked]);
 
   const handleLikeToggle = async () => {
     if (loading) return;
@@ -46,20 +57,23 @@ export function LikeButton({
         setLiked(newLiked);
         setLikes((prev) => (newLiked ? prev + 1 : Math.max(0, prev - 1)));
 
-        // Update localStorage
-        const likedTemplates = JSON.parse(localStorage.getItem("liked-templates") || "[]");
-        if (newLiked) {
-          if (!likedTemplates.includes(templateId)) {
-            likedTemplates.push(templateId);
+        // Guests track their like locally; logged-in state lives server-side.
+        if (!user) {
+          const likedTemplates = JSON.parse(localStorage.getItem("liked-templates") || "[]");
+          if (newLiked) {
+            if (!likedTemplates.includes(templateId)) {
+              likedTemplates.push(templateId);
+            }
+          } else {
+            const index = likedTemplates.indexOf(templateId);
+            if (index > -1) {
+              likedTemplates.splice(index, 1);
+            }
           }
-          playSuccess();
-        } else {
-          const index = likedTemplates.indexOf(templateId);
-          if (index > -1) {
-            likedTemplates.splice(index, 1);
-          }
+          localStorage.setItem("liked-templates", JSON.stringify(likedTemplates));
         }
-        localStorage.setItem("liked-templates", JSON.stringify(likedTemplates));
+
+        if (newLiked) playSuccess();
       } else {
         playBeep(440, 0.15);
       }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Terminal, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useTerminalTheme } from "@/components/theme-provider";
+import { useAuth } from "@/components/auth-provider";
 import { TerminalBreadcrumb } from "@/components/terminal";
 import {
   RetroFieldset,
@@ -20,12 +21,15 @@ import {
 
 export default function ContributeNewPage() {
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
+  const { user } = useAuth();
 
   const [categories, setCategories] = useState<{ id: number; name: string; slug: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const [contributor, setContributor] = useState<ContributorInfo>({ name: "", email: "", cfHandle: "" });
+  // Name and email are derived from the account; only the CF handle is editable.
+  const [cfHandle, setCfHandle] = useState("");
+  const contributor: ContributorInfo = { name: user?.username ?? "", email: user?.email ?? "", cfHandle };
 
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<number | "">("");
@@ -60,11 +64,6 @@ export default function ContributeNewPage() {
     e.preventDefault();
     playClick();
 
-    if (!contributor.name.trim() || !contributor.email.trim()) {
-      playBeep(440, 0.15);
-      toast.error("Name and email are required");
-      return;
-    }
     if (!title.trim()) {
       playBeep(440, 0.15);
       toast.error("Template title is required");
@@ -84,8 +83,6 @@ export default function ContributeNewPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "new",
-          contributorName: contributor.name.trim(),
-          contributorEmail: contributor.email.trim(),
           contributorCfHandle: contributor.cfHandle.trim() || undefined,
           title: title.trim(),
           categoryId: categoryId || undefined,
@@ -144,7 +141,7 @@ export default function ContributeNewPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <ContributorFields value={contributor} onChange={(patch) => setContributor((c) => ({ ...c, ...patch }))} />
+        <ContributorFields value={contributor} onChange={(patch) => { if (patch.cfHandle !== undefined) setCfHandle(patch.cfHandle); }} />
 
         {/* Template Details */}
         <RetroFieldset legend="Template Details">
