@@ -110,3 +110,95 @@ export const templateHistory = pgTable("template_history", {
 export const templateHistoryRelations = relations(templateHistory, ({ one }) => ({
   template: one(templates, { fields: [templateHistory.templateId], references: [templates.id] }),
 }));
+
+// ─── User Accounts ───────────────────────────────────────────────
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  calendarToken: text("calendar_token"),
+  handleVerifyToken: text("handle_verify_token"),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  verificationCode: text("verification_code"),
+  verificationExpires: timestamp("verification_expires"),
+  verificationAttempts: integer("verification_attempts").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const userProfiles = pgTable("user_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  codeforcesHandle: text("codeforces_handle"),
+  atcoderHandle: text("atcoder_handle"),
+  leetcodeHandle: text("leetcode_handle"),
+  codechefHandle: text("codechef_handle"),
+  ratingGoal: text("rating_goal"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userTemplates = pgTable("user_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  customCode: text("custom_code").notNull(),
+  language: text("language").notNull().default("cpp"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userCollections = pgTable("user_collections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const userCollectionItems = pgTable("user_collection_items", {
+  id: serial("id").primaryKey(),
+  collectionId: integer("collection_id").notNull().references(() => userCollections.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  addedAt: timestamp("added_at").notNull().defaultNow(),
+});
+
+export const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  templateId: integer("template_id").notNull().references(() => templates.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("learning"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ─── User Relations ──────────────────────────────────────────────
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  profile: one(userProfiles),
+  customTemplates: many(userTemplates),
+  collections: many(userCollections),
+  progress: many(userProgress),
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
+  user: one(users, { fields: [userProfiles.userId], references: [users.id] }),
+}));
+
+export const userTemplatesRelations = relations(userTemplates, ({ one }) => ({
+  user: one(users, { fields: [userTemplates.userId], references: [users.id] }),
+  template: one(templates, { fields: [userTemplates.templateId], references: [templates.id] }),
+}));
+
+export const userCollectionsRelations = relations(userCollections, ({ one, many }) => ({
+  user: one(users, { fields: [userCollections.userId], references: [users.id] }),
+  items: many(userCollectionItems),
+}));
+
+export const userCollectionItemsRelations = relations(userCollectionItems, ({ one }) => ({
+  collection: one(userCollections, { fields: [userCollectionItems.collectionId], references: [userCollections.id] }),
+  template: one(templates, { fields: [userCollectionItems.templateId], references: [templates.id] }),
+}));
+
+export const userProgressRelations = relations(userProgress, ({ one }) => ({
+  user: one(users, { fields: [userProgress.userId], references: [users.id] }),
+  template: one(templates, { fields: [userProgress.templateId], references: [templates.id] }),
+}));

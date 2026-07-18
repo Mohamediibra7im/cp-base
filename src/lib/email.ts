@@ -105,3 +105,26 @@ export async function sendRejectionEmail(
     html,
   });
 }
+
+export async function sendVerificationEmail(
+  to: string,
+  username: string,
+  code: string
+) {
+  const html = wrap(
+    "Verify Your Email",
+    `<p>Welcome to <strong style="color:#22c55e">CP-Base</strong>, ${username}!</p>
+    <p>Please verify your email address to activate your account. Use the following 6-digit verification code:</p>
+    <div style="margin:24px 0;text-align:center">
+      <span style="display:inline-block;padding:12px 32px;background:#0d1117;border:2px solid #22c55e;color:#22c55e;font-size:24px;font-weight:bold;letter-spacing:4px">${code}</span>
+    </div>
+    <p style="font-size:12px;color:#888">This code will expire in 1 hour. If you did not sign up for this account, please ignore this email.</p>`
+  );
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject: `[CP-Base] Email Verification Code: ${code}`,
+    html,
+  });
+}
