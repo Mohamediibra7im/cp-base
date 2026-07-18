@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getDb } from "@/db";
 import { templates, categories, templateCodes, contributions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { LanguageTabs } from "@/components/language-tabs";
+import { TemplateCodeSection } from "@/components/template-code-section";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
 import { ArrowLeft, Clock, Calendar, FileText, UserPlus, ArrowUpRight } from "lucide-react";
@@ -370,12 +370,13 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
       )}
 
       {/* Code */}
-      <div className="mb-10 font-mono text-xs">
-        <div className="flex items-center gap-2 mb-4 font-bold">
-          <span className="text-primary">$</span>
-          <span className="text-foreground">cat source_code/</span>
-        </div>
-        <LanguageTabs codes={codes!} templateId={template.id} />
+      <div className="mb-10">
+        <TemplateCodeSection
+          templateId={template.id}
+          templateTitle={template.title}
+          templateSlug={template.slug}
+          defaultCodes={codes!}
+        />
       </div>
 
       {/* Notes */}
