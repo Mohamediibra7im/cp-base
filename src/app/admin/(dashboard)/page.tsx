@@ -13,6 +13,7 @@ import { CategoriesTab } from "./_components/categories-tab";
 import { SectionsTab } from "./_components/sections-tab";
 import { StatsTab } from "./_components/stats-tab";
 import { ContributionsTab } from "./_components/contributions-tab";
+import { UsersTab } from "./_components/users-tab";
 
 interface Template {
   id: number;
@@ -65,8 +66,14 @@ interface Contribution {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats" | "contributions">("templates");
+  const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats" | "contributions" | "users">("templates");
   
+  // Users State
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [deleteUserTarget, setDeleteUserTarget] = useState<any | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
+
   // Templates State
   const [templates, setTemplates] = useState<Template[]>([]);
   const [search, setSearch] = useState("");
@@ -118,7 +125,6 @@ export default function AdminDashboard() {
   // Homepage Sections State
   const [sections, setSections] = useState({
     show_hero_section: true,
-    show_profiles_section: true,
     show_contests_section: true,
     show_categories_section: true,
   });
@@ -153,7 +159,6 @@ export default function AdminDashboard() {
       const data = await res.json();
       setSections({
         show_hero_section: data.show_hero_section !== "false",
-        show_profiles_section: data.show_profiles_section !== "false",
         show_contests_section: data.show_contests_section !== "false",
         show_categories_section: data.show_categories_section !== "false",
       });
@@ -167,11 +172,19 @@ export default function AdminDashboard() {
     setLoadingContributions(false);
   };
 
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    const res = await fetch("/api/admin/users");
+    if (res.ok) setUsers(await res.json());
+    setLoadingUsers(false);
+  };
+
   useEffect(() => {
     fetchTemplates();
     fetchCategories();
     fetchSettings();
     fetchContributions();
+    fetchUsers();
   }, []);
 
   // Templates action handlers
@@ -582,6 +595,22 @@ export default function AdminDashboard() {
     window.location.href = "/";
   };
 
+  const confirmDeleteUser = async () => {
+    if (!deleteUserTarget) return;
+    playClick();
+    const id = deleteUserTarget.id;
+    setDeleteUserTarget(null);
+    const res = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      playSuccess();
+      toast.success("User account purged successfully");
+      fetchUsers();
+    } else {
+      playBeep(440, 0.15);
+      toast.error("Failed to purge user account");
+    }
+  };
+
   // Contributions action handlers
   const approveContribution = async (id: number) => {
     playClick();
@@ -748,6 +777,16 @@ export default function AdminDashboard() {
               {pendingContribCount} pending
             </span>
           )}
+        </button>
+        <button
+          onClick={() => { playClick(); setActiveTab("users"); }}
+          className={`px-3 py-1.5 border text-[11px] font-mono font-bold uppercase tracking-wider transition-all rounded-none cursor-pointer ${
+            activeTab === "users"
+              ? "border-primary bg-primary/10 text-primary shadow-[0_0_10px_var(--primary-glow-weak)]"
+              : "border-border text-muted-foreground/45 hover:text-foreground"
+          }`}
+        >
+          $ ls users/
         </button>
       </div>
 
@@ -975,7 +1014,10 @@ export default function AdminDashboard() {
       {activeTab === "sections" && <SectionsTab sections={sections} loadingSettings={loadingSettings} onToggle={toggleSection} />}
 
       {/* VIEW: Sys Stats */}
-      {activeTab === "stats" && <StatsTab templates={templates} categories={categories} playClick={playClick} playSuccess={playSuccess} />}
+      {activeTab === "stats" && <StatsTab templates={templates} categories={categories} playClick={playClick} playSuccess={playSuccess} totalUsers={users.length} />}
+
+      {/* VIEW: Users */}
+      {activeTab === "users" && <UsersTab users={users} loading={loadingUsers} onDelete={(u) => { playBeep(330, 0.25); setDeleteUserTarget(u); }} onSelectUser={(u) => setSelectedUserDetail(u)} onRowClickSound={playClick} />}
 
       {/* VIEW: Contributions Review */}
       {activeTab === "contributions" && <ContributionsTab contributions={contributions} loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
@@ -1018,6 +1060,122 @@ export default function AdminDashboard() {
           WARNING: You are about to permanently delete the category folder <span className="text-foreground font-semibold">"{deleteCategoryTarget.name}"</span>.
           This action is irreversible and will purge all templates directly linked to this category!
         </RetroConfirmModal>
+      )}
+
+      {/* Retro Delete warning modal overlay (Users) */}
+      {deleteUserTarget && (
+        <RetroConfirmModal
+          commandTarget={{ cmd: "$ userdel -r", path: `users/${deleteUserTarget.username}` }}
+          confirmLabel="Force Purge User"
+          onCancel={() => { playClick(); setDeleteUserTarget(null); }}
+          onConfirm={confirmDeleteUser}
+        >
+          WARNING: You are about to permanently delete the user account <span className="text-foreground font-semibold">"{deleteUserTarget.username}"</span> (<span className="text-muted-foreground">{deleteUserTarget.email}</span>).
+          This action is irreversible and will purge all custom templates, collections, and progress records associated with this account from the mainframe database!
+        </RetroConfirmModal>
+      )}
+
+      {/* Selected User Details retro modal dialog overlay */}
+      {selectedUserDetail && (
+        <RetroModal
+          tone="primary"
+          title={`ℹ [ USER_DETAILS: ${selectedUserDetail.username.toUpperCase()} ]`}
+          tag="USER_MANAGEMENT_SYS"
+          selectNone={false}
+        >
+          <div className="p-6 space-y-4 text-xs select-text font-mono">
+            <div className="text-[10px] text-muted-foreground/45 border-b border-primary/10 pb-2 flex justify-between select-none">
+              <span>USER ID: {selectedUserDetail.id}</span>
+              <span>STATUS: ACTIVE</span>
+            </div>
+
+            <div className="space-y-3.5 leading-relaxed">
+              <div className="grid grid-cols-3 gap-2">
+                <span className="text-muted-foreground/40 font-bold select-none uppercase">Username:</span>
+                <span className="col-span-2 text-foreground font-bold">{selectedUserDetail.username}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="text-muted-foreground/40 font-bold select-none uppercase">Email:</span>
+                <span className="col-span-2 text-foreground font-bold">{selectedUserDetail.email}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="text-muted-foreground/40 font-bold select-none uppercase">Verified Status:</span>
+                <span className="col-span-2">
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 border ${
+                    selectedUserDetail.emailVerified 
+                      ? "border-success bg-success/5 text-success" 
+                      : "border-warning bg-warning/5 text-warning"
+                  }`}>
+                    {selectedUserDetail.emailVerified ? "EMAIL_VERIFIED (TRUE)" : "EMAIL_UNVERIFIED (FALSE)"}
+                  </span>
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="text-muted-foreground/40 font-bold select-none uppercase">Joined Date:</span>
+                <span className="col-span-2 text-foreground">{new Date(selectedUserDetail.createdAt).toLocaleString()}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="text-muted-foreground/40 font-bold select-none uppercase">Calendar Token:</span>
+                <span className="col-span-2 text-primary font-bold tracking-wider break-all select-all">{selectedUserDetail.calendarToken || "None linked"}</span>
+              </div>
+            </div>
+
+            <div className="border-t border-border/30 pt-3 mt-4 space-y-2.5">
+              <div className="text-[9px] text-muted-foreground/45 uppercase tracking-widest font-bold select-none">
+                Linked Platform Handles
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { label: "Codeforces", val: selectedUserDetail.codeforcesHandle, color: "text-red-400", url: `https://codeforces.com/profile/${selectedUserDetail.codeforcesHandle}` },
+                  { label: "AtCoder", val: selectedUserDetail.atcoderHandle, color: "text-zinc-400", url: `https://atcoder.jp/users/${selectedUserDetail.atcoderHandle}` },
+                  { label: "LeetCode", val: selectedUserDetail.leetcodeHandle, color: "text-amber-400", url: `https://leetcode.com/${selectedUserDetail.leetcodeHandle}` },
+                  { label: "CodeChef", val: selectedUserDetail.codechefHandle, color: "text-emerald-400", url: `https://www.codechef.com/users/${selectedUserDetail.codechefHandle}` },
+                ].map((ph) => {
+                  const content = (
+                    <>
+                      <span className="text-[8px] text-muted-foreground/35 uppercase select-none">{ph.label}</span>
+                      <span className={`text-xs font-bold mt-1 ${ph.val ? ph.color : "text-muted-foreground/20 italic"}`}>
+                        {ph.val ? `@${ph.val}` : "Not linked"}
+                      </span>
+                    </>
+                  );
+
+                  if (ph.val) {
+                    return (
+                      <a
+                        key={ph.label}
+                        href={ph.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="border border-border/30 p-2.5 bg-card/25 hover:bg-primary/5 hover:border-primary/40 flex flex-col justify-between transition-all duration-200 cursor-pointer"
+                      >
+                        {content}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <div key={ph.label} className="border border-border/30 p-2.5 bg-card/25 flex flex-col justify-between opacity-50">
+                      {content}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-border/45 px-6 py-4 bg-muted/5 flex justify-end gap-3 text-[10px] select-none">
+            <button
+              type="button"
+              onClick={() => { playClick(); setSelectedUserDetail(null); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-primary bg-primary/5 hover:bg-primary/15 text-primary transition-colors uppercase font-mono font-bold cursor-pointer"
+            >
+              <span>[ ESC ]</span>
+              <span>Close Window</span>
+            </button>
+          </div>
+        </RetroModal>
       )}
 
       {/* Reject Contribution retro modal dialog overlay */}
@@ -1086,7 +1244,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between px-3 py-2 border-b border-primary/30 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider select-none">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                <span>📂 [ {categoryModal.isEdit ? "EDIT_CATEGORY.SH" : "NEW_CATEGORY.SH"} ]</span>
+                <span>[DIR] [ {categoryModal.isEdit ? "EDIT_CATEGORY.SH" : "NEW_CATEGORY.SH"} ]</span>
               </div>
               <span>SETUP_SYS_V1</span>
             </div>

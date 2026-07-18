@@ -243,7 +243,7 @@ export async function PUT(request: Request) {
         contribution.id
       );
 
-      const updates: Record<string, any> = {
+      const updates: Record<string, unknown> = {
         contributorName: contribution.contributorName,
         contributorCfHandle: contribution.contributorCfHandle || null,
         updatedAt: new Date(),

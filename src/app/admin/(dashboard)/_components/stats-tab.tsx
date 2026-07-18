@@ -20,11 +20,12 @@ interface StatsCategory {
 interface StatsTabProps {
   templates: StatsTemplate[];
   categories: StatsCategory[];
+  totalUsers: number;
   playClick: () => void;
   playSuccess: () => void;
 }
 
-export function StatsTab({ templates, categories, playClick, playSuccess }: StatsTabProps) {
+export function StatsTab({ templates, categories, totalUsers, playClick, playSuccess }: StatsTabProps) {
   return (
     <div className="space-y-6 font-mono text-xs animate-in fade-in duration-100">
       {/* Header */}
@@ -40,6 +41,7 @@ export function StatsTab({ templates, categories, playClick, playSuccess }: Stat
             const report = {
               generatedAt: new Date().toISOString(),
               summary: {
+                totalUsers,
                 totalTemplates: templates.length,
                 totalCategories: categories.length,
                 totalCopies: templates.reduce((acc, t) => acc + (t.copyCount || 0), 0),
@@ -78,7 +80,11 @@ export function StatsTab({ templates, categories, playClick, playSuccess }: Stat
 
         return (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 select-none">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 select-none">
+              <div className="border border-border bg-card/15 p-4 flex flex-col justify-between shadow-[0_0_15px_rgba(34,197,94,0.03)]">
+                <span className="text-[10px] text-muted-foreground/40 uppercase">Total Users</span>
+                <span className="text-xl font-bold text-success mt-2">{totalUsers}</span>
+              </div>
               <div className="border border-border bg-card/15 p-4 flex flex-col justify-between">
                 <span className="text-[10px] text-muted-foreground/40 uppercase">Total Files</span>
                 <span className="text-xl font-bold text-foreground mt-2">{totalTemplates}</span>

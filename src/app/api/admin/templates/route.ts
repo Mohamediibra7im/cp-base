@@ -77,7 +77,7 @@ export async function PUT(request: Request) {
   // Snapshot the existing version before overwriting, so it can be reverted.
   await snapshotTemplate(db, Number(body.id), body.historyReason || "Admin edit");
 
-  const updateFields: any = {
+  const updateFields: Record<string, unknown> = {
     updatedAt: new Date(),
   };
   if (body.title !== undefined) updateFields.title = body.title;

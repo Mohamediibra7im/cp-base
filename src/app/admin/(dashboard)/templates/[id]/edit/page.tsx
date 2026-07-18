@@ -872,7 +872,7 @@ export default function EditTemplate({ params }: { params: Promise<{ id: string 
             <div className="flex items-center justify-between px-3 py-2 border-b border-destructive/30 bg-destructive/10 text-destructive text-[10px] font-bold uppercase tracking-wider">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
-                <span>⚠️ [ DELETE_HISTORY.SH ]</span>
+                <span>[WARN] [ DELETE_HISTORY.SH ]</span>
               </div>
               <span>WARN_LEVEL_2</span>
             </div>
