@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useTerminalTheme } from "./theme-provider";
-import { Terminal, ExternalLink } from "lucide-react";
+import { Terminal, ExternalLink, Calendar } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
 
 interface Contest {
   name: string;
@@ -49,6 +55,151 @@ const PLATFORM_STYLES: Record<PlatformKey, { tab: string; activeTab: string; bad
 export function ContestCalendar() {
   const { playClick } = useTerminalTheme();
   const [activeTab, setActiveTab] = useState<PlatformKey>("codeforces");
+
+  const formatDuration = (secondsStr: string) => {
+    const secs = parseFloat(secondsStr);
+    if (isNaN(secs)) return secondsStr;
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    if (m === 0) return `${h}h`;
+    if (h === 0) return `${m}m`;
+    return `${h}h ${m}m`;
+  };
+
+  const getGCalUrl = (c: Contest) => {
+    const platformName = PLATFORMS.find((p) => p.key === activeTab)?.label || activeTab;
+    const start = new Date(c.start_time);
+    const durationSecs = parseFloat(c.duration);
+    const end = new Date(start.getTime() + (isNaN(durationSecs) ? 2 * 3600 : durationSecs) * 1000);
+
+    const formatToGCalDate = (date: Date) => {
+      return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    };
+
+    const startISO = formatToGCalDate(start);
+    const endISO = formatToGCalDate(end);
+
+    const title = `[${platformName}] ${c.name}`;
+    
+    const startLocal = start.toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short"
+    });
+    const startUTC = start.toUTCString();
+    const description = `<b><u>Competitive Programming Contest Details</u></b>
+
+<b>Contest:</b>      ${c.name}
+<b>Platform:</b>     ${platformName}
+<b>Duration:</b>     ${formatDuration(c.duration)}
+<b>Rated:</b>        ${c.rated || "Yes / See contest site"}
+${c.code ? `<b>Contest Code:</b> ${c.code}\n` : ""}
+<b>Start Time:</b>
+- Local:      ${startLocal}
+- UTC:        ${startUTC}
+
+<b>Contest Link:</b> ${c.url}
+
+<b>Reference & Boilerplates:</b>
+https://cp-base.vercel.app/`;
+
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      title
+    )}&dates=${startISO}/${endISO}&details=${encodeURIComponent(
+      description
+    )}&location=${encodeURIComponent(c.url)}&sf=true&output=xml`;
+  };
+
+  const handleDownloadICS = (c: Contest) => {
+    const platformName = PLATFORMS.find((p) => p.key === activeTab)?.label || activeTab;
+    const start = new Date(c.start_time);
+    const durationSecs = parseFloat(c.duration);
+    const end = new Date(start.getTime() + (isNaN(durationSecs) ? 2 * 3600 : durationSecs) * 1000);
+
+    const formatToGCalDate = (date: Date) => {
+      return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    };
+
+    const startISO = formatToGCalDate(start);
+    const endISO = formatToGCalDate(end);
+    const stampISO = formatToGCalDate(new Date());
+
+    const title = `[${platformName}] ${c.name}`;
+    
+    const startLocal = start.toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZoneName: "short"
+    });
+    const startUTC = start.toUTCString();
+
+    const plainDescription = `Competitive Programming Contest Details
+
+Contest:      ${c.name}
+Platform:     ${platformName}
+Duration:     ${formatDuration(c.duration)}
+Rated:        ${c.rated || "Yes / See contest site"}
+${c.code ? `Contest Code: ${c.code}\n` : ""}
+Start Time:
+- Local:      ${startLocal}
+- UTC:        ${startUTC}
+
+Contest Link: ${c.url}
+
+Reference & Boilerplates:
+https://cp-base.vercel.app/`;
+
+    const htmlDescription = `<!DOCTYPE html><html><body><b><u>Competitive Programming Contest Details</u></b><br><br><b>Contest:</b>      ${c.name}<br><b>Platform:</b>     ${platformName}<br><b>Duration:</b>     ${formatDuration(c.duration)}<br><b>Rated:</b>        ${c.rated || "Yes / See contest site"}<br>${c.code ? `<b>Contest Code:</b> ${c.code}<br>` : ""}<b>Start Time:</b><br>- Local:      ${startLocal}<br>- UTC:        ${startUTC}<br><br><b>Contest Link:</b> <a href="${c.url}">${c.url}</a><br><br><b>Reference & Boilerplates:</b><br><a href="https://cp-base.vercel.app/">https://cp-base.vercel.app/</a></body></html>`;
+
+    const escapedPlainDesc = plainDescription
+      .replace(/\n/g, "\\n")
+      .replace(/,/g, "\\,")
+      .replace(/;/g, "\\;");
+      
+    const escapedHtmlDesc = htmlDescription
+      .replace(/\n/g, "\\n")
+      .replace(/,/g, "\\,")
+      .replace(/;/g, "\\;");
+
+    const escapedTitle = title.replace(/[,;]/g, (m) => `\\${m}`);
+
+    const uid = `${activeTab}-${startISO}-${c.name.replace(/[^a-zA-Z0-9]/g, "")}`.toLowerCase().substring(0, 64) + "@cpbase";
+
+    const icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//CP-Base//Contest Calendar//EN",
+      "BEGIN:VEVENT",
+      `UID:${uid}`,
+      `DTSTAMP:${stampISO}`,
+      `DTSTART:${startISO}`,
+      `DTEND:${endISO}`,
+      `SUMMARY:${escapedTitle}`,
+      `DESCRIPTION:${escapedPlainDesc}`,
+      `X-ALT-DESC;FMTTYPE=text/html:${escapedHtmlDesc}`,
+      `LOCATION:${c.url}`,
+      "END:VEVENT",
+      "END:VCALENDAR"
+    ].join("\r\n");
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${c.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
   const [contestsByPlatform, setContestsByPlatform] = useState<Record<PlatformKey, Contest[]>>({
     codeforces: [],
     atcoder: [],
@@ -84,15 +235,7 @@ export function ContestCalendar() {
     return () => clearInterval(timer);
   }, []);
 
-  const formatDuration = (secondsStr: string) => {
-    const secs = parseFloat(secondsStr);
-    if (isNaN(secs)) return secondsStr;
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    if (m === 0) return `${h}h`;
-    if (h === 0) return `${m}m`;
-    return `${h}h ${m}m`;
-  };
+
 
   const getCountdown = (startTimeStr: string) => {
     const start = new Date(startTimeStr).getTime();
@@ -187,7 +330,7 @@ export function ContestCalendar() {
                 {activeTab === "atcoder" && <th className="py-2.5 px-3 w-[100px]">Rated</th>}
                 {activeTab === "codechef" && <th className="py-2.5 px-3 w-[100px]">Code</th>}
                 <th className="py-2.5 px-3 w-[110px] text-right">Starts In</th>
-                <th className="py-2.5 px-4 w-[80px] text-right">Link</th>
+                <th className="py-2.5 px-4 w-[110px] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/25">
@@ -228,16 +371,58 @@ export function ContestCalendar() {
                         {isLive ? "[ LIVE ]" : countdown}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <a
-                        href={c.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={playClick}
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 border ${styles.badge} hover:brightness-125 transition-all text-[10px] uppercase font-bold`}
-                      >
-                        <ExternalLink className="h-2.5 w-2.5" />
-                      </a>
+                    <td className="py-3 px-4 text-right font-medium">
+                      <div className="inline-flex items-center gap-1.5 justify-end relative">
+                        {/* Contest Link */}
+                        <a
+                          href={c.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={playClick}
+                          title="Open Contest Link"
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 border ${styles.badge} hover:brightness-125 transition-all text-[10px] uppercase font-bold`}
+                        >
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </a>
+
+                        {/* Add to Calendar Button */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            onClick={playClick}
+                            title="Add to Calendar"
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 border ${styles.badge} hover:brightness-125 transition-all text-[10px] uppercase font-bold cursor-pointer outline-none`}
+                          >
+                            <Calendar className="h-2.5 w-2.5" />
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="bg-background/95 border border-border/80 backdrop-blur-md font-mono text-left p-1 shadow-2xl z-50 w-44 rounded"
+                          >
+                            <div className="px-2 py-1 text-[8px] uppercase tracking-widest text-muted-foreground/50 font-bold select-none border-b border-border/20 mb-1 font-mono">
+                              Add Event
+                            </div>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                playClick();
+                                window.open(getGCalUrl(c), "_blank", "noopener,noreferrer");
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 text-[9px] text-foreground hover:bg-primary/10 transition-colors uppercase font-semibold cursor-pointer rounded-md focus:bg-primary/10 focus:text-foreground focus:outline-none"
+                            >
+                              Google Calendar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                playClick();
+                                handleDownloadICS(c);
+                              }}
+                              className="w-full text-left px-2.5 py-1.5 text-[9px] text-foreground hover:bg-primary/10 transition-colors uppercase font-semibold cursor-pointer rounded-md focus:bg-primary/10 focus:text-foreground focus:outline-none"
+                            >
+                              iCal / ICS File
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 );
