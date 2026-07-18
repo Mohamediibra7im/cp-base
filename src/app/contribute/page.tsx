@@ -1,14 +1,68 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, Lock, LogIn, UserPlus } from "lucide-react";
 import { TerminalBreadcrumb, TrafficLights } from "@/components/terminal";
+import { getSessionFromCookie } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Contribute",
   description: "Submit new competitive programming templates or request edits to existing ones. Help grow the CP-Base library.",
 };
 
-export default function ContributePage() {
+export default async function ContributePage() {
+  const session = await getSessionFromCookie();
+
+  if (!session) {
+    return (
+      <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
+        <TerminalBreadcrumb className="mb-8" items={[{ label: "home", href: "/" }, { label: "contribute" }]} />
+
+        <div className="border border-border/80 bg-card/45 backdrop-blur-md p-6 sm:p-8 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full bg-primary/5 blur-2xl" />
+
+          <div className="flex items-center gap-1.5 mb-6">
+            <TrafficLights />
+            <span className="text-[9px] text-muted-foreground/30">auth_required.sh</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground/50 mb-3">
+            <span className="text-destructive font-bold">$</span>
+            <span>contribute --verify-session</span>
+          </div>
+
+          <div className="flex items-center gap-2 mb-3">
+            <Lock className="h-5 w-5 text-destructive" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+              Authentication Required
+            </h1>
+          </div>
+
+          <p className="text-xs sm:text-sm text-muted-foreground/65 leading-relaxed max-w-xl mb-6">
+            <span className="text-destructive/80">[ERROR]</span> Permission denied. You need an account to contribute
+            templates. Log in or register to submit new templates and request edits to the library.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/login?redirect=%2Fcontribute"
+              className="group flex-1 flex items-center justify-center gap-2 border border-primary/60 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary transition-all duration-200 px-4 py-3 text-xs font-bold uppercase tracking-wider"
+            >
+              <LogIn className="h-4 w-4" />
+              Login
+            </Link>
+            <Link
+              href="/register?redirect=%2Fcontribute"
+              className="group flex-1 flex items-center justify-center gap-2 border border-border hover:border-foreground/40 bg-card/25 text-foreground hover:bg-muted/20 transition-all duration-200 px-4 py-3 text-xs font-bold uppercase tracking-wider"
+            >
+              <UserPlus className="h-4 w-4" />
+              Register
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative z-10 mx-auto max-w-3xl w-full px-4 py-12 font-mono">
       <TerminalBreadcrumb className="mb-8" items={[{ label: "home", href: "/" }, { label: "contribute" }]} />

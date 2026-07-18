@@ -14,6 +14,7 @@ function VerifyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   const { refresh } = useAuth();
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
@@ -52,7 +53,7 @@ function VerifyContent() {
         playSuccess();
         toast.success("EMAIL VERIFIED - ACCESS GRANTED");
         await refresh();
-        router.push("/dashboard");
+        router.push(redirect);
       } else {
         playBeep(180, 0.4);
         setShake(true);

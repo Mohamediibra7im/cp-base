@@ -131,6 +131,7 @@ export function MarkdownEditor({ value, onChange, placeholder, minHeight = "200p
     <div className="border border-border">
       {/* Toolbar */}
       <div className="flex items-center gap-0 border-b border-border bg-muted/30 px-1 py-1 flex-wrap">
+        {/* eslint-disable-next-line react-hooks/refs -- ref is only read inside action click handlers, not during render */}
         {tools.map((tool, i) => {
           if (!tool.icon) {
             return <div key={i} className="w-px h-4 bg-border mx-1" />;

@@ -36,7 +36,6 @@ interface Contribution {
 type ContribFilter = "all" | "pending" | "approved" | "rejected";
 
 interface ContributionsTabProps {
-  contributions: Contribution[];
   loadingContributions: boolean;
   contribFilter: ContribFilter;
   setContribFilter: (filter: ContribFilter) => void;
@@ -52,7 +51,6 @@ interface ContributionsTabProps {
 }
 
 export function ContributionsTab({
-  contributions,
   loadingContributions,
   contribFilter,
   setContribFilter,

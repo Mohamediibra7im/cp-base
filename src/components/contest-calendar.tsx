@@ -212,7 +212,7 @@ https://cp-base.vercel.app/`;
     leetcode: true,
     codechef: true,
   });
-  const [now, setNow] = useState<number>(Date.now());
+  const [now, setNow] = useState<number>(() => Date.now());
 
   const fetchPlatform = useCallback((platform: PlatformKey) => {
     fetch(`/api/contests?platform=${platform}`)

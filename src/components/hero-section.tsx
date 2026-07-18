@@ -10,6 +10,7 @@ function TypedLine({ text, prefix, onComplete }: { text: string; prefix: string;
   const [displayedText, setDisplayedText] = useState("");
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayedText("");
     let idx = 0;
     const interval = setInterval(() => {
@@ -59,6 +60,7 @@ struct SegTree {
   ], [totalTemplates, totalCategories]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

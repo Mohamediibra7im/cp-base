@@ -22,6 +22,7 @@ function LoginContent() {
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect") || "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +36,10 @@ function LoginContent() {
     const result = await login(loginValue, password);
     setLoading(false);
 
+    const redirect = searchParams.get("redirect") || "/dashboard";
     if (result.success) {
       playSuccess();
       toast.success("ACCESS GRANTED");
-      const redirect = searchParams.get("redirect") || "/dashboard";
       router.push(redirect);
     } else {
       playBeep(180, 0.4);
@@ -46,7 +47,9 @@ function LoginContent() {
       if (result.needsVerification) {
         toast.warning("Email not verified. Redirecting to verification page...");
         setTimeout(() => {
-          router.push(`/verify?email=${encodeURIComponent(result.email || "")}`);
+          router.push(
+            `/verify?email=${encodeURIComponent(result.email || "")}&redirect=${encodeURIComponent(redirect)}`
+          );
         }, 1500);
       } else {
         toast.error(result.error || "ACCESS DENIED");
@@ -174,7 +177,7 @@ function LoginContent() {
           <div className="text-center text-[10px] text-muted-foreground/40 pt-2">
             <span>No account? </span>
             <Link
-              href="/register"
+              href={redirectParam ? `/register?redirect=${encodeURIComponent(redirectParam)}` : "/register"}
               onClick={playClick}
               className="text-primary/70 hover:text-primary underline underline-offset-2 transition-colors"
             >

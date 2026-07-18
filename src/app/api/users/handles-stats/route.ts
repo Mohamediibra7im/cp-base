@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { userProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSessionFromCookie } from "@/lib/auth";
+import { getCfSolvedForAllTime } from "@/lib/codeforces";
 
 export const dynamic = "force-dynamic";
 
@@ -76,12 +77,19 @@ export async function GET(request: Request) {
   // ── 1. Codeforces ──
   if (cfHandle) {
     try {
-      const infoRes = await fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfHandle)}`, {
-        signal: AbortSignal.timeout(8000),
-      });
-      const statusRes = await fetch(`https://codeforces.com/api/user.status?handle=${encodeURIComponent(cfHandle)}`, {
-        signal: AbortSignal.timeout(8000),
-      });
+      // The profile page's "solved for all time" counter matches what users
+      // see on codeforces.com. The API's distinct-AC count is lower (it excludes
+      // acmsguru / deleted-contest problems), so we prefer the profile number
+      // and fall back to the API count below.
+      const [infoRes, statusRes, profileSolved] = await Promise.all([
+        fetch(`https://codeforces.com/api/user.info?handles=${encodeURIComponent(cfHandle)}`, {
+          signal: AbortSignal.timeout(8000),
+        }),
+        fetch(`https://codeforces.com/api/user.status?handle=${encodeURIComponent(cfHandle)}`, {
+          signal: AbortSignal.timeout(8000),
+        }),
+        getCfSolvedForAllTime(cfHandle),
+      ]);
 
       const infoData = await infoRes.json();
       const statusData = await statusRes.json();
@@ -101,6 +109,12 @@ export async function GET(request: Request) {
           }
         }
         results.codeforces.solved = solvedProblems.size;
+      }
+
+      // Prefer the profile's "solved for all time" counter when available.
+      if (profileSolved !== null) {
+        results.codeforces.solved = profileSolved;
+        results.codeforces.active = true;
       }
     } catch (err) {
       console.error("Error fetching CF stats in personalization:", err);

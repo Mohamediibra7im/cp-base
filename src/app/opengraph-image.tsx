@@ -470,7 +470,7 @@ export default async function OpengraphImage() {
                   textShadow: "0 0 6px rgba(6, 182, 212, 0.2)",
                 }}
               >
-                // TEMPLATE LIBRARY & CONTEST SYNC
+                {"// TEMPLATE LIBRARY & CONTEST SYNC"}
               </div>
               <div
                 style={{
@@ -563,7 +563,7 @@ export default async function OpengraphImage() {
                     display: "flex",
                   }}
                 >
-                  $ grep '{lang}'
+                  {`$ grep '${lang}'`}
                 </div>
               ))}
             </div>

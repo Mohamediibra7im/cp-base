@@ -7,8 +7,9 @@ import { getSessionFromCookie } from "@/lib/auth";
 import { TemplateCodeSection } from "@/components/template-code-section";
 import { MathRenderer } from "@/components/math-renderer";
 import { LikeButton } from "@/components/like-button";
-import { ArrowLeft, Clock, Calendar, FileText, UserPlus, ArrowUpRight } from "lucide-react";
+import { Calendar, FileText, UserPlus } from "lucide-react";
 import { TerminalBreadcrumb } from "@/components/terminal";
+import { ContributorChips } from "@/components/contributor-chips";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +89,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   let codes;
   let notes: string | null = null;
   let initiallyLiked = false;
-  let contributors: { name: string; cfHandle: string | null; role: "creator" | "editor"; avatar: string }[] = [];
+  let contributors: import("@/components/contributor-chips").Contributor[] = [];
 
   const session = await getSessionFromCookie();
 
@@ -128,12 +129,18 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         .where(and(eq(contributions.templateId, template.id), eq(contributions.status, "approved")))
         .orderBy(contributions.createdAt);
 
-      const seen = new Set<string>();
+      const seen = new Map<string, number>();
       const collected: { name: string; cfHandle: string | null; role: "creator" | "editor" }[] = [];
+      const counts: number[] = [];
       for (const r of rows) {
         const key = `${r.name.toLowerCase()}::${(r.cfHandle || "").toLowerCase()}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
+        const existing = seen.get(key);
+        if (existing !== undefined) {
+          counts[existing]++;
+          continue;
+        }
+        seen.set(key, collected.length);
+        counts.push(1);
         collected.push({
           name: r.name,
           cfHandle: r.cfHandle,
@@ -148,11 +155,12 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           cfHandle: template.contributorCfHandle,
           role: "creator",
         });
+        counts.push(1);
       }
 
-      // Resolve avatars: real Codeforces photo for handles (one batched call),
-      // deterministic generated avatar otherwise.
-      const cfAvatars = new Map<string, string>();
+      // Resolve avatars + Codeforces rating: real photo/rating for handles
+      // (one batched call), deterministic generated avatar otherwise.
+      const cfInfo = new Map<string, { avatar?: string; rating?: number; rank?: string }>();
       const handles = collected.map((c) => c.cfHandle).filter(Boolean) as string[];
       if (handles.length > 0) {
         try {
@@ -166,9 +174,12 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
               for (const u of data.result) {
                 let img: string | undefined = u.titlePhoto || u.avatar;
                 if (img?.startsWith("//")) img = `https:${img}`;
-                if (img && !/no-title\.jpg|no-avatar/i.test(img)) {
-                  cfAvatars.set(u.handle.toLowerCase(), img);
-                }
+                if (img && /no-title\.jpg|no-avatar/i.test(img)) img = undefined;
+                cfInfo.set(u.handle.toLowerCase(), {
+                  avatar: img,
+                  rating: typeof u.rating === "number" ? u.rating : undefined,
+                  rank: typeof u.rank === "string" ? u.rank : undefined,
+                });
               }
             }
           }
@@ -177,14 +188,20 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         }
       }
 
-      contributors = collected.map((c) => {
-        const cf = c.cfHandle ? cfAvatars.get(c.cfHandle.toLowerCase()) : undefined;
+      contributors = collected.map((c, i) => {
+        const cf = c.cfHandle ? cfInfo.get(c.cfHandle.toLowerCase()) : undefined;
         const avatar =
-          cf ||
+          cf?.avatar ||
           `https://api.dicebear.com/9.x/identicon/svg?seed=${encodeURIComponent(
             c.cfHandle || c.name
           )}&backgroundType=gradientLinear`;
-        return { ...c, avatar };
+        return {
+          ...c,
+          avatar,
+          contributions: counts[i],
+          cfRating: cf?.rating ?? null,
+          cfRank: cf?.rank ?? null,
+        };
       });
     } catch {
       // contributor list is non-critical; ignore failures
@@ -329,7 +346,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
           <div className="flex items-center gap-2 mb-4 font-bold">
             <span className="text-primary">$</span>
             <span className="text-foreground">git shortlog -sn</span>
-            <span className="text-muted-foreground/40">// {contributors.length} {contributors.length === 1 ? "contributor" : "contributors"}</span>
+            <span className="text-muted-foreground/40">{"// "}{contributors.length} {contributors.length === 1 ? "contributor" : "contributors"}</span>
           </div>
 
           <div className="border border-border/80 bg-card/45 backdrop-blur-md p-5 relative overflow-hidden">
@@ -339,46 +356,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
               <span>credits</span>
             </div>
 
-            <div className="flex flex-wrap gap-2.5">
-              {contributors.map((c, i) => {
-                const inner = (
-                  <>
-                    <img
-                      src={c.avatar}
-                      alt={c.name}
-                      loading="lazy"
-                      className="h-5 w-5 rounded-full border border-primary/25 bg-primary/10 object-cover shrink-0"
-                    />
-                    <span className="font-bold">{c.name}</span>
-                    {c.role === "creator" && (
-                      <span className="text-[8px] uppercase tracking-wider text-primary/70 border border-primary/25 bg-primary/5 px-1 py-0.5 select-none">
-                        creator
-                      </span>
-                    )}
-                    {c.cfHandle && <ArrowUpRight className="h-3 w-3 opacity-60 shrink-0" />}
-                  </>
-                );
-                return c.cfHandle ? (
-                  <a
-                    key={i}
-                    href={`https://codeforces.com/profile/${c.cfHandle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`@${c.cfHandle} on Codeforces`}
-                    className="flex items-center gap-1.5 border border-border/60 bg-card/30 px-2.5 py-1.5 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                  >
-                    {inner}
-                  </a>
-                ) : (
-                  <span
-                    key={i}
-                    className="flex items-center gap-1.5 border border-border/60 bg-card/30 px-2.5 py-1.5 text-muted-foreground"
-                  >
-                    {inner}
-                  </span>
-                );
-              })}
-            </div>
+            <ContributorChips contributors={contributors} />
           </div>
         </div>
       )}

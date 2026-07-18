@@ -38,8 +38,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Account-required areas: dashboard and contributing both need a valid session.
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/contribute")) {
+  // Account-required areas: dashboard and the contribution forms need a valid
+  // session. The /contribute landing page is public — it renders its own
+  // logged-out message with login/register actions — so only its subpaths
+  // (/contribute/new, /contribute/edit) are gated here.
+  if (
+    pathname.startsWith("/dashboard") ||
+    (pathname.startsWith("/contribute/"))
+  ) {
     const token = request.cookies.get("cp_session")?.value;
     if (!token) {
       const loginUrl = new URL("/login", request.url);

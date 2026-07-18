@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 type Tone = "destructive" | "warning" | "primary";
@@ -55,14 +58,29 @@ export function RetroModal({
   selectNone?: boolean;
 }) {
   const t = toneMap[tone];
+
+  // Close on Escape when the caller opted in with onClose.
+  useEffect(() => {
+    if (!onClose) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div
+      onClick={onClose ? () => onClose() : undefined}
       className={cn(
         "fixed inset-0 z-50 bg-background/85 backdrop-blur-xs flex items-center justify-center p-4",
         selectNone && "select-none"
       )}
     >
-      <div className={cn("w-full max-w-md border bg-card/95 overflow-hidden font-mono", t.border, t.shadow, className)}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={cn("w-full max-w-md border bg-card/95 overflow-hidden font-mono", t.border, t.shadow, className)}
+      >
         <div
           className={cn(
             "flex items-center justify-between px-3 py-2 border-b text-[10px] font-bold uppercase tracking-wider",

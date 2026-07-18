@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHash } from "crypto";
+import { getCfSolvedForAllTime } from "@/lib/codeforces";
 
 export const dynamic = "force-dynamic";
 
@@ -74,9 +75,14 @@ export async function GET() {
     const infoUrl = buildCfUrl("user.info", { handles: cfHandle });
     const statusUrl = buildCfUrl("user.status", { handle: cfHandle });
 
-    const [infoRes, statusRes] = await Promise.all([
+    // The profile page's "solved for all time" counter matches what users see
+    // on codeforces.com. The API's distinct-AC count is lower (it excludes
+    // acmsguru / deleted-contest problems), so we prefer the profile number
+    // and fall back to the API count below.
+    const [infoRes, statusRes, profileSolved] = await Promise.all([
       fetch(infoUrl, { signal: AbortSignal.timeout(8000) }),
       fetch(statusUrl, { signal: AbortSignal.timeout(8000) }),
+      getCfSolvedForAllTime(cfHandle),
     ]);
 
     const infoData = await infoRes.json();
@@ -97,6 +103,12 @@ export async function GET() {
         }
       }
       results.codeforces.solved = solvedProblems.size;
+    }
+
+    // Prefer the profile's "solved for all time" counter when available.
+    if (profileSolved !== null) {
+      results.codeforces.solved = profileSolved;
+      results.codeforces.active = true;
     }
   } catch (err) {
     console.error("Error fetching Codeforces stats:", err);

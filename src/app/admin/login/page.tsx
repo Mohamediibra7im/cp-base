@@ -23,6 +23,7 @@ export default function AdminLogin() {
     // Generate a random-like local subnet IP for aesthetic diagnostic logs
     const subnet = Math.floor(Math.random() * 254) + 1;
     const node = Math.floor(Math.random() * 254) + 1;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setClientIp(`192.168.${subnet}.${node}`);
   }, []);
 

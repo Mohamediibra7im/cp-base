@@ -26,12 +26,14 @@ import {
   Activity,
   Search,
   Code,
+  GitPullRequest,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type Tab = "overview" | "templates" | "collections" | "progress" | "settings";
+type Tab = "overview" | "templates" | "contributions" | "liked" | "collections" | "progress" | "settings";
 
 interface ProgressItem {
   id: number;
@@ -58,6 +60,29 @@ interface Collection {
   description: string | null;
   createdAt: string;
   itemCount: number;
+}
+
+interface Contribution {
+  id: number;
+  type: string;
+  status: string;
+  title: string | null;
+  adminNote: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  templateId: number | null;
+  templateTitle: string | null;
+  templateSlug: string | null;
+}
+
+interface LikedTemplate {
+  id: number;
+  templateId: number;
+  templateTitle: string;
+  templateSlug: string;
+  categoryName: string | null;
+  likeCount: number;
+  likedAt: string;
 }
 
 interface Profile {
@@ -135,6 +160,9 @@ export default function DashboardPage() {
   const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [userTemplates, setUserTemplates] = useState<UserTemplate[]>([]);
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [userContributions, setUserContributions] = useState<Contribution[]>([]);
+  const [likedTemplates, setLikedTemplates] = useState<LikedTemplate[]>([]);
+  const [unliking, setUnliking] = useState<number | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<HandlesStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,10 +188,12 @@ export default function DashboardPage() {
   const fetchData = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     try {
-      const [progRes, templRes, collRes, profRes, statsRes] = await Promise.all([
+      const [progRes, templRes, collRes, contribRes, likesRes, profRes, statsRes] = await Promise.all([
         fetch("/api/users/progress"),
         fetch("/api/users/templates"),
         fetch("/api/users/collections"),
+        fetch("/api/users/contributions"),
+        fetch("/api/users/likes"),
         fetch("/api/users/profiles"),
         fetch(`/api/users/handles-stats${forceRefresh ? "?refresh=true" : ""}`),
       ]);
@@ -179,6 +209,14 @@ export default function DashboardPage() {
       if (collRes.ok) {
         const d = await collRes.json();
         setCollections(d.collections || []);
+      }
+      if (contribRes.ok) {
+        const d = await contribRes.json();
+        setUserContributions(d.contributions || []);
+      }
+      if (likesRes.ok) {
+        const d = await likesRes.json();
+        setLikedTemplates(d.liked || []);
       }
       if (profRes.ok) {
         const d = await profRes.json();
@@ -302,6 +340,29 @@ export default function DashboardPage() {
     }
   };
 
+  const unlikeTemplate = async (templateId: number) => {
+    setUnliking(templateId);
+    try {
+      const res = await fetch("/api/templates/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId, action: "unlike" }),
+      });
+      if (res.ok) {
+        setLikedTemplates((prev) => prev.filter((t) => t.templateId !== templateId));
+        playClick();
+        toast.success("Removed from liked");
+      } else {
+        toast.error("Failed to remove like");
+        playBeep(220, 0.3);
+      }
+    } catch {
+      toast.error("Network error");
+    } finally {
+      setUnliking(null);
+    }
+  };
+
   const copyCalendarLink = () => {
     const base = typeof window !== "undefined" ? window.location.origin : "";
     const token = profile?.calendarToken || "token_placeholder";
@@ -326,6 +387,8 @@ export default function DashboardPage() {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "overview", label: "overview", icon: <LayoutDashboard className="h-3.5 w-3.5" /> },
     { id: "templates", label: "my_templates", icon: <Library className="h-3.5 w-3.5" /> },
+    { id: "contributions", label: "contributions", icon: <GitPullRequest className="h-3.5 w-3.5" /> },
+    { id: "liked", label: "liked", icon: <Heart className="h-3.5 w-3.5" /> },
     { id: "collections", label: "collections", icon: <FolderOpen className="h-3.5 w-3.5" /> },
     { id: "progress", label: "statistics", icon: <BarChart3 className="h-3.5 w-3.5" /> },
     { id: "settings", label: "preferences", icon: <Settings className="h-3.5 w-3.5" /> },
@@ -736,6 +799,151 @@ export default function DashboardPage() {
                               className="text-primary/70 hover:text-primary font-bold flex items-center gap-0.5"
                             >
                               <span>Edit code</span>
+                              <ChevronRight className="h-3 w-3" />
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ════ CONTRIBUTIONS TAB ════ */}
+              {activeTab === "contributions" && (
+                <div className="space-y-4 animate-fade-in">
+                  {userContributions.length === 0 ? (
+                    <div className="border border-border bg-card/35 backdrop-blur-md p-16 text-center space-y-4 shadow-xl select-none font-mono">
+                      <GitPullRequest className="h-8 w-8 text-muted-foreground/15 mx-auto animate-pulse" />
+                      <p className="text-xs text-muted-foreground/40">No contributions submitted yet.</p>
+                      <Link
+                        href="/contribute"
+                        onClick={playClick}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary/70 hover:text-primary transition-colors"
+                      >
+                        <Plus className="h-3 w-3" />
+                        <span>Submit a template</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="border border-border/80 bg-card/35 backdrop-blur-md shadow-xl divide-y divide-border/30">
+                      <div className="px-4 py-2.5 border-b border-border/40 bg-muted/15 text-[10px] uppercase tracking-wider text-muted-foreground/45 font-bold flex items-center gap-1.5">
+                        <GitPullRequest className="h-3.5 w-3.5 text-primary" />
+                        <span>Submission History ({userContributions.length})</span>
+                      </div>
+                      {userContributions.map((c) => {
+                        const label = c.templateTitle || c.title || "Untitled";
+                        const statusColor =
+                          c.status === "approved"
+                            ? "text-success border-success/30 bg-success/5"
+                            : c.status === "rejected"
+                            ? "text-destructive border-destructive/30 bg-destructive/5"
+                            : "text-warning border-warning/30 bg-warning/5";
+                        return (
+                          <div key={c.id} className="p-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 space-y-1.5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[8px] uppercase tracking-wider text-muted-foreground/35 border border-border/60 px-1 py-0.5 font-bold select-none">
+                                  {c.type === "new" ? "new template" : "edit"}
+                                </span>
+                                {c.status === "approved" && c.templateSlug ? (
+                                  <Link
+                                    href={`/template/${c.templateSlug}`}
+                                    onClick={playClick}
+                                    className="text-xs font-bold text-foreground hover:text-primary transition-colors truncate"
+                                  >
+                                    {label}
+                                  </Link>
+                                ) : (
+                                  <span className="text-xs font-bold text-foreground truncate">{label}</span>
+                                )}
+                              </div>
+                              <p className="text-[9px] text-muted-foreground/30 font-mono select-none">
+                                Submitted: {new Date(c.createdAt).toLocaleDateString()}
+                                {c.reviewedAt && ` · Reviewed: ${new Date(c.reviewedAt).toLocaleDateString()}`}
+                              </p>
+                              {c.adminNote && (
+                                <p className="text-[10px] text-muted-foreground/50 leading-relaxed border-l-2 border-border/40 pl-2 select-text">
+                                  <span className="text-muted-foreground/30 uppercase tracking-wider">note: </span>
+                                  {c.adminNote}
+                                </p>
+                              )}
+                            </div>
+                            <span
+                              className={`shrink-0 text-[9px] uppercase tracking-wider font-bold border px-2 py-1 select-none ${statusColor}`}
+                            >
+                              {c.status}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ════ LIKED TAB ════ */}
+              {activeTab === "liked" && (
+                <div className="space-y-4 animate-fade-in">
+                  {likedTemplates.length === 0 ? (
+                    <div className="border border-border bg-card/35 backdrop-blur-md p-16 text-center space-y-4 shadow-xl select-none font-mono">
+                      <Heart className="h-8 w-8 text-muted-foreground/15 mx-auto animate-pulse" />
+                      <p className="text-xs text-muted-foreground/40">No liked templates yet.</p>
+                      <Link
+                        href="/templates"
+                        onClick={playClick}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary/70 hover:text-primary transition-colors"
+                      >
+                        <Library className="h-3 w-3" />
+                        <span>Browse templates</span>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {likedTemplates.map((t) => (
+                        <div
+                          key={t.id}
+                          className="border border-border bg-card/35 backdrop-blur-md p-4 flex flex-col justify-between hover:border-primary/50 transition-all duration-300 group shadow-md"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[9px] uppercase tracking-wider text-muted-foreground/35 font-bold font-mono">
+                                {t.categoryName || "uncategorized"}
+                              </span>
+                              <button
+                                onClick={() => unlikeTemplate(t.templateId)}
+                                disabled={unliking === t.templateId}
+                                className="text-destructive/60 hover:text-destructive transition-colors cursor-pointer p-1 disabled:opacity-40"
+                                title="Remove from liked"
+                              >
+                                <Heart className="h-3.5 w-3.5 fill-current" />
+                              </button>
+                            </div>
+
+                            <Link
+                              href={`/template/${t.templateSlug}`}
+                              onClick={playClick}
+                              className="block text-xs font-bold text-foreground group-hover:text-primary transition-colors leading-snug"
+                            >
+                              {t.templateTitle}
+                            </Link>
+
+                            <p className="text-[9px] text-muted-foreground/30 font-mono select-none">
+                              Liked: {new Date(t.likedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+
+                          <div className="mt-5 pt-3.5 border-t border-border/25 flex items-center justify-between text-[9px] select-none text-muted-foreground/30 font-mono">
+                            <span className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              <span>{t.likeCount} likes</span>
+                            </span>
+                            <Link
+                              href={`/template/${t.templateSlug}`}
+                              onClick={playClick}
+                              className="text-primary/70 hover:text-primary font-bold flex items-center gap-0.5"
+                            >
+                              <span>Open</span>
                               <ChevronRight className="h-3 w-3" />
                             </Link>
                           </div>

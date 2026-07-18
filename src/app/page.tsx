@@ -31,7 +31,7 @@ export default async function Home() {
   }
 
   let cats: Awaited<ReturnType<typeof db.query.categories.findMany>> = [];
-  let countMap: Record<number, number> = {};
+  const countMap: Record<number, number> = {};
   let totalTemplates = 0;
 
   try {
@@ -154,7 +154,7 @@ export default async function Home() {
                   </div>
                   <div className="h-px bg-border/40 my-3" />
                   <div className="p-2 border border-border/30 bg-black/15 text-[10px] space-y-1 select-all font-mono">
-                    <div className="text-muted-foreground/40">// Copy-ready fast IO boilerplate</div>
+                    <div className="text-muted-foreground/40">{"// Copy-ready fast IO boilerplate"}</div>
                     <div className="text-foreground">#include &lt;bits/stdc++.h&gt;</div>
                     <div className="text-foreground">using namespace std;</div>
                     <div className="text-foreground">#define fast_io ios_base::sync_with_stdio(false); cin.tie(NULL);</div>

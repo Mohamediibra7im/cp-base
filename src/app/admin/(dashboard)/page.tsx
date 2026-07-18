@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,14 +65,56 @@ interface Contribution {
   template?: { title: string; slug: string };
 }
 
+interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+  calendarToken: string | null;
+  codeforcesHandle: string | null;
+  atcoderHandle: string | null;
+  leetcodeHandle: string | null;
+  codechefHandle: string | null;
+}
+
+interface CategoryModalState {
+  open: boolean;
+  isEdit: boolean;
+  id?: number;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  color: string;
+  order: number;
+  hidden: boolean;
+}
+
+// Shape of a template object parsed from an uploaded bulk-import JSON file.
+// Fields are all optional since the file is user-supplied and validated at use.
+interface ImportItem {
+  title?: string;
+  slug?: string;
+  description?: string;
+  categoryId?: number | string;
+  categorySlug?: string;
+  tags?: string[] | string;
+  notes?: string;
+  codes?: { language: string; code: string }[];
+  code?: string;
+  language?: string;
+  hidden?: boolean;
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"templates" | "categories" | "sections" | "stats" | "contributions" | "users">("templates");
   
   // Users State
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [deleteUserTarget, setDeleteUserTarget] = useState<any | null>(null);
-  const [selectedUserDetail, setSelectedUserDetail] = useState<any | null>(null);
+  const [deleteUserTarget, setDeleteUserTarget] = useState<AdminUser | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<AdminUser | null>(null);
 
   // Templates State
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -109,18 +151,7 @@ export default function AdminDashboard() {
   const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null);
   
   // Category Modal State
-  const [categoryModal, setCategoryModal] = useState<{
-    open: boolean;
-    isEdit: boolean;
-    id?: number;
-    name: string;
-    slug: string;
-    description: string;
-    icon: string;
-    color: string;
-    order: number;
-    hidden: boolean;
-  } | null>(null);
+  const [categoryModal, setCategoryModal] = useState<CategoryModalState | null>(null);
 
   // Homepage Sections State
   const [sections, setSections] = useState({
@@ -180,6 +211,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTemplates();
     fetchCategories();
     fetchSettings();
@@ -247,7 +279,7 @@ export default function AdminDashboard() {
       toast.success(`Updated visibility for ${selectedList.length} templates`);
       setSelectedIds({});
       fetchTemplates();
-    } catch (err) {
+    } catch {
       toast.error("Failed to update template visibilities in bulk");
     } finally {
       setBulkLoading(false);
@@ -278,7 +310,7 @@ export default function AdminDashboard() {
       toast.success(`Deleted ${selectedList.length} templates`);
       setSelectedIds({});
       fetchTemplates();
-    } catch (err) {
+    } catch {
       playBeep(440, 0.15);
       toast.error("Failed to delete templates in bulk");
     } finally {
@@ -294,7 +326,7 @@ export default function AdminDashboard() {
 
     const flatItems: {
       file: File;
-      item: any;
+      item: ImportItem;
     }[] = [];
     const reportItems: {
       title: string;
@@ -325,13 +357,13 @@ export default function AdminDashboard() {
         for (const item of data) {
           flatItems.push({ file, item });
         }
-      } catch (err: any) {
+      } catch (err) {
         reportItems.push({
           title: file.name,
           slug: file.name,
           categoryName: "None",
           status: "error",
-          reason: `Failed to parse JSON file: ${err.message || "Unknown error"}`,
+          reason: `Failed to parse JSON file: ${err instanceof Error ? err.message : "Unknown error"}`,
         });
         failedCount++;
       }
@@ -385,8 +417,9 @@ export default function AdminDashboard() {
         let catId = item.categoryId;
         let catName = "unassigned";
         if (item.categorySlug) {
+          const categorySlug = item.categorySlug.toLowerCase();
           const matchedCat = categories.find(
-            (c) => c.slug.toLowerCase() === item.categorySlug.toLowerCase()
+            (c) => c.slug.toLowerCase() === categorySlug
           );
           if (matchedCat) {
             catId = matchedCat.id;
@@ -441,13 +474,13 @@ export default function AdminDashboard() {
           });
           failedCount++;
         }
-      } catch (itemErr: any) {
+      } catch (itemErr) {
         reportItems.push({
           title: item.title || "Unknown Title",
           slug: item.slug || "unknown-slug",
           categoryName: "None",
           status: "error",
-          reason: itemErr.message || "Internal processing error",
+          reason: itemErr instanceof Error ? itemErr.message : "Internal processing error",
         });
         failedCount++;
       }
@@ -701,6 +734,7 @@ export default function AdminDashboard() {
           autoExpanded[catId] = true;
         }
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setExpandedCats(autoExpanded);
     }
   }, [search, templatesByCategory]);
@@ -1020,7 +1054,7 @@ export default function AdminDashboard() {
       {activeTab === "users" && <UsersTab users={users} loading={loadingUsers} onDelete={(u) => { playBeep(330, 0.25); setDeleteUserTarget(u); }} onSelectUser={(u) => setSelectedUserDetail(u)} onRowClickSound={playClick} />}
 
       {/* VIEW: Contributions Review */}
-      {activeTab === "contributions" && <ContributionsTab contributions={contributions} loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
+      {activeTab === "contributions" && <ContributionsTab loadingContributions={loadingContributions} contribFilter={contribFilter} setContribFilter={setContribFilter} pendingContribCount={pendingContribCount} filteredContributions={filteredContributions} expandedContribution={expandedContribution} setExpandedContribution={setExpandedContribution} playClick={playClick} playBeep={playBeep} onApprove={approveContribution} onReject={(c) => setRejectModal({ id: c.id, adminNote: "" })} onDelete={(c) => setDeleteContribTarget(c)} />}
 
       {/* Retro Delete warning modal overlay (Templates) */}
       {deleteTarget && (
@@ -1030,7 +1064,7 @@ export default function AdminDashboard() {
           onCancel={() => { playClick(); setDeleteTarget(null); }}
           onConfirm={confirmDelete}
         >
-          WARNING: You are about to permanently delete the template file <span className="text-foreground font-semibold">"{deleteTarget.title}"</span>.
+          WARNING: You are about to permanently delete the template file <span className="text-foreground font-semibold">&quot;{deleteTarget.title}&quot;</span>.
           This action is irreversible and will purge the file record from the repository index.
         </RetroConfirmModal>
       )}
@@ -1057,7 +1091,7 @@ export default function AdminDashboard() {
           onCancel={() => { playClick(); setDeleteCategoryTarget(null); }}
           onConfirm={confirmDeleteCategory}
         >
-          WARNING: You are about to permanently delete the category folder <span className="text-foreground font-semibold">"{deleteCategoryTarget.name}"</span>.
+          WARNING: You are about to permanently delete the category folder <span className="text-foreground font-semibold">&quot;{deleteCategoryTarget.name}&quot;</span>.
           This action is irreversible and will purge all templates directly linked to this category!
         </RetroConfirmModal>
       )}
@@ -1070,7 +1104,7 @@ export default function AdminDashboard() {
           onCancel={() => { playClick(); setDeleteUserTarget(null); }}
           onConfirm={confirmDeleteUser}
         >
-          WARNING: You are about to permanently delete the user account <span className="text-foreground font-semibold">"{deleteUserTarget.username}"</span> (<span className="text-muted-foreground">{deleteUserTarget.email}</span>).
+          WARNING: You are about to permanently delete the user account <span className="text-foreground font-semibold">&quot;{deleteUserTarget.username}&quot;</span> (<span className="text-muted-foreground">{deleteUserTarget.email}</span>).
           This action is irreversible and will purge all custom templates, collections, and progress records associated with this account from the mainframe database!
         </RetroConfirmModal>
       )}
@@ -1228,7 +1262,7 @@ export default function AdminDashboard() {
           onConfirm={confirmDeleteContribution}
         >
           WARNING: You are about to permanently delete this {deleteContribTarget.type === "edit" ? "edit request" : "template submission"} from{" "}
-          <span className="text-foreground font-semibold">"{deleteContribTarget.contributorName}"</span>.
+          <span className="text-foreground font-semibold">&quot;{deleteContribTarget.contributorName}&quot;</span>.
           {deleteContribTarget.type === "edit" && deleteContribTarget.status === "approved"
             ? " If approved, their applied changes will be rolled back (template restored to the version before their edit) and their history snapshot purged."
             : " If approved, the contributor credit will be removed from the template (the template itself stays published)."}{" "}
@@ -1261,7 +1295,7 @@ export default function AdminDashboard() {
                   onChange={(e) => {
                     const val = e.target.value;
                     const generatedSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-                    setCategoryModal((prev: any) => ({ ...prev, name: val, slug: generatedSlug }));
+                    setCategoryModal((prev) => prev && ({ ...prev, name: val, slug: generatedSlug }));
                   }}
                   placeholder="Graphs"
                   className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none w-full"
@@ -1275,7 +1309,7 @@ export default function AdminDashboard() {
                 </label>
                 <Input
                   value={categoryModal.slug}
-                  onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, slug: e.target.value }))}
+                  onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, slug: e.target.value }))}
                   placeholder="graphs"
                   className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none w-full"
                 />
@@ -1288,7 +1322,7 @@ export default function AdminDashboard() {
                 </label>
                 <Input
                   value={categoryModal.description}
-                  onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, description: e.target.value }))}
                   placeholder="Graph algorithms and utilities"
                   className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none w-full"
                 />
@@ -1302,7 +1336,7 @@ export default function AdminDashboard() {
                   </label>
                   <Input
                     value={categoryModal.icon}
-                    onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, icon: e.target.value }))}
+                    onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, icon: e.target.value }))}
                     placeholder="GitBranch"
                     className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none w-full"
                   />
@@ -1316,7 +1350,7 @@ export default function AdminDashboard() {
                   <div className="flex gap-2">
                     <Input
                       value={categoryModal.color}
-                      onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, color: e.target.value }))}
+                      onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, color: e.target.value }))}
                       placeholder="#ef4444"
                       className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none flex-1"
                     />
@@ -1324,7 +1358,7 @@ export default function AdminDashboard() {
                       <input
                         type="color"
                         value={categoryModal.color.startsWith("#") ? categoryModal.color : "#3b82f6"}
-                        onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, color: e.target.value }))}
+                        onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, color: e.target.value }))}
                         className="w-full h-full cursor-pointer absolute inset-0 opacity-0 z-10"
                       />
                       <div
@@ -1345,7 +1379,7 @@ export default function AdminDashboard() {
                   <Input
                     type="number"
                     value={categoryModal.order}
-                    onChange={(e) => setCategoryModal((prev: any) => ({ ...prev, order: Number(e.target.value) }))}
+                    onChange={(e) => setCategoryModal((prev) => prev && ({ ...prev, order: Number(e.target.value) }))}
                     placeholder="10"
                     className="bg-background/40 border-border focus:border-primary/50 text-xs font-mono h-8 rounded-none w-full"
                   />
@@ -1357,7 +1391,7 @@ export default function AdminDashboard() {
                     Visibility
                   </label>
                   <button
-                    onClick={() => setCategoryModal((prev: any) => ({ ...prev, hidden: !prev.hidden }))}
+                    onClick={() => setCategoryModal((prev) => prev && ({ ...prev, hidden: !prev.hidden }))}
                     className={`h-8 w-full border text-xs font-mono font-bold uppercase transition-all rounded-none cursor-pointer ${
                       categoryModal.hidden
                         ? "border-destructive bg-destructive/10 text-destructive"

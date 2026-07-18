@@ -27,7 +27,9 @@ let sharedAudioCtx: AudioContext | null = null;
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!sharedAudioCtx) {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       sharedAudioCtx = new AudioContextClass();
     }
@@ -47,6 +49,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedTheme = localStorage.getItem("terminal-theme") as TerminalThemeType;
     if (storedTheme && ["green", "amber", "cyan", "red", "purple", "mono"].includes(storedTheme)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setThemeState(storedTheme);
     }
 

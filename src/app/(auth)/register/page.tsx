@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { useTerminalTheme } from "@/components/theme-provider";
@@ -23,6 +23,8 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const { playClick, playBeep, playSuccess } = useTerminalTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,11 +58,13 @@ export default function RegisterPage() {
       if (result.needsVerification) {
         toast.success("Account created! A verification code has been sent to your email.");
         setTimeout(() => {
-          router.push(`/verify?email=${encodeURIComponent(result.email || "")}`);
+          router.push(
+            `/verify?email=${encodeURIComponent(result.email || "")}&redirect=${encodeURIComponent(redirect)}`
+          );
         }, 1500);
       } else {
         toast.success("ACCOUNT CREATED");
-        router.push("/dashboard");
+        router.push(redirect);
       }
     } else {
       playBeep(180, 0.4);
@@ -221,7 +225,7 @@ export default function RegisterPage() {
           <div className="text-center text-[10px] text-muted-foreground/40 pt-2">
             <span>Already have an account? </span>
             <Link
-              href="/login"
+              href={`/login?redirect=${encodeURIComponent(redirect)}`}
               onClick={playClick}
               className="text-primary/70 hover:text-primary underline underline-offset-2 transition-colors"
             >

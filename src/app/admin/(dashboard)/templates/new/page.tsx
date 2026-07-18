@@ -126,7 +126,7 @@ export default function NewTemplate() {
 
         if (Array.isArray(data.codes)) {
           setCodes(
-            data.codes.map((c: any) => ({
+            data.codes.map((c: { language?: string; code?: string }) => ({
               language: c.language || "cpp",
               code: c.code || "",
             }))
