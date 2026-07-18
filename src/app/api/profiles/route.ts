@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 
 export const dynamic = "force-dynamic";
 
 // Simple in-memory cache to prevent hitting external API rate limits on every page load
-let cachedData: any = null;
+let cachedData: unknown = null;
 let cacheTime = 0;
 const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes cache
 
@@ -62,18 +63,9 @@ export async function GET() {
           .join("&");
         const sigStr = `${rand}/${method}?${sorted}#${cfSecret}`;
 
-        // Use Web Crypto to compute SHA-512
-        const encoder = new TextEncoder();
-        const data = encoder.encode(sigStr);
-        // Fallback: use simple hash - crypto.subtle not available in all runtimes
-        // For server-side, we can use Node crypto
-        try {
-          const crypto = require("crypto");
-          const hash = crypto.createHash("sha512").update(sigStr).digest("hex");
-          url.searchParams.set("apiSig", `${rand}${hash}`);
-        } catch {
-          // If crypto not available, skip auth
-        }
+        // Compute the Codeforces apiSig using SHA-512 over the signature string.
+        const hash = createHash("sha512").update(sigStr).digest("hex");
+        url.searchParams.set("apiSig", `${rand}${hash}`);
       }
 
       return url.toString();
