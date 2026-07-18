@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "CP-Base | Competitive Programming Templates & Contest Calendar";
+export const alt = "CP-Base | Ultimate Competitive Programming Library & Contest Sync";
 export const size = {
   width: 1200,
   height: 630,
@@ -470,7 +470,7 @@ export default async function OpengraphImage() {
                   textShadow: "0 0 6px rgba(6, 182, 212, 0.2)",
                 }}
               >
-                // TEMPLATES & LIVE CONTEST CALENDAR
+                // TEMPLATE LIBRARY & CONTEST SYNC
               </div>
               <div
                 style={{
@@ -482,7 +482,7 @@ export default async function OpengraphImage() {
                   display: "flex",
                 }}
               >
-                Templates & Live Contest Calendar
+                Ultimate CP Library & Contest Sync
               </div>
             </div>
 

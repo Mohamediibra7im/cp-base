@@ -89,7 +89,7 @@ export function RetroModal({
  */
 export function RetroConfirmModal({
   tone = "destructive",
-  title = "⚠️ [ CAUTION: DESTRUCTIVE ACTION ]",
+  title = "[!] [ CAUTION: DESTRUCTIVE ACTION ]",
   tag = "WARN_LEVEL_3",
   commandTarget,
   children,

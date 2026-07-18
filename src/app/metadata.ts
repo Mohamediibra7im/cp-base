@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 const description =
-  "A terminal-themed competitive programming template library with a live contest calendar. Browse algorithms, track upcoming Codeforces, AtCoder, LeetCode & CodeChef contests, and copy-paste optimized templates into your next contest.";
+  "Accelerate your competitive programming speed. Browse modular, optimized C++ algorithm templates, track upcoming Codeforces, AtCoder, LeetCode, & CodeChef contests, and sync feeds directly to your calendar.";
 
 export const metadata: Metadata = {
   title: {
-    default: "CP-Base | Competitive Programming Templates & Contest Calendar",
+    default: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
     template: "%s | CP-Base",
   },
   description,
@@ -71,20 +71,20 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "CP-Base",
-    title: "CP-Base | Competitive Programming Templates & Contest Calendar",
+    title: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
     description,
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "CP-Base | Competitive Programming Templates & Contest Calendar",
+        alt: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CP-Base | Competitive Programming Templates & Contest Calendar",
+    title: "CP-Base | Ultimate Competitive Programming Library & Contest Sync",
     description,
     images: ["/opengraph-image"],
   },

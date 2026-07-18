@@ -79,12 +79,12 @@ export function Footer() {
             </h4>
             <nav className="flex flex-col gap-3 pl-1.5">
               <Link
-                href="/#categories"
+                href="/categories"
                 onClick={playClick}
                 className="flex items-center gap-2 text-[11px] text-muted-foreground/40 hover:text-primary transition-all w-fit group"
               >
                 <Braces className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
-                <span>📁 categories/</span>
+                <span>categories/</span>
               </Link>
               <Link
                 href="/templates"
@@ -92,7 +92,7 @@ export function Footer() {
                 className="flex items-center gap-2 text-[11px] text-muted-foreground/40 hover:text-primary transition-all w-fit group"
               >
                 <Library className="h-3.5 w-3.5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
-                <span>📂 templates_all/</span>
+                <span>templates_all/</span>
               </Link>
             </nav>
           </div>

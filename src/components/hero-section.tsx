@@ -173,15 +173,15 @@ struct SegTree {
               mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
-            <a
-              href="#categories"
+            <Link
+              href="/categories"
               onClick={playClick}
               className="group inline-flex h-11 items-center justify-center gap-2 border border-primary bg-primary text-primary-foreground px-8 text-xs uppercase font-bold tracking-wider hover:bg-transparent hover:text-primary transition-all duration-300 shadow-[0_0_15px_var(--primary-glow-weak)] hover:shadow-[0_0_25px_var(--primary-glow)] shrink-0"
             >
               <Code2 className="h-4 w-4" />
               <span>./browse_templates.sh</span>
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-            </a>
+            </Link>
             <Link
               href="/templates"
               onClick={playClick}

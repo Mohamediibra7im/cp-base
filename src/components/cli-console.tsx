@@ -119,7 +119,7 @@ export function CliConsole() {
         addLog("  matrix                       Toggle Canvas Matrix falling code background", "output");
         addLog("  clear                        Clear terminal output buffer", "output");
         addLog("  about                        Print system information", "output");
-        addLog("  sudo rm -rf /                ⚠️ CRITICAL SYSTEM DELETE", "output");
+        addLog("  sudo rm -rf /                [!] CRITICAL SYSTEM DELETE", "output");
         break;
 
       case "ls":
@@ -231,7 +231,7 @@ export function CliConsole() {
     setTimeout(() => {
       playBeep(110, 0.5);
       addLog("[WARNING] EMERGENCY MELTDOWN PREVENTED BY BIO_SHIELD_GATE", "system");
-      addLog("Permission denied. Access Denied, nice try kid! 😉", "success");
+      addLog("Permission denied. Access Denied, nice try kid!", "success");
       html.style.filter = "";
       html.style.transition = "";
     }, 2800);

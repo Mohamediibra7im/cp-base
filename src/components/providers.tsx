@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { ThemeProvider, useTerminalTheme } from "./theme-provider";
+import { AuthProvider } from "./auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { MatrixRain } from "./matrix-rain";
 import { RetroSettings } from "./retro-settings";
@@ -60,10 +61,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <AppContent>
-        {children}
-      </AppContent>
-      <Toaster richColors position="top-center" className="font-mono text-xs" />
+      <AuthProvider>
+        <AppContent>
+          {children}
+        </AppContent>
+        <Toaster richColors position="top-center" className="font-mono text-xs" />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

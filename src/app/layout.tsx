@@ -18,7 +18,7 @@ const structuredData = {
   "@type": "WebApplication",
   name: "CP-Base",
   description:
-    "A terminal-themed competitive programming template library with a live contest calendar. Browse algorithms, track upcoming Codeforces, AtCoder, LeetCode & CodeChef contests, and copy-paste optimized templates into your next contest.",
+    "Accelerate your competitive programming speed. Browse modular, optimized C++ algorithm templates, track upcoming Codeforces, AtCoder, LeetCode, & CodeChef contests, and sync feeds directly to your calendar.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://cp-base.vercel.app",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web Browser",

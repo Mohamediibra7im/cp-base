@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest } from "lucide-react";
+import { Terminal, Search, X, Braces, Library, Menu, GitPullRequest, LogIn, LayoutDashboard, LogOut } from "lucide-react";
 import { useTerminalTheme } from "./theme-provider";
+import { useAuth } from "./auth-provider";
 import {
   Sheet,
   SheetContent,
@@ -122,6 +123,7 @@ function NavSearch({ autoFocus }: { autoFocus?: boolean }) {
 export function NavBar() {
   const pathname = usePathname();
   const { playClick } = useTerminalTheme();
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -181,17 +183,17 @@ export function NavBar() {
               {/* Nav links */}
               <nav className="hidden sm:flex items-center gap-1">
                 <Link
-                  href="/#categories"
+                  href="/categories"
                   onClick={playClick}
                   className={`relative flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wide uppercase transition-colors ${
-                    pathname === "/"
+                    isActive("/categories")
                       ? "text-primary"
                       : "text-muted-foreground/40 hover:text-foreground"
                   }`}
                 >
                   <Braces className="h-3 w-3" />
                   <span>categories</span>
-                  {pathname === "/" && (
+                  {isActive("/categories") && (
                     <span className="absolute bottom-0 left-3 right-3 h-px bg-primary" />
                   )}
                 </Link>
@@ -238,6 +240,48 @@ export function NavBar() {
               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/25 pr-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                 <span className="hidden sm:inline font-mono">online</span>
+              </div>
+
+              {/* Auth Links (Desktop) */}
+              <div className="hidden sm:flex items-center gap-1.5">
+                {user ? (
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={playClick}
+                      className={`flex items-center gap-1.5 px-2.5 h-7 border text-[10px] tracking-wide uppercase transition-all ${
+                        isActive("/dashboard")
+                          ? "border-primary/20 bg-primary/5 text-primary"
+                          : "border-border bg-card/30 text-muted-foreground/40 hover:text-foreground hover:border-border/80"
+                      }`}
+                    >
+                      <LayoutDashboard className="h-3 w-3" />
+                      <span>{user.username}</span>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        playClick();
+                        logout();
+                      }}
+                      className="flex items-center justify-center h-7 w-7 border border-border bg-card/30 text-muted-foreground/40 hover:text-destructive hover:border-destructive/30 transition-all text-[10px] tracking-wide uppercase cursor-pointer"
+                    >
+                      <LogOut className="h-3 w-3" />
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={playClick}
+                    className={`flex items-center gap-1.5 px-2.5 h-7 border text-[10px] tracking-wide uppercase transition-all ${
+                      isActive("/login") || isActive("/register")
+                        ? "border-primary/20 bg-primary/5 text-primary"
+                        : "border-border bg-card/30 text-muted-foreground/40 hover:text-foreground hover:border-border/80"
+                    }`}
+                  >
+                    <LogIn className="h-3 w-3" />
+                    <span>login</span>
+                  </Link>
+                )}
               </div>
 
               {/* Mobile Search Button */}
@@ -288,13 +332,13 @@ export function NavBar() {
                         <span>cd navigation/</span>
                       </div>
                       <Link
-                        href="/#categories"
+                        href="/categories"
                         onClick={() => {
                           playClick();
                           setOpen(false);
                         }}
                         className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
-                          pathname === "/"
+                          isActive("/categories")
                             ? "border-primary/20 bg-primary/5 text-primary"
                             : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
                         }`}
@@ -329,9 +373,63 @@ export function NavBar() {
                             : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
                         }`}
                       >
-                        <GitPullRequest className="h-3.5 w-3.5" />
+                      <GitPullRequest className="h-3.5 w-3.5" />
                         <span>contribute</span>
                       </Link>
+
+                      {/* Auth Links (Mobile) */}
+                      <div className="border-t border-border/50 mt-2 pt-3">
+                        <div className="text-[10px] text-muted-foreground/40 font-mono mb-2 flex items-center gap-1">
+                          <span className="text-primary">$</span>
+                          <span>whoami</span>
+                        </div>
+                        {user ? (
+                          <>
+                            <Link
+                              href="/dashboard"
+                              onClick={() => {
+                                playClick();
+                                setOpen(false);
+                              }}
+                              className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all mb-2 ${
+                                isActive("/dashboard")
+                                  ? "border-primary/20 bg-primary/5 text-primary"
+                                  : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                              }`}
+                            >
+                              <LayoutDashboard className="h-3.5 w-3.5" />
+                              <span>{user.username}</span>
+                            </Link>
+                            <button
+                              onClick={() => {
+                                playClick();
+                                logout();
+                                setOpen(false);
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 border border-border bg-card/30 text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all text-xs tracking-wide uppercase w-full"
+                            >
+                              <LogOut className="h-3.5 w-3.5" />
+                              <span>logout</span>
+                            </button>
+                          </>
+                        ) : (
+                          <Link
+                            href="/login"
+                            onClick={() => {
+                              playClick();
+                              setOpen(false);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 border text-xs tracking-wide uppercase transition-all ${
+                              isActive("/login")
+                                ? "border-primary/20 bg-primary/5 text-primary"
+                                : "border-border bg-card/30 text-muted-foreground hover:text-foreground hover:border-border/80"
+                            }`}
+                          >
+                            <LogIn className="h-3.5 w-3.5" />
+                            <span>login</span>
+                          </Link>
+                        )}
+                      </div>
                     </nav>
 
                     <div className="absolute bottom-6 left-6 right-6 font-mono text-[9px] text-muted-foreground/30 flex justify-between items-center border-t border-border/50 pt-4">
